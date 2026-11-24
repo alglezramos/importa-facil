@@ -11,7 +11,7 @@ const VISTAS: Record<Vista, string> = {
   cotizar: 'Cotizar importación',
   clasificar: 'Clasificación e impuestos',
   guia: 'Cómo funciona',
-  aliados: 'Aliados',
+  aliados: 'Socios Comerciales',
 }
 
 export default function App() {
