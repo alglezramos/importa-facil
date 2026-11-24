@@ -71,3 +71,14 @@ describe('línea de tiempo y búsqueda', () => {
     expect(buscarPartidas('').length).toBe(ARANCEL.length)
   })
 })
+
+import { proveedoresInternacionales } from '../data/proveedores'
+describe('proveedores', () => {
+  it('filtra por origen y modalidad', () => {
+    const fclChina = proveedoresInternacionales('cn-sur', 'FCL40').map((p) => p.id)
+    expect(fclChina).toContain('cosco')
+    expect(fclChina).not.toContain('crowley')
+    const aereo = proveedoresInternacionales('eu', 'AEREO')
+    expect(aereo.every((p) => p.tipo === 'aereo')).toBe(true)
+  })
+})
