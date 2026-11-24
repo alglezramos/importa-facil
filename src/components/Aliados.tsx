@@ -20,12 +20,12 @@ export function Aliados() {
 
   return (
     <section className="panel aliados">
-      <h2>Nuestros aliados comerciales</h2>
+      <h2>Nuestros socios comerciales</h2>
       <p className="intro">
         Trabajamos con navieras, consolidadores, transportistas y almacenes de confianza para mover tu carga desde el
         proveedor hasta tu bodega. {AGENCIA.nombre} coordina a todos por ti.
       </p>
-      {ES_EJEMPLO && <p className="nota">Aliados de ejemplo: esta lista se actualizará con nuestros socios reales.</p>}
+      {ES_EJEMPLO && <p className="nota">Socios de ejemplo: esta lista se actualizará con nuestros socios reales.</p>}
 
       <div className="filtros">
         {['Todos', ...categorias].map((c) => (
@@ -57,10 +57,10 @@ export function Aliados() {
 
       <div className="cta-aliado">
         <div>
-          <strong>¿Quieres ser aliado de {AGENCIA.nombre}?</strong>
+          <strong>¿Quieres ser socio comercial de {AGENCIA.nombre}?</strong>
           <span>Si eres naviera, forwarder, transportista o almacén, conversemos.</span>
         </div>
-        <a className="btn primario" href={`https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent('Hola, me interesa ser aliado comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">
+        <a className="btn primario" href={`https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent('Hola, me interesa ser socio comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">
           Escríbenos
         </a>
       </div>
