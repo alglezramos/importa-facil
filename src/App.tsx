@@ -19,7 +19,7 @@ export default function App() {
     <div className="app">
       <header>
         <div className="marca">
-          <div className="logo" aria-hidden>A</div>
+          <div className="logo" aria-hidden>R</div>
           <div>
             <h1>{AGENCIA.nombre}</h1>
             <p>{AGENCIA.eslogan}</p>
