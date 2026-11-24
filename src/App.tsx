@@ -1,15 +1,17 @@
 import { useState } from 'react'
+import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
 import { Cotizador } from './components/Cotizador'
 import { Guia } from './components/Guia'
 import { AGENCIA } from './data/config'
 
-type Vista = 'cotizar' | 'clasificar' | 'guia'
+type Vista = 'cotizar' | 'clasificar' | 'guia' | 'aliados'
 
 const VISTAS: Record<Vista, string> = {
   cotizar: 'Cotizar importación',
   clasificar: 'Clasificación e impuestos',
   guia: 'Cómo funciona',
+  aliados: 'Aliados',
 }
 
 export default function App() {
@@ -38,6 +40,7 @@ export default function App() {
         {vista === 'cotizar' && <Cotizador />}
         {vista === 'clasificar' && <Clasificacion />}
         {vista === 'guia' && <Guia />}
+        {vista === 'aliados' && <Aliados />}
       </main>
 
       <footer>

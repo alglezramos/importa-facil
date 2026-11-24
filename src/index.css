@@ -186,3 +186,31 @@ footer { max-width: 1240px; margin: 0 auto; padding: 0 32px 32px; color: var(--m
 .vista pre { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px; font-size: 12.5px; }
 .btn.deshabilitado { opacity: 0.45; pointer-events: none; }
 @media print { .solicitud { display: none; } }
+
+/* Aliados */
+.filtros { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 4px; }
+.filtros button {
+  font: inherit; font-size: 13.5px; border: 1px solid var(--border); background: #fff; color: var(--text);
+  border-radius: 999px; padding: 7px 14px; cursor: pointer;
+}
+.filtros button.activa { background: var(--navy); border-color: var(--navy); color: #fff; }
+.categoria h3 { margin-top: 26px; }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.tarjeta {
+  border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column;
+  gap: 6px; color: var(--text); text-decoration: none; background: #fff; transition: border-color .15s, box-shadow .15s;
+}
+a.tarjeta:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(15, 42, 68, .08); }
+.tarjeta span { color: var(--muted); font-size: 13.5px; }
+.logo-aliado { height: 64px; display: flex; align-items: center; margin-bottom: 6px; }
+.logo-aliado img { max-height: 56px; max-width: 160px; object-fit: contain; }
+.monograma {
+  width: 56px; height: 56px; border-radius: 12px; background: var(--bg); color: var(--navy);
+  display: grid; place-items: center; font-weight: 800; font-size: 20px; border: 1px solid var(--border);
+}
+.cta-aliado {
+  margin-top: 30px; background: var(--navy); color: #fff; border-radius: 12px; padding: 20px 22px;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.cta-aliado div { display: flex; flex-direction: column; gap: 4px; }
+.cta-aliado span { color: #b9c8d8; font-size: 14px; }
