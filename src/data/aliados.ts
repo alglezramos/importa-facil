@@ -30,13 +30,13 @@ export const CATEGORIAS: Categoria[] = [
 
 // Ejemplos: reemplazar por aliados reales
 export const ALIADOS: Aliado[] = [
-  { nombre: 'Consolidador aliado Asia', categoria: 'Consolidadores y forwarders', descripcion: 'Carga consolidada semanal desde Shenzhen, Ningbo y Shanghái.' },
-  { nombre: 'Consolidador aliado Miami', categoria: 'Consolidadores y forwarders', descripcion: 'Consolidación y recolección en el sur de Florida.' },
-  { nombre: 'Agente de carga aérea aliado', categoria: 'Carga aérea', descripcion: 'Envíos urgentes desde EE. UU., Asia y Europa.' },
-  { nombre: 'Transportista aliado 1', categoria: 'Transporte terrestre', descripcion: 'Contenedores y carga suelta en la GAM.' },
-  { nombre: 'Transportista aliado 2', categoria: 'Transporte terrestre', descripcion: 'Distribución de carga suelta en todo el país.' },
-  { nombre: 'Almacén fiscal aliado', categoria: 'Almacenes y bodegas', descripcion: 'Almacenaje fiscal y desconsolidación.' },
-  { nombre: 'Aseguradora aliada', categoria: 'Seguros y financiamiento', descripcion: 'Pólizas de seguro de carga por embarque.' },
+  { nombre: 'Consolidador socio Asia', categoria: 'Consolidadores y forwarders', descripcion: 'Carga consolidada semanal desde Shenzhen, Ningbo y Shanghái.' },
+  { nombre: 'Consolidador socio Miami', categoria: 'Consolidadores y forwarders', descripcion: 'Consolidación y recolección en el sur de Florida.' },
+  { nombre: 'Agente de carga aérea socio', categoria: 'Carga aérea', descripcion: 'Envíos urgentes desde EE. UU., Asia y Europa.' },
+  { nombre: 'Transportista socio 1', categoria: 'Transporte terrestre', descripcion: 'Contenedores y carga suelta en la GAM.' },
+  { nombre: 'Transportista socio 2', categoria: 'Transporte terrestre', descripcion: 'Distribución de carga suelta en todo el país.' },
+  { nombre: 'Almacén fiscal socio', categoria: 'Almacenes y bodegas', descripcion: 'Almacenaje fiscal y desconsolidación.' },
+  { nombre: 'Aseguradora socia', categoria: 'Seguros y financiamiento', descripcion: 'Pólizas de seguro de carga por embarque.' },
 ]
 
 export const ES_EJEMPLO = true

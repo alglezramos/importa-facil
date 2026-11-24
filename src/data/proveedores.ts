@@ -38,19 +38,19 @@ export const PROVEEDORES: Proveedor[] = [
   { id: 'hapag', nombre: 'Hapag-Lloyd', tipo: 'naviera', origenes: ['cn-sur', 'cn-este', 'mx', 'eu'], modos: FCL },
 
   // Consolidadores para carga suelta (LCL): reemplazar por socios reales
-  { id: 'consol-1', nombre: 'Consolidador aliado Asia', tipo: 'consolidador', origenes: ['cn-sur', 'cn-este'], modos: ['LCL'] },
-  { id: 'consol-2', nombre: 'Consolidador aliado Miami', tipo: 'consolidador', origenes: ['us-mia'], modos: ['LCL'] },
-  { id: 'consol-3', nombre: 'Consolidador aliado Europa / México', tipo: 'consolidador', origenes: ['eu', 'mx'], modos: ['LCL'] },
-  { id: 'consol-4', nombre: 'Consolidador aliado Centroamérica', tipo: 'consolidador', origenes: ['ca'], modos: ['LCL', 'FCL20', 'FCL40'] },
+  { id: 'consol-1', nombre: 'Consolidador socio Asia', tipo: 'consolidador', origenes: ['cn-sur', 'cn-este'], modos: ['LCL'] },
+  { id: 'consol-2', nombre: 'Consolidador socio Miami', tipo: 'consolidador', origenes: ['us-mia'], modos: ['LCL'] },
+  { id: 'consol-3', nombre: 'Consolidador socio Europa / México', tipo: 'consolidador', origenes: ['eu', 'mx'], modos: ['LCL'] },
+  { id: 'consol-4', nombre: 'Consolidador socio Centroamérica', tipo: 'consolidador', origenes: ['ca'], modos: ['LCL', 'FCL20', 'FCL40'] },
 
   // Carga aérea: reemplazar por socios reales
-  { id: 'aereo-1', nombre: 'Agente de carga aérea aliado', tipo: 'aereo', origenes: [], modos: ['AEREO'] },
-  { id: 'aereo-2', nombre: 'Courier de carga comercial aliado', tipo: 'aereo', origenes: [], modos: ['AEREO'] },
+  { id: 'aereo-1', nombre: 'Agente de carga aérea socio', tipo: 'aereo', origenes: [], modos: ['AEREO'] },
+  { id: 'aereo-2', nombre: 'Courier de carga comercial socio', tipo: 'aereo', origenes: [], modos: ['AEREO'] },
 
   // Transporte terrestre en Costa Rica: reemplazar por socios reales
-  { id: 'terr-1', nombre: 'Transportista aliado 1', tipo: 'terrestre', origenes: [], modos: [], nota: 'Contenedores y carga suelta, GAM' },
-  { id: 'terr-2', nombre: 'Transportista aliado 2', tipo: 'terrestre', origenes: [], modos: [], nota: 'Carga suelta, todo el país' },
-  { id: 'terr-3', nombre: 'Transportista aliado 3', tipo: 'terrestre', origenes: [], modos: [], nota: 'Camiones con plataforma o refrigerados' },
+  { id: 'terr-1', nombre: 'Transportista socio 1', tipo: 'terrestre', origenes: [], modos: [], nota: 'Contenedores y carga suelta, GAM' },
+  { id: 'terr-2', nombre: 'Transportista socio 2', tipo: 'terrestre', origenes: [], modos: [], nota: 'Carga suelta, todo el país' },
+  { id: 'terr-3', nombre: 'Transportista socio 3', tipo: 'terrestre', origenes: [], modos: [], nota: 'Camiones con plataforma o refrigerados' },
 ]
 
 export function proveedoresInternacionales(origenId: string, modo: Modo): Proveedor[] {
