@@ -1,6 +1,6 @@
-import { AGENCIA, MODOS, ORIGENES } from '../data/config'
 import type { EntradaCotizacion, LineaCosto, ResultadoCotizacion } from '../lib/calculo'
 import { crc, usd } from '../lib/formato'
+import { Solicitud } from './Solicitud'
 
 interface Props {
   entrada: EntradaCotizacion
@@ -16,20 +16,7 @@ const COLORES: Record<LineaCosto['grupo'], string> = {
   'Costos en Costa Rica': 'var(--c4)',
 }
 
-function resumenTexto(e: EntradaCotizacion, r: ResultadoCotizacion, producto: string) {
-  const origen = ORIGENES.find((o) => o.id === e.origen.id)?.nombre
-  return [
-    `Hola, quiero una cotización formal de importación:`,
-    `• Producto: ${producto || e.partida.descripcion} (partida preliminar ${e.partida.codigo})`,
-    `• Valor ${e.incoterm}: ${usd(e.valorMercaderia)} – ${e.unidades} unidades`,
-    `• Origen: ${origen} – ${MODOS[e.modo]}`,
-    `• Peso: ${e.pesoKg} kg – Volumen: ${e.volumenM3} m³`,
-    `• Estimado total puesto en bodega: ${usd(r.totalUSD)} (${crc(r.totalCRC)})`,
-  ].join('\n')
-}
-
 export function Resultado({ entrada, r, producto }: Props) {
-  const texto = resumenTexto(entrada, r, producto)
   const porGrupo = GRUPOS.map((g) => ({
     grupo: g,
     total: r.lineas.filter((l) => l.grupo === g).reduce((s, l) => s + l.usd, 0),
@@ -104,16 +91,7 @@ export function Resultado({ entrada, r, producto }: Props) {
         {r.documentos.map((d) => <li key={d}>{d}</li>)}
       </ul>
 
-      <div className="acciones">
-        <a className="btn primario" target="_blank" rel="noreferrer"
-          href={`https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent(texto)}`}>
-          Pedir cotización formal por WhatsApp
-        </a>
-        <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Cotización de importación')}&body=${encodeURIComponent(texto)}`}>
-          Enviar por correo
-        </a>
-        <button className="btn" type="button" onClick={() => window.print()}>Imprimir / PDF</button>
-      </div>
+      <Solicitud entrada={entrada} r={r} producto={producto} />
     </section>
   )
 }
