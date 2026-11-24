@@ -149,7 +149,7 @@ export const TIPO_CAMBIO_DEFAULT = 505
 export const FACTOR_VOLUMETRICO_AEREO = 167
 
 export const AGENCIA = {
-  nombre: 'Agencia de Aduanas',
+  nombre: 'Ramos & Co.',
   eslogan: 'De tu proveedor a tu bodega, con el costo claro desde el inicio',
   whatsapp: '50600000000',
   email: 'cotizaciones@tuagencia.cr',
