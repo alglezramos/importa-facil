@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { INCOTERMS, type Incoterm, type Producto } from '../lib/landed'
 import { nuevoProducto } from '../lib/almacen'
 import { PAISES } from './ProductoEditor'
+import { extraerCampos } from '../lib/extraerDocumento'
 
 interface Props {
   onAplicar: (producto: Producto, proveedor: string, incoterm: Incoterm | '') => void
@@ -22,6 +23,22 @@ export function Proforma({ onAplicar }: Props) {
   const [peso, setPeso] = useState('')
   const [volumen, setVolumen] = useState('')
   const [confirmado, setConfirmado] = useState(false)
+  const [texto, setTexto] = useState('')
+  const [aviso, setAviso] = useState('')
+  const sugerir = () => {
+    const s = extraerCampos(texto)
+    setConfirmado(false)
+    if (s.proveedor && !proveedor) setProveedor(s.proveedor)
+    if (s.incoterm && !incoterm && Object.prototype.hasOwnProperty.call(INCOTERMS, s.incoterm.toUpperCase())) setIncoterm(s.incoterm.toUpperCase() as Incoterm)
+    if (s.pais && !pais && PAISES.some(([c]) => c === s.pais?.toUpperCase())) setPais(s.pais.toUpperCase())
+    if (s.nombre && !nombre) setNombre(s.nombre)
+    if (s.sku && !sku) setSku(s.sku)
+    if (s.cantidad && !cantidad) setCantidad(s.cantidad)
+    if (s.precio && !precio) setPrecio(s.precio)
+    if (s.peso && !peso) setPeso(s.peso)
+    if (s.volumen && !volumen) setVolumen(s.volumen)
+    setAviso(Object.keys(s).length ? 'Se detectaron campos rotulados. Solo se rellenan los campos vacíos. Comprueba que todos pertenecen al mismo producto y que peso y volumen no corresponden a todo el embarque.' : 'No se encontraron campos inequívocos. Introduce los datos manualmente.')
+  }
   useEffect(() => {
     if (!archivo) { setUrl(''); return }
     const u = URL.createObjectURL(archivo)
@@ -29,12 +46,12 @@ export function Proforma({ onAplicar }: Props) {
     return () => URL.revokeObjectURL(u)
   }, [archivo])
   const positivo = (v: string) => Number.isFinite(Number(v)) && Number(v) > 0
-  const valido = !!archivo && !!nombre.trim() && !!pais && positivo(cantidad) && positivo(precio)
+  const valido = (!!archivo || !!texto.trim()) && !!nombre.trim() && !!pais && positivo(cantidad) && positivo(precio)
     && positivo(peso) && positivo(volumen) && confirmado
   return (
     <details className="panel">
       <summary><b>¿Tienes una factura proforma?</b> · Consultar documento y cargar datos</summary>
-      <p className="nota">Abre una factura PDF o imagen en tu dispositivo y transcribe los datos comprobados. No hay OCR automático. El archivo permanece en este navegador y no se adjunta al expediente.</p>
+      <p className="nota">Abre una factura PDF o imagen en tu dispositivo o pega el texto de una proforma o packing list. La extracción por etiquetas es local; todavía no hay lectura directa de PDF ni OCR. Los documentos no se adjuntan al expediente.</p>
       <label>Factura proforma<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" onChange={(e) => {
         const f = e.target.files?.[0]
         setConfirmado(false); setError(''); setArchivo(null)
@@ -43,8 +60,11 @@ export function Proforma({ onAplicar }: Props) {
         setArchivo(f)
       }} /></label>
       {error && <p className="nota error" role="alert">{error}</p>}
-      {archivo && url && <>
-        <p><a href={url} target="_blank" rel="noopener noreferrer">Abrir {archivo.name} en otra pestaña</a></p>
+      {archivo && url && <p><a href={url} target="_blank" rel="noopener noreferrer">Abrir {archivo.name} en otra pestaña</a></p>}
+      <label>Texto de un solo producto (opcional)<textarea rows={6} maxLength={200000} value={texto} onChange={e=>{setTexto(e.target.value);setConfirmado(false);setAviso('')}} placeholder={'Supplier: Example\nSKU: ABC-01\nQuantity: 20\nUnit price (USD): 10'} /></label>
+      <button type="button" className="btn" disabled={!texto.trim()} onClick={sugerir}>Detectar campos</button>
+      {aviso && <p className="nota" role="status">{aviso}</p>}
+      {(archivo || texto.trim()) && <>
         <p className="nota">Completa un producto por vez. Usa el valor unitario convertido a USD y las medidas totales de ese producto, no de todo el embarque.</p>
         <div onChange={() => setConfirmado(false)}>
           <label>Proveedor<input value={proveedor} onChange={(e) => setProveedor(e.target.value)} /></label>
@@ -64,7 +84,7 @@ export function Proforma({ onAplicar }: Props) {
         <button type="button" className="btn primario" disabled={!valido} onClick={() => {
           if (!valido) return
           onAplicar({ ...nuevoProducto(), nombre: nombre.trim(), sku: sku.trim(), paisFabricacion: pais, cantidad: Number(cantidad), valorUnitario: Number(precio), pesoBrutoKg: Number(peso), volumenM3: Number(volumen) }, proveedor.trim(), incoterm)
-          setNombre(''); setSku(''); setCantidad(''); setPrecio(''); setPeso(''); setVolumen(''); setConfirmado(false)
+          setNombre(''); setSku(''); setCantidad(''); setPrecio(''); setPeso(''); setVolumen(''); setTexto(''); setAviso(''); setConfirmado(false)
         }}>Agregar producto a la cotización</button>
       </>}
     </details>
