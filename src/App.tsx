@@ -24,7 +24,7 @@ const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
   cotizar: 'Cotizar',
   agencia: 'Agencia aduanal',
-  clasificar: 'Aranceles e impuestos',
+  clasificar: 'Clasificación arancelaria',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
   portal: 'Mi LANDEX',
@@ -92,10 +92,6 @@ export default function App() {
 
   const visibles = (Object.keys(VISTAS) as Vista[]).filter((v) => (v !== 'tarifas' || usuario?.rol === 'operador') && (v !== 'solicitudes' || agencia))
 
-  const privadas: Vista[] = ['portal', 'cotizaciones', 'perfil', 'solicitudes', 'tarifas']
-  const espacioPrivado = !!usuario && privadas.includes(vista)
-  const menuPrivado = visibles.filter(v => privadas.includes(v))
-
   return (
     <div className="app">
       <header>
@@ -112,8 +108,8 @@ export default function App() {
             <button type="button" className="btn-cuenta" onClick={() => { setVista('portal'); setAcceso(true) }}>Ingresar a Mi LANDEX</button>
           )}
         </div>
-        <nav aria-label="Navegación principal">
-          {visibles.filter(v => !usuario || !privadas.includes(v) || v === 'portal').map((v) => (
+        <nav>
+          {visibles.map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
               {v === 'portal' && agencia ? 'LANDEX Business' : VISTAS[v]}
             </button>
@@ -128,13 +124,6 @@ export default function App() {
       </div>
 
       <main>
-        <div className={espacioPrivado ? 'workspace' : undefined}>
-          {espacioPrivado && <aside className="workspace-menu" aria-label="Navegación del portal">
-            <strong>{agencia ? 'LANDEX Business' : 'Mi LANDEX'}</strong>
-            {menuPrivado.map(v => <button key={v} type="button" className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>{v === 'portal' ? 'Resumen' : v === 'solicitudes' ? 'CRM comercial' : VISTAS[v]}</button>)}
-            <button type="button" onClick={() => setVista('cotizar')}>Nueva cotización</button>
-          </aside>}
-          <div className="workspace-content">
         {vista === 'inicio' && (
           <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia}
             onSocios={() => setVista('aliados')} onGuia={() => setVista('guia')} />
@@ -164,11 +153,9 @@ export default function App() {
         )}
         {vista === 'perfil' && <Perfil usuario={usuario} onGuardado={setPerfil} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
-        {vista === 'guia' && <Guia />}
+        {vista === 'guia' && <Guia onCotizar={() => setVista('cotizar')} onAgencia={() => irAgencia('desalmacenaje')} />}
         {vista === 'aliados' && <Aliados />}
         {vista === 'tarifas' && usuario?.rol === 'operador' && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
-          </div>
-        </div>
       </main>
 
       {acceso && <Acceso onCerrar={() => setAcceso(false)} />}

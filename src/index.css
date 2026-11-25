@@ -814,3 +814,40 @@ nav button { white-space: nowrap; }
   .servicio .prestador { align-self: flex-start; }
   .tabla-alcance th { font-size: 13px; padding-right: 10px; }
 }
+
+/* Cómo funciona: recorrido interactivo */
+.guia-modo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 6px 0 22px; font-weight: 600; color: var(--navy); }
+.guia-ruta { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.guia-ruta button { font: inherit; width: 100%; background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; color: var(--muted); }
+.guia-icono { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); border: 2px solid var(--border); color: var(--gris); transition: all .15s; }
+.guia-ruta li.hecha .guia-icono { border-color: var(--accent); color: #1f6fb8; background: var(--accent-soft); }
+.guia-ruta li.actual .guia-icono { background: var(--navy); border-color: var(--navy); color: var(--accent); transform: scale(1.08); box-shadow: 0 6px 16px rgba(16,30,48,.18); }
+.guia-ruta button:hover .guia-icono, .guia-ruta button:focus-visible .guia-icono { border-color: var(--accent); }
+.guia-num { font-size: 11px; font-weight: 700; color: var(--gris); }
+.guia-corto { font-size: 13px; font-weight: 700; }
+.guia-ruta li.actual .guia-corto { color: var(--navy); }
+.guia-progreso { height: 4px; background: var(--border); border-radius: 4px; margin: 10px 4% 20px; overflow: hidden; }
+.guia-progreso span { display: block; height: 100%; background: var(--accent); transition: width .25s; }
+.guia-detalle { border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; background: #fff; }
+.guia-cabeza { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.guia-paso { font-size: 12px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #1f6fb8; }
+.guia-quien { display: flex; gap: 6px; }
+.guia-quien span { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); }
+.guia-quien span.landex { background: var(--navy); color: #fff; }
+.guia-detalle h3 { margin: 10px 0 8px; font-size: 21px; font-weight: 800; color: var(--navy); text-transform: none; letter-spacing: -.2px; }
+.guia-detalle h3::before { content: none; }
+.guia-detalle > p { margin: 0 0 16px; line-height: 1.6; max-width: 760px; }
+.guia-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.guia-columnas ul { margin: 8px 0 0; padding-left: 18px; line-height: 1.7; }
+.guia-consejo { background: var(--accent-soft); border-radius: 12px; padding: 14px 16px; }
+.guia-consejo p { margin: 6px 0 0; line-height: 1.5; }
+@media (max-width: 760px) {
+  .guia-ruta { grid-template-columns: repeat(7, 84px); overflow-x: auto; padding-bottom: 4px; }
+  .guia-corto { font-size: 12px; }
+  .guia-icono { width: 46px; height: 46px; }
+  .guia-columnas { grid-template-columns: 1fr; }
+  .guia-detalle { padding: 18px 16px; }
+}
+.pa-fila { display: flex; gap: 8px; margin: 6px 0; }
+.pa-fila input { flex: 1; min-width: 0; }
+.estado-op { margin: 6px 0 10px; }
