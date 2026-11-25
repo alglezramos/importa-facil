@@ -148,12 +148,52 @@ export const MARCA = {
   propuesta: 'De la fábrica a tu bodega.',
   firma: 'A Ramos & Co. Company',
   empresa: 'Ramos & Co.',
-  dominio: 'landex.co.cr',
+  dominio: 'landex.cr',
 }
 
 export const AGENCIA = {
   nombre: 'LANDEX',
   eslogan: 'Importa con inteligencia.',
-  whatsapp: '50600000000',
+  /** Número de WhatsApp con código de país (506...). Vacío = no se muestra ningún botón de WhatsApp. */
+  whatsapp: '',
   email: 'cotizaciones@landex.cr',
+  emailInfo: 'info@landex.cr',
 }
+
+/**
+ * DATOS CORPORATIVOS Y LEGALES — PENDIENTES DE CONFIGURACIÓN.
+ * Solo se publican los campos con valor. No completar con datos supuestos:
+ * cada dato debe venir de documentos oficiales de la empresa.
+ */
+export const EMPRESA: {
+  razonSocial: string
+  cedulaJuridica: string
+  direccion: string
+  telefono: string
+  agente: { nombre: string; codigo: string }
+  experiencia: string
+  terminosUrl: string
+  privacidadUrl: string
+} = {
+  razonSocial: '',
+  cedulaJuridica: '',
+  direccion: '',
+  telefono: '',
+  agente: { nombre: '', codigo: '' },
+  experiencia: '',
+  terminosUrl: '',
+  privacidadUrl: '',
+}
+
+/** Lista de datos corporativos aún sin configurar (se muestra solo al personal de LANDEX). */
+export const datosFaltantes = (): string[] => [
+  !EMPRESA.razonSocial && 'Razón social',
+  !EMPRESA.cedulaJuridica && 'Cédula jurídica',
+  !EMPRESA.direccion && 'Dirección comercial',
+  !EMPRESA.telefono && 'Teléfono',
+  !AGENCIA.whatsapp && 'WhatsApp',
+  !EMPRESA.agente.nombre && 'Agente aduanero autorizado',
+  !EMPRESA.experiencia && 'Experiencia profesional',
+  !EMPRESA.terminosUrl && 'Términos y condiciones',
+  !EMPRESA.privacidadUrl && 'Política de privacidad',
+].filter((x): x is string => !!x)
