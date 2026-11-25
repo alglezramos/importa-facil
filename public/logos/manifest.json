@@ -1,0 +1,191 @@
+[
+  {
+    "provider": "air-sea-worldwide",
+    "category": "forwarders",
+    "path": "public/logos/forwarders/air-sea-worldwide.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "dsv",
+    "category": "forwarders",
+    "path": "public/logos/forwarders/dsv.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "grupo-servica",
+    "category": "forwarders",
+    "path": "public/logos/forwarders/grupo-servica.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "kuehne-nagel",
+    "category": "forwarders",
+    "path": "public/logos/forwarders/kuehne-nagel.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "qima",
+    "category": "inspeccion",
+    "path": "public/logos/inspeccion/qima.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "crecex",
+    "category": "instituciones",
+    "path": "public/logos/instituciones/crecex.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "esencial-costa-rica",
+    "category": "instituciones",
+    "path": "public/logos/instituciones/esencial-costa-rica.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "procomer",
+    "category": "instituciones",
+    "path": "public/logos/instituciones/procomer.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "cma-cgm",
+    "category": "navieras",
+    "path": "public/logos/navieras/cma-cgm.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "cosco-shipping",
+    "category": "navieras",
+    "path": "public/logos/navieras/cosco-shipping.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "crowley",
+    "category": "navieras",
+    "path": "public/logos/navieras/crowley.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "evergreen",
+    "category": "navieras",
+    "path": "public/logos/navieras/evergreen.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "hapag-lloyd",
+    "category": "navieras",
+    "path": "public/logos/navieras/hapag-lloyd.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "hmm",
+    "category": "navieras",
+    "path": "public/logos/navieras/hmm.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "maersk",
+    "category": "navieras",
+    "path": "public/logos/navieras/maersk.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "msc",
+    "category": "navieras",
+    "path": "public/logos/navieras/msc.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "one-ocean-network-express",
+    "category": "navieras",
+    "path": "public/logos/navieras/one-ocean-network-express.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "pil",
+    "category": "navieras",
+    "path": "public/logos/navieras/pil.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "seaboard-marine",
+    "category": "navieras",
+    "path": "public/logos/navieras/seaboard-marine.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "yang-ming",
+    "category": "navieras",
+    "path": "public/logos/navieras/yang-ming.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "zim",
+    "category": "navieras",
+    "path": "public/logos/navieras/zim.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "bac-credomatic",
+    "category": "seguros",
+    "path": "public/logos/seguros/bac-credomatic.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "ins",
+    "category": "seguros",
+    "path": "public/logos/seguros/ins.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "apm-terminals-moin",
+    "category": "terminales",
+    "path": "public/logos/terminales/apm-terminals-moin.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "avianca-cargo",
+    "category": "transporte-aereo",
+    "path": "public/logos/transporte-aereo/avianca-cargo.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "dhl",
+    "category": "transporte-aereo",
+    "path": "public/logos/transporte-aereo/dhl.png",
+    "width": 600,
+    "height": 320
+  },
+  {
+    "provider": "ups",
+    "category": "transporte-aereo",
+    "path": "public/logos/transporte-aereo/ups.png",
+    "width": 600,
+    "height": 320
+  }
+]
