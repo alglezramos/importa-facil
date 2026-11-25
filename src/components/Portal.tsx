@@ -53,12 +53,12 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
     productos.set(clave, { nombre: p.nombre, sku: p.sku })
   }
   return (
-    <section className="panel">
+    <section className="panel portal-shell">
       <div className="fila-estado"><h2>{staff ? 'LANDEX Business' : 'Mi LANDEX'}</h2>
         <button type="button" className="btn" onClick={() => setVersion((v) => v + 1)}>Actualizar</button></div>
       <p className="intro">{staff ? 'Resumen comercial y operativo según los registros accesibles.' : 'Consulta tus cotizaciones y operaciones contratadas desde un solo lugar.'}</p>
       {cargando ? <p role="status">Cargando…</p> : error ? <p className="error" role="alert">{error}</p> : <>
-        <div className="columnas">
+        <div className="columnas portal-kpis">
           <div><b>{cots.length}</b><p>Cotizaciones registradas</p></div>
           <div><b>{formales.length}</b><p>Cotizaciones en estado formal (incluye vencidas)</p></div>
           <div><b>{abiertas.length}</b><p>Operaciones activas</p></div>
