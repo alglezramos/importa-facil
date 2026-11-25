@@ -13,6 +13,7 @@ import { Resultado } from './Resultado'
 type EmbarqueForm = Omit<Embarque, 'origen'> & { origenId: string }
 
 const EMBARQUE_INICIAL: EmbarqueForm = {
+  proveedor: { empresa: '', direccion: '', contacto: '', telefono: '', email: '' },
   incoterm: 'EXW', lugarConvenido: '', entregaDestino: 'bodega', origenId: ORIGENES[1].id, modo: 'FCL40', zona: 'GAM',
   tipoCambio: TIPO_CAMBIO_DEFAULT, diasProduccion: 0, seguro: true, requiereDescarga: true, clienteTieneMontacargas: false,
   requiereDevolucionContenedor: true, inspeccionOrigen: false, embalajeAdicional: false, custodia: false, ajustes: {},
@@ -62,6 +63,9 @@ export function Cotizador({ clasificacionNueva }: Props) {
   const r = useMemo(() => (productos.length ? calcularLanded(embarque, productos) : null), [JSON.stringify(ef), JSON.stringify(productos)]) // eslint-disable-line
   const set = (c: Partial<EmbarqueForm>) => setEf((x) => ({ ...x, ...c }))
   const esD = ['DAP', 'DPU', 'DDP'].includes(ef.incoterm)
+  const prov = ef.proveedor ?? {}
+  const setProv = (c: Partial<NonNullable<EmbarqueForm['proveedor']>>) => set({ proveedor: { ...prov, ...c } })
+  const emailInvalido = !!prov.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(prov.email)
 
   const guardar = (p: Producto) => {
     setProductos((ps) => (ps.some((x) => x.id === p.id) ? ps.map((x) => (x.id === p.id ? p : x)) : [...ps, p]))
@@ -110,6 +114,17 @@ export function Cotizador({ clasificacionNueva }: Props) {
               {ORIGENES.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
             </select>
           </label>
+          <details className="proveedor" open={Object.values(prov).some(Boolean)}>
+            <summary>Datos del proveedor</summary>
+            <label>Empresa del proveedor<input value={prov.empresa ?? ''} placeholder="Ej.: Ningbo Home Furniture Co., Ltd." autoComplete="organization" onChange={(e) => setProv({ empresa: e.target.value })} /></label>
+            <label>Dirección del proveedor<input value={prov.direccion ?? ''} placeholder="Calle, ciudad, provincia, país" autoComplete="street-address" onChange={(e) => setProv({ direccion: e.target.value })} /></label>
+            <label>Nombre del contacto<input value={prov.contacto ?? ''} placeholder="Persona que atiende tu pedido" onChange={(e) => setProv({ contacto: e.target.value })} /></label>
+            <div className="fila2">
+              <label>Teléfono<input type="tel" value={prov.telefono ?? ''} placeholder="+86 …" onChange={(e) => setProv({ telefono: e.target.value })} /></label>
+              <label>Email<input type="email" value={prov.email ?? ''} placeholder="ventas@proveedor.com" aria-invalid={emailInvalido} onChange={(e) => setProv({ email: e.target.value.trim() })} /></label>
+            </div>
+            {emailInvalido && <small className="nota error">Revisa el formato del email.</small>}
+          </details>
           <label>¿Qué incluye el precio de tu proveedor? (Incoterm 2020)
             <select value={ef.incoterm} onChange={(e) => set({ incoterm: e.target.value as Incoterm })}>
               {(Object.keys(INCOTERMS) as Incoterm[]).map((k) => <option key={k} value={k}>{k} – {INCOTERMS[k].sencillo}</option>)}

@@ -17,7 +17,8 @@ interface Props {
   onModo: (m: Modo) => void
 }
 
-const COLORES: Record<Etapa | 0, string> = { 0: '#0f2a44', 1: '#5b6f86', 2: '#3d7cb8', 3: '#1d4468', 4: '#7aa5d2', 5: '#e0913a', 6: '#0e9f8e', 7: '#7fcfc4' }
+// Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
+const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
 export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
   const [abierta, setAbierta] = useState<Etapa | null>(null)

@@ -29,13 +29,19 @@ function leerContacto(): Contacto {
 }
 
 export function armarSolicitud(e: Embarque, r: ResultadoLanded, productos: Producto[], c: Contacto, internacionales: Proveedor[], terrestres: Proveedor[]) {
-  const lista = (ps: Proveedor[]) => (ps.length ? ps.map((p) => p.nombre).join(', ') : 'Que Ramos & Co recomiende')
+  const lista = (ps: Proveedor[]) => (ps.length ? ps.map((p) => p.nombre).join(', ') : `Que ${AGENCIA.nombre} recomiende`)
   return [
-    `SOLICITUD DE COTIZACIÓN – ${AGENCIA.nombre}`,
+    `SOLICITUD DE COTIZACIÓN – ${AGENCIA.nombre} (A Ramos & Co. Company)`,
     '',
     `Cliente: ${c.nombre || '-'} | ${c.empresa || '-'}`,
     `Contacto: ${c.correo || '-'} | ${c.telefono || '-'}`,
     '',
+    ...(e.proveedor && Object.values(e.proveedor).some(Boolean) ? [
+      `Proveedor: ${e.proveedor.empresa || '-'}`,
+      `Dirección del proveedor: ${e.proveedor.direccion || '-'}`,
+      `Contacto del proveedor: ${e.proveedor.contacto || '-'} | ${e.proveedor.telefono || '-'} | ${e.proveedor.email || '-'}`,
+      '',
+    ] : []),
     `Incoterm: ${e.incoterm} (${INCOTERMS[e.incoterm].nombre})${e.lugarConvenido ? ' – ' + e.lugarConvenido : ''}`,
     `Origen: ${e.origen.nombre} – ${MODOS[e.modo]}`,
     `Carga: ${r.carga.volumenM3.toFixed(2)} m³ – ${r.carga.pesoKg.toLocaleString('es-CR')} kg${r.carga.contenedores ? ` – ${r.carga.contenedores} unidad(es) de transporte` : ''}`,
