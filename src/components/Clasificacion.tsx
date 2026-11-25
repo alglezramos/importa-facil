@@ -8,9 +8,9 @@ import {
 const ROMANOS = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI']
 const dai = (v: string | null) => (v && /^\d/.test(v) ? `${v}%` : v === 'II' ? 'No armonizado' : '—')
 
-interface Props { onUsar: (c: Cls) => void; conectado?: boolean; onIngresar?: () => void }
+interface Props { onUsar: (c: Cls) => void; conectado?: boolean; onIngresar?: () => void; onCotizar?: () => void; equipo?: boolean }
 
-export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {} }: Props) {
+export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}, onCotizar = () => {}, equipo = false }: Props) {
   const [ind, setInd] = useState<Indice | null>(null)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
@@ -33,7 +33,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
 
   return (
     <section className="panel clasif">
-      <LandexAI ind={ind} conectado={conectado} onIngresar={onIngresar} onUsar={onUsar} onVer={(c) => { setQ(''); setSel(c); document.querySelector('.clasif-grid')?.scrollIntoView({ behavior: 'smooth' }) }} />
+      <LandexAI ind={ind} conectado={conectado} onIngresar={onIngresar} onCotizar={onCotizar} equipo={equipo} onUsar={onUsar} onVer={(c) => { setQ(''); setSel(c); document.querySelector('.clasif-grid')?.scrollIntoView({ behavior: 'smooth' }) }} />
 
       <h3 className="ai-sep">O búscalo tú mismo en el arancel</h3>
       <p className="intro">
