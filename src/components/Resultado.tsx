@@ -1,3 +1,5 @@
+import { confiabilidad } from '../lib/confianza'
+import { Confiabilidad } from './Confiabilidad'
 import type { ReactNode } from 'react'
 import type { Emision } from '../lib/formal'
 import { useState } from 'react'
@@ -21,12 +23,14 @@ interface Props {
   formal?: Emision
   /** Ofertas de proveedores, antes del desglose. */
   ofertas?: ReactNode
+  /** Expediente de documentos, antes de la solicitud. */
+  expediente?: ReactNode
 }
 
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas }: Props) {
+export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente }: Props) {
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
@@ -59,6 +63,8 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas }
           <div><span>Landed Cost unitario promedio</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
         </div>
       </div>
+
+      {!formal && <Confiabilidad c={confiabilidad(e, productos, r)} />}
 
       {r.pendientes.length > 0 && (
         <div className="pendientes">
@@ -201,6 +207,8 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas }
       <div className="acciones">
         <button type="button" className="btn" onClick={() => descargar(`landed-cost-${new Date().toISOString().slice(0, 10)}.csv`, exportarSKU(r))}>Exportar por SKU (Excel/CSV)</button>
       </div>
+
+      {expediente}
 
       <Solicitud entrada={e} r={r} productos={productos} />
     </section>

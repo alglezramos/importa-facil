@@ -1,3 +1,5 @@
+import { confiabilidad } from '../lib/confianza'
+import { documentosRequeridos, RESPONSABLES } from '../lib/expediente'
 import { useEffect } from 'react'
 import { AGENCIA, MARCA, MODOS, ZONAS } from '../data/config'
 import { VIGENCIA_TARIFAS } from '../data/logistica'
@@ -37,15 +39,8 @@ export function Documento({ numero, fecha, vigenciaDias, perfil, e, productos, r
   const enPrecio = r.conceptos.filter((k) => k.estado === 'incluido')
   const pendientes = r.conceptos.filter((k) => k.estado === 'pendiente')
   const noAplica = r.conceptos.filter((k) => k.estado === 'no_aplica')
-  const documentos = [
-    'Factura comercial del proveedor',
-    'Lista de empaque (packing list) con medidas y pesos',
-    e.modo === 'AEREO' ? 'Guía aérea (AWB)' : e.modo === 'TERRESTRE' ? 'Carta de porte terrestre' : 'Conocimiento de embarque (BL)',
-    ...(productos.some((p) => p.certificadoOrigen) ? ['Certificado o declaración de origen'] : []),
-    ...(productos.some((p) => p.requierePermiso) ? ['Permisos y notas técnicas (Salud, MAG, SFE u otros, según el producto)'] : []),
-    ...(e.seguro && !['CIF', 'CIP', 'DAP', 'DPU', 'DDP'].includes(e.incoterm) ? ['Póliza o certificado de seguro de la carga'] : []),
-    `Datos del importador: ${perfil.tipo === 'juridica' ? 'cédula jurídica' : 'cédula de identidad'} y registro como contribuyente`,
-  ]
+  const documentos = documentosRequeridos(e, productos)
+  const conf = confiabilidad(e, productos, r)
   const cliente = perfil.empresa || perfil.nombre
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const imp = impPend ? (r.totales.impuestos ? `${usd(r.totales.impuestos)} + pendientes` : 'Pendiente') : usd(r.totales.impuestos)
@@ -104,6 +99,7 @@ export function Documento({ numero, fecha, vigenciaDias, perfil, e, productos, r
           <div><span>Impuestos</span><b>{imp}</b><small>IVA recuperable {usd(r.totales.ivaRecuperable)}</small></div>
           <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
         </section>
+        {!formal && <p className="doc-nota">Confiabilidad: {conf.pct}% de los costos de importación confirmados ({usd(conf.confirmado)} confirmados y {usd(conf.estimado)} estimados{conf.pendientes ? `, ${conf.pendientes} pendiente(s) sin monto` : ''}).</p>}
         {perfil.presupuestoUSD ? (
           <p className="doc-nota">Monto disponible indicado por el cliente: {usd(perfil.presupuestoUSD)} · {r.totales.desembolso <= perfil.presupuestoUSD ? `el desembolso estimado cabe con ${usd(perfil.presupuestoUSD - r.totales.desembolso)} de margen` : `el desembolso estimado lo supera en ${usd(r.totales.desembolso - perfil.presupuestoUSD)}`}.</p>
         ) : null}
@@ -163,7 +159,7 @@ export function Documento({ numero, fecha, vigenciaDias, perfil, e, productos, r
         <section className="doc-grid dos">
           <div>
             <h4>Documentación requerida</h4>
-            <ul>{documentos.map((d) => <li key={d}>{d}</li>)}</ul>
+            <ul>{documentos.map((d) => <li key={d.id}>{d.nombre} <small>({RESPONSABLES[d.responsable].toLowerCase()}{d.obligatorio ? '' : ', recomendado'})</small></li>)}</ul>
           </div>
           <div>
             <h4>Línea de tiempo estimada</h4>

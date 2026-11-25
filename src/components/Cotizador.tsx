@@ -17,6 +17,7 @@ import { perfilCompleto } from '../lib/almacen'
 import { Documento } from './Documento'
 import { Ofertas } from './Ofertas'
 import { PanelAgencia } from './PanelAgencia'
+import { Expediente } from './Expediente'
 import { Guiado } from './Guiado'
 import { ProductoEditor } from './ProductoEditor'
 import { Resultado } from './Resultado'
@@ -80,7 +81,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     return { embarque: e2, r: calcularLanded(e2, productos), protegidos: conceptosProtegidos(base.conceptos) }
   }, [JSON.stringify(ef), JSON.stringify(productos), todas]) // eslint-disable-line
   const candidatas = todas.filter((t) => aplicaA(t, ef) && usable(t) && (agencia || !t.ejemplo))
-  const huellaActual = huella({ ef, productos, cliente: [perfil.nombre, perfil.empresa, perfil.identificacion] })
+  const huellaActual = huella({ ef: { ...ef, documentos: undefined }, productos, cliente: [perfil.nombre, perfil.empresa, perfil.identificacion] })
   const formalVigente = !!emision && emision.huella === huellaActual && emision.vence >= new Date().toISOString().slice(0, 10)
   const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(perfil) && !!perfil.identificacion.trim()) : []
   const aplicarT = (t: Tarifa) => setEf((x) => ({
@@ -300,7 +301,9 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
           <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
             formal={formalVigente ? emision : undefined}
             ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
-              aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />} />
+              aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />}
+            expediente={<Expediente e={embarque} productos={productos} estados={ef.documentos ?? {}} agencia={agencia}
+              onEstado={(id, st) => setEf((x) => ({ ...x, documentos: { ...(x.documentos ?? {}), [id]: st } }))} />} />
         </>
       ) : (
         <section className="resultado vacio">
