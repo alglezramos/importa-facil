@@ -1,3 +1,25 @@
+# Fase 3: ecosistema logístico (2026-11-24)
+
+Respaldo previo: etiqueta `respaldo-v4` y rama `respaldo-v4`. **Sin cambios en fórmulas, tarifas de referencia, aranceles ni impuestos.** Las tarifas de proveedores entran al motor como ajustes, un mecanismo que ya existía. Hay 39 pruebas y todas pasan. La guía de uso está en `TARIFAS.md`.
+
+- **Tarifas de proveedores** (pestaña *Tarifas*, solo en modo agencia). Se registran por proveedor y categoría: forwarder, naviera, aerolínea, consolidador, transporte internacional y nacional, almacén fiscal, agencia, aseguradora, descarga y montacargas. Cada tarifa lleva ruta, modalidades, zona, cargos por concepto (por contenedor, m³, kg, monto fijo, % del valor o incluido, con mínimo), tránsito, vigencia, servicios incluidos y excluidos, condiciones y fuente.
+  - Filtros de vigencia (vigentes, vencen en 7 días o menos, vencidas) y botón *Renovar*.
+  - Exportación e importación de `tarifas.json`. El archivo publicado en `public/tarifas.json` lo ven los clientes.
+- **Ofertas de proveedores** en el resultado: comparación por tramo (internacional, aduana, nacional) con el costo de la oferta, el total en bodega si se aplica, el tránsito y la vigencia. LANDEX recomienda la de menor costo total. Al aplicarla, sus cargos reemplazan los montos de referencia y se recalculan si cambia la carga.
+  - Una tarifa **nunca cobra** conceptos que no aplican al embarque ni los que el Incoterm deja a cargo del proveedor de la mercancía.
+  - Los ajustes manuales del desglose siguen mandando sobre la tarifa.
+- **Cotización formal**, separada de la estimada. Solo se puede emitir si:
+  - el cliente está identificado,
+  - las clasificaciones están validadas por el agente,
+  - no hay pendientes,
+  - ningún costo es referencial,
+  - no hay tarifas de ejemplo,
+  - las tarifas están vigentes.
+
+  Vence a los 15 días o cuando vence la primera tarifa aplicada. Cualquier cambio posterior la devuelve a estimada (huella de datos). El PDF muestra "Cotización formal", los proveedores y tarifas aplicados, los costos extraordinarios no garantizados y las condiciones formales. *Mis cotizaciones* marca las formales.
+- **Modo agencia** (`#agencia`): muestra el panel del operador. La casilla "validada por el agente" del editor de productos pasó a este modo, para que el cliente no pueda validar su propia clasificación. **No es un control de seguridad**; los usuarios y permisos llegan con la Fase 4.
+- `public/tarifas.json` trae 4 tarifas **de ejemplo** para probar la pantalla. Solo se ven en modo agencia y no permiten emitir una formal.
+
 # Fase 2: experiencia del cliente (2026-11-24)
 
 Respaldo previo: etiqueta `respaldo-v3` y rama `respaldo-v3`. **Sin cambios en fórmulas, tarifas, aranceles ni impuestos.** La clave de guardado local se mantiene. Hay 30 pruebas y todas pasan.
