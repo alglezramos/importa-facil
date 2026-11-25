@@ -4,7 +4,7 @@ import { Clasificacion } from './components/Clasificacion'
 import { Cotizador } from './components/Cotizador'
 import { Guia } from './components/Guia'
 import { AGENCIA } from './data/config'
-import type { Partida } from './data/arancel'
+import type { Clasificacion as Cls } from './lib/landed'
 
 type Vista = 'cotizar' | 'clasificar' | 'guia' | 'aliados'
 
@@ -17,8 +17,8 @@ const VISTAS: Record<Vista, string> = {
 
 export default function App() {
   const [vista, setVista] = useState<Vista>('cotizar')
-  const [partidaElegida, setPartidaElegida] = useState<Partida | null>(null)
-  const usarPartida = (p: Partida) => { setPartidaElegida(p); setVista('cotizar'); window.scrollTo(0, 0) }
+  const [clasificacionNueva, setClasificacionNueva] = useState<Cls | null>(null)
+  const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar'); window.scrollTo(0, 0) }
 
   return (
     <div className="app">
@@ -40,7 +40,7 @@ export default function App() {
       </header>
 
       <main>
-        {vista === 'cotizar' && <Cotizador partidaInicial={partidaElegida} />}
+        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
         {vista === 'guia' && <Guia />}
         {vista === 'aliados' && <Aliados />}
