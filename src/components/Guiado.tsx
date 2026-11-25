@@ -3,7 +3,7 @@ import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
 import { nuevoProducto, type EmbarqueForm, type Perfil } from '../lib/almacen'
 import { aClasificacion, buscar, cargarArancel, etiqueta, type Indice } from '../lib/arancel'
 import { usd } from '../lib/formato'
-import { compararModalidades, type Incoterm, type Producto } from '../lib/landed'
+import { compararModalidades, volumenProducto, type Incoterm, type Producto } from '../lib/landed'
 import { PAISES } from './ProductoEditor'
 
 interface Props {
@@ -69,13 +69,15 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
   }
 
   const comp = useMemo(() => {
-    if (!(p.cantidad > 0 && (p.volumenM3 ?? 0) > 0)) return []
-    return compararModalidades({ ...ef, origen }, [p]).filter((m) => m.compatible && !m.fletePendiente)
-  }, [JSON.stringify(ef), JSON.stringify(p)]) // eslint-disable-line
-  const recomendada = comp.length
+    if (!(p.cantidad > 0 && volumenProducto(p) > 0)) return []
+    return compararModalidades({ ...ef, origen }, productos).filter((m) => m.compatible && !m.fletePendiente)
+  }, [JSON.stringify(ef), JSON.stringify(productos)]) // eslint-disable-line
+  const completas = comp.filter((m) => !m.incompleta)
+  const alternativas = completas.length ? completas : comp
+  const recomendada = alternativas.length
     ? prioridad === 'rapidez'
-      ? comp.reduce((a, b) => (b.dias < a.dias || (b.dias === a.dias && b.total < a.total) ? b : a))
-      : comp.reduce((a, b) => (b.total < a.total ? b : a))
+      ? alternativas.reduce((a, b) => (b.dias < a.dias || (b.dias === a.dias && b.total < a.total) ? b : a))
+      : alternativas.reduce((a, b) => (b.total < a.total ? b : a))
     : null
 
   const validos = [
@@ -249,8 +251,8 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
             {prioridad && recomendada && (
               <div className="recomendacion">
                 <b>Te recomendamos: {MODOS[recomendada.modo]}</b>
-                <span>{usd(recomendada.total)} en total · unos {recomendada.dias} días{recomendada.contenedores > 1 ? ` · ${recomendada.contenedores} unidades` : ''}</span>
-                <small>Es la opción {prioridad === 'costo' ? 'más económica' : 'más rápida'} entre las que admiten tu carga. Puedes compararlas todas en el resultado.</small>
+                <span>{usd(recomendada.total)}{recomendada.incompleta ? ' + costos pendientes' : ' estimados'} · unos {recomendada.dias} días{recomendada.contenedores > 1 ? ` · ${recomendada.contenedores} unidades` : ''}</span>
+                <small>{recomendada.incompleta ? 'Alternativa preliminar: faltan costos por confirmar y no se puede asegurar cuál es más económica.' : `Es la opción ${prioridad === 'costo' ? 'más económica' : 'más rápida'} entre las alternativas completas con tarifas de referencia.`} Puedes compararlas en el resultado.</small>
               </div>
             )}
             {prioridad && !recomendada && <p className="nota">No hay una modalidad con tarifa de referencia para esta ruta: te contactamos para cotizarla.</p>}
