@@ -1,3 +1,22 @@
+# Fase 1 comercial: agencia aduanal digital (2026-11-25)
+
+Primera fase del plan maestro. La auditoría completa está en `AUDITORIA.md`.
+
+- **Página de inicio** (`#inicio`): presentación como agencia aduanal digital con los botones "Cotizar mi importación gratis" y "Necesito una agencia aduanal". Incluye propuesta de valor, servicios, cómo funciona, cotizador, beneficios, socios, respaldo, preguntas frecuentes y contacto.
+- **Cuatro entradas:**
+  - Mi primera importación abre el cotizador guiado.
+  - Soy importador abre el cotizador experto.
+  - Necesito desalmacenar abre un formulario propio, sin pasar por el cotizador.
+  - Soluciones empresariales abre la solicitud de reunión.
+- **Conversión:** el botón principal del resultado es "Quiero importar con LANDEX". Los secundarios son solicitar cotización formal, hablar con un especialista, guardar la estimación y descargar el PDF.
+  - Con cuenta: la cotización se guarda con el estado nuevo `solicitada`.
+  - Sin cuenta: se envía como solicitud con toda la estimación, sin volver a pedir los datos.
+- **Alcance del servicio:** el cliente marca qué coordina LANDEX y qué ya contrató por su cuenta. El costo se separa en mercancía, honorarios de LANDEX, servicios de LANDEX, servicios externos, impuestos y gastos de terceros. Es solo presentación: el motor no cambia y hay pruebas de que las partes suman el total.
+- **Bandeja de solicitudes** (solo personal de LANDEX): solicitudes de la web, con estado y notas internas, y cotizaciones enviadas por clientes. Es la semilla del CRM.
+- **Supabase:** se agregó el estado `solicitada` y la tabla `solicitudes` con seguridad de filas (RLS). Un visitante puede crear solicitudes, pero no verlas. Hay 36 pruebas de permisos. Migración en `supabase/migraciones/2026-11-25_fase1_comercial.sql`, con su reversión.
+- **Confianza:** los datos corporativos en `EMPRESA` (config.ts) solo se publican si existen. El personal ve qué falta configurar. Se quitó el WhatsApp de ejemplo y el dominio interno ahora es landex.cr.
+- **Navegación con rutas #:** `#cotizar`, `#desalmacenar`, `#empresas`, `#socios`, etc. Se agregaron robots.txt, sitemap.xml, URL canónica y nueva descripción para buscadores.
+
 # Socios comerciales con logotipos (2026-11-24)
 
 - 27 logotipos del kit LANDEX_Logos_Final en `public/logos/<categoría>/`, con su `manifest.json`.
