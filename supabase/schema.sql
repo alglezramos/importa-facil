@@ -49,7 +49,7 @@ $$;
 
 -- Administrador: SQL Editor del panel de Supabase o clave service_role (nunca un visitante)
 create or replace function public.es_admin() returns boolean
-language sql stable as $$
+language sql stable set search_path = public as $$
   select (auth.uid() is null and session_user <> 'authenticator')
       or coalesce(auth.jwt() ->> 'role', '') = 'service_role'
 $$;
@@ -103,7 +103,7 @@ end $$;
 
 create table if not exists public.cotizaciones (
   id          uuid primary key default gen_random_uuid(),
-  numero      text unique not null default public.siguiente_numero(),
+  numero      text unique not null,          -- lo asigna el trigger: LDX-AAAA-0001
   cliente_id  uuid not null default auth.uid() references public.perfiles (id) on delete cascade,
   nombre      text not null default '',
   datos       jsonb not null,              -- { embarque, productos }
@@ -119,6 +119,9 @@ create index if not exists cotizaciones_cliente on public.cotizaciones (cliente_
 create or replace function public.proteger_cotizacion() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
+  if tg_op = 'INSERT' and new.numero is null then
+    new.numero := public.siguiente_numero();
+  end if;
   if not public.es_staff() and not public.es_admin() then
     if tg_op = 'INSERT' then
       new.cliente_id := auth.uid();
@@ -244,7 +247,7 @@ values ('documentos', 'documentos', false, 10485760,
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 create or replace function public.cot_de_ruta(ruta text) returns uuid
-language plpgsql immutable as $$
+language plpgsql immutable set search_path = public as $$
 begin
   return split_part(ruta, '/', 1)::uuid;
 exception when others then return null;
@@ -259,6 +262,17 @@ create policy arch_subir on storage.objects for insert
 drop policy if exists arch_borrar on storage.objects;
 create policy arch_borrar on storage.objects for delete
   using (bucket_id = 'documentos' and (public.es_dueno(public.cot_de_ruta(name)) or public.es_operador()));
+
+-- ---------------------------------------------------------------- Endurecimiento
+-- En instalaciones previas el número era un valor por defecto; ahora lo asigna el trigger
+alter table public.cotizaciones alter column numero drop default;
+-- Funciones internas: nadie las llama por la API (los triggers siguen funcionando)
+revoke execute on function public.crear_perfil() from public, anon, authenticated;
+revoke execute on function public.proteger_rol() from public, anon, authenticated;
+revoke execute on function public.proteger_cotizacion() from public, anon, authenticated;
+revoke execute on function public.proteger_documento() from public, anon, authenticated;
+revoke execute on function public.siguiente_numero() from public, anon, authenticated;
+revoke execute on function public.rol_actual() from anon;
 
 -- ---------------------------------------------------------------- Primer operador
 -- Después de iniciar sesión por primera vez con tu correo, ejecuta (cambiando el correo):
