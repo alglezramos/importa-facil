@@ -32,14 +32,17 @@ const PREGUNTAS: [string, string][] = [
   ['¿El cotizador tiene costo?', 'No. Puedes estimar cuánto te cuesta tu importación puesta en tu bodega sin registrarte. La estimación es referencial: los montos definitivos los confirma LANDEX en la cotización formal.'],
   ['¿La estimación es el precio final?', 'No. Usa tarifas de referencia y la clasificación que indiques. Antes de la cotización formal, el agente aduanero valida la clasificación arancelaria y LANDEX confirma las tarifas con sus socios.'],
   ['Mi mercancía ya viene en camino o está en el puerto. ¿Me pueden ayudar?', 'Sí. Usa la opción "Necesito desalmacenar": nos cuentas qué es, dónde está y qué documentos tienes, sin completar el cotizador.'],
-  ['¿Qué documentos necesito para importar?', 'Normalmente la factura comercial, la lista de empaque y el documento de transporte (BL, guía aérea o carta de porte). Según el producto, también permisos, notas técnicas o certificado de origen. La plataforma te indica cuáles aplican a tu caso.'],
+  ['¿Qué documentos necesito para importar?', 'Normalmente la factura comercial, la lista de empaque y el documento de transporte (BL, guía aérea o carta de porte). Según el producto, también permisos, notas técnicas o certificado de origen. LANDEX revisará cuáles aplican a tu caso.'],
   ['¿Puedo usar mi propio transportista o forwarder?', 'Sí. Al ver tu estimación, marca "Ya lo tengo" en los servicios que contrataste por tu cuenta. LANDEX se encarga del agenciamiento aduanero y coordina el resto que necesites.'],
-  ['¿Quién puede ver mis documentos?', 'Solo tú y el equipo de LANDEX. Los archivos se guardan en almacenamiento privado, ligados a tu cuenta y a cada cotización.'],
+  ['¿Quién puede ver mis documentos?', 'Los documentos se vinculan a tu cuenta y a cada cotización. El acceso debe limitarse a tu cuenta y al personal autorizado de LANDEX.'],
 ]
 
 export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
-  const [abierta, setAbierta] = useState<number | null>(0)
-  const logos = ALIADOS.filter((a) => a.publicado && a.categoria !== 'instituciones').slice(0, 12)
+  const [abierta, setAbierta] = useState<number | null>(null)
+  const operadores = ALIADOS.filter((a) => a.publicado && a.categoria !== 'instituciones')
+  const categorias = [...new Set(operadores.map((a) => a.categoria))]
+  const destacados = categorias.map((categoria) => operadores.find((a) => a.categoria === categoria)!)
+  const logos = [...destacados, ...operadores.filter((a) => !destacados.includes(a))].slice(0, 8)
   const corporativos = [
     EMPRESA.razonSocial && ['Razón social', EMPRESA.razonSocial],
     EMPRESA.cedulaJuridica && ['Cédula jurídica', EMPRESA.cedulaJuridica],
@@ -54,7 +57,8 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
         <div className="portada-texto">
           <span className="sobretitulo">Tu agencia aduanal digital</span>
           <h2>{MARCA.eslogan}</h2>
-          <p className="bajada">{MARCA.propuesta} Cotiza, contrata y gestiona tu importación desde un solo lugar.</p>
+          <p className="bajada">{MARCA.propuesta} Conoce cuánto cuesta importar a Costa Rica y solicita una cotización formal para coordinar tu operación.</p>
+          <p className="nota portada-nota">Estimación gratuita, sin registro. Los costos definitivos se validan antes de contratar.</p>
           <div className="acciones">
             <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
             <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Necesito una agencia aduanal</button>
@@ -72,7 +76,7 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
         <h2>Elige por dónde empezar</h2>
         <div className="entradas">
           <button type="button" className="entrada" onClick={() => onCotizar('guiado')}>
-            <Icono n="ruta" /><b>Mi primera importación</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, sin términos técnicos.</span><em>Cotizar paso a paso →</em>
+            <Icono n="ruta" /><b>Mi primera importación</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.</span><em>Cotizar paso a paso →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onCotizar('experto')}>
             <Icono n="calculadora" /><b>Soy importador</b><span>Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.</span><em>Ir al cotizador →</em>
@@ -81,7 +85,7 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
             <Icono n="aduana" /><b>Necesito desalmacenar</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia aduanal →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('empresarial')}>
-            <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia aduanal y un socio logístico permanente.</span><em>Agendar una reunión →</em>
+            <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia aduanal y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
           </button>
         </div>
       </section>
@@ -90,10 +94,10 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
         <span className="etiqueta">Por qué LANDEX</span>
         <h2>Una agencia aduanal con tecnología propia</h2>
         <div className="columnas">
-          <div><Icono n="calculadora" /><b>Sabes el costo real antes de comprar</b><p>Mercancía, flete, seguro, impuestos, honorarios, transporte y descarga, en un solo número y por producto.</p></div>
-          <div><Icono n="persona" /><b>Un solo responsable</b><p>LANDEX es tu agencia aduanal y coordina a navieras, transportistas, aseguradoras e inspectores por ti.</p></div>
+          <div><Icono n="calculadora" /><b>Estima tu costo antes de comprar</b><p>Mercancía, flete, seguro, impuestos, honorarios, transporte y descarga, en un solo número y por producto.</p></div>
+          <div><Icono n="persona" /><b>Un solo punto de contacto</b><p>LANDEX es tu agencia aduanal y coordina a navieras, transportistas, aseguradoras e inspectores por ti.</p></div>
           <div><Icono n="escudo" /><b>Trámite aduanero profesional</b><p>La clasificación arancelaria y la declaración las valida un agente aduanero autorizado.</p></div>
-          <div><Icono n="documento" /><b>Todo en línea</b><p>Tus cotizaciones, documentos y el estado de tu importación, en tu cuenta.</p></div>
+          <div><Icono n="documento" /><b>Todo en línea</b><p>Consulta tus cotizaciones y documentos desde tu cuenta.</p></div>
         </div>
       </section>
 
@@ -120,39 +124,21 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
           <li><b>Acepta y sube tus documentos</b><span>Factura, lista de empaque y documento de transporte.</span></li>
           <li><b>Coordinamos y entregamos</b><span>Nos encargamos de la aduana y la entrega en tu bodega.</span></li>
         </ol>
-        <p className="centro"><button type="button" className="link" onClick={onGuia}>Ver la guía completa de importación</button></p>
-      </section>
-
-      <section className="bloque cta-cotizador">
-        <div>
-          <h2>Cotizador gratuito de importaciones</h2>
-          <p>Calcula el costo total puesto en tu bodega, el costo por unidad y el tiempo estimado. Sin registrarte.</p>
-        </div>
-        <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
-      </section>
-
-      <section className="bloque">
-        <span className="etiqueta">Beneficios</span>
-        <h2>Lo que ganas al importar con LANDEX</h2>
-        <ul className="beneficios">
-          <li>Un costo total claro, que separa los honorarios de LANDEX de los impuestos y gastos de terceros.</li>
-          <li>Eliges qué servicios coordinamos y cuáles ya tienes contratados.</li>
-          <li>Tus documentos y cotizaciones, ordenados y privados en tu cuenta.</li>
-          <li>Un solo contacto para todo: no tienes que coordinar a cada proveedor.</li>
-        </ul>
+        <div className="acciones"><button type="button" className="btn primario" onClick={() => onCotizar()}>Calcular mi importación gratis</button><button type="button" className="btn" onClick={onGuia}>Ver la guía completa</button></div>
       </section>
 
       <section className="bloque socios-inicio">
         <span className="etiqueta">Red de socios comerciales</span>
         <h2>Navieras, forwarders, líneas aéreas y aseguradoras</h2>
-        <ul className="tira-logos">{logos.map((a) => <li key={a.logo}><img src={a.logo} alt={a.nombre} loading="lazy" width={600} height={320} /></li>)}</ul>
+        <ul className="tira-logos">{logos.map((a) => <li key={a.logo}><img src={a.logo} alt={a.nombre} loading="lazy" width={600} height={320} onError={(e) => { e.currentTarget.hidden = true }} /><span>{a.nombre}</span></li>)}</ul>
         <p className="centro"><button type="button" className="link" onClick={onSocios}>Ver todos los socios</button></p>
       </section>
 
       <section className="bloque respaldo">
         <span className="etiqueta">Respaldo profesional</span>
         <h2>{MARCA.nombre}, {MARCA.firma}</h2>
-        <p>{EMPRESA.experiencia || `${MARCA.nombre} es la agencia aduanal digital de Ramos & Co., y sus trámites aduaneros los firma un agente aduanero autorizado.`}</p>
+        <p>{EMPRESA.experiencia || `${MARCA.nombre} es una iniciativa de Ramos & Co. enfocada en simplificar las importaciones a Costa Rica.`}</p>
+        <p>La prestación de servicios aduaneros está sujeta a la validación de las autorizaciones aplicables y de las condiciones de cada operación.</p>
       </section>
 
       <section className="bloque">

@@ -21,12 +21,12 @@ type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados
 
 const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
-  cotizar: 'Cotizar importación',
+  cotizar: 'Cotizar',
   agencia: 'Agencia aduanal',
-  clasificar: 'Clasificación e impuestos',
+  clasificar: 'Aranceles e impuestos',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
-  cotizaciones: 'Mis cotizaciones',
+  cotizaciones: 'Mi LANDEX',
   perfil: 'Mi perfil',
   solicitudes: 'Solicitudes',
   tarifas: 'Tarifas',
@@ -59,7 +59,12 @@ export default function App() {
     window.addEventListener('popstate', alCambiar)
     return () => window.removeEventListener('popstate', alCambiar)
   }, [])
-  const irAgencia = (s: Seccion) => { setSeccion(s); setVista('agencia') }
+  const irAgencia = (s: Seccion) => {
+    setSeccion(s); setVistaEstado('agencia')
+    const h = s === 'empresarial' ? 'empresas' : 'desalmacenar'
+    if (leerRuta() !== h) history.pushState(null, '', `#${h}`)
+    window.scrollTo(0, 0)
+  }
   const [clasificacionNueva, setClasificacionNueva] = useState<Cls | null>(null)
   const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar') }
   const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
@@ -98,7 +103,7 @@ export default function App() {
               <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>Salir</button>
             </>
           ) : (
-            <button type="button" className="btn-cuenta" onClick={() => setAcceso(true)}>Iniciar sesión</button>
+            <button type="button" className="btn-cuenta" onClick={() => setAcceso(true)}>Ingresar a Mi LANDEX</button>
           )}
         </div>
         <nav>
@@ -121,14 +126,14 @@ export default function App() {
           <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia}
             onSocios={() => setVista('aliados')} onGuia={() => setVista('guia')} />
         )}
-        {vista === 'agencia' && <AgenciaAduanal seccion={seccion} onSeccion={setSeccion} usuario={usuario} onCotizar={() => setVista('cotizar')} />}
+        {vista === 'agencia' && <AgenciaAduanal seccion={seccion} onSeccion={irAgencia} usuario={usuario} onCotizar={() => setVista('cotizar')} />}
         {vista === 'solicitudes' && agencia && <Solicitudes perfilBase={perfil} onAbrir={(a) => abrir(a)} />}
         {vista === 'cotizar' && (
           <section className="hero">
             <div>
               <span className="barra-marca" aria-hidden />
               <h2>{MARCA.eslogan}</h2>
-              <p>Conoce el costo real de tu importación antes de tomar una decisión. {MARCA.propuesta}</p>
+              <p>Estima el costo de tu importación antes de tomar una decisión. {MARCA.propuesta}</p>
             </div>
             <ul className="pilares" aria-label="Qué calcula LANDEX">
               <li>Landed Cost</li><li>Global Trade</li><li>Cost Intelligence</li>
