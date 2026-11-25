@@ -1,5 +1,5 @@
 /**
- * MOTOR DE LANDED COST – Ramos & Co.
+ * MOTOR DE LANDED COST – LANDEX (A Ramos & Co. Company)
  * ---------------------------------------------------------------
  * Calcula el costo de importar uno o varios productos desde la bodega del
  * proveedor hasta que la mercancía queda descargada en la bodega del cliente.
@@ -116,7 +116,17 @@ export interface Ajuste {
   productoDirecto?: string
 }
 
+export interface DatosProveedor {
+  empresa?: string
+  direccion?: string
+  contacto?: string
+  telefono?: string
+  email?: string
+}
+
 export interface Embarque {
+  /** Datos de contacto del proveedor (no intervienen en el cálculo). */
+  proveedor?: DatosProveedor
   incoterm: Incoterm
   lugarConvenido?: string
   /** Para términos D: dónde entrega el proveedor. */
