@@ -53,20 +53,9 @@ export function venceFormal(desde: Date, dias: number, aplicadas: Tarifa[]): str
 }
 
 // ---------------------------------------------------------------- Modo agencia
-// Muestra herramientas del operador (tarifas, validación, emisión formal).
-// NO es un control de seguridad: cualquiera que conozca el enlace puede activarlo.
-// La seguridad real (usuarios y permisos) llega con la Fase 4.
+// Las herramientas del operador se muestran según el rol de la cuenta (Supabase).
+// La página solo las muestra u oculta: la seguridad real la aplica la base de datos.
 
-const CLAVE = 'landex:agencia'
-
-export function modoAgencia(): boolean {
-  try {
-    if (location.hash === '#agencia') localStorage.setItem(CLAVE, '1')
-    if (location.hash === '#cliente') localStorage.removeItem(CLAVE)
-    return localStorage.getItem(CLAVE) === '1'
-  } catch { return false }
-}
-
-export function salirModoAgencia() {
-  try { localStorage.removeItem(CLAVE) } catch { /* sin almacenamiento */ }
-}
+let agenciaActual = false
+export const modoAgencia = () => agenciaActual
+export function fijarAgencia(v: boolean) { agenciaActual = v }

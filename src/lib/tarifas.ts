@@ -78,8 +78,10 @@ export interface Tarifa {
   /** Referencia de la oferta: número de cotización del proveedor, correo, fecha. */
   fuente: string
   ejemplo?: boolean
-  /** Registrada en este navegador (no publicada). */
+  /** Registrada en este navegador (anterior a la nube). */
   local?: boolean
+  /** Visible para los clientes (tarifas en la nube). */
+  publicada?: boolean
 }
 
 /** Conceptos del motor a los que se puede asignar un cargo. */

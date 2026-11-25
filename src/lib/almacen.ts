@@ -49,7 +49,13 @@ const guardarJSON = (clave: string, v: unknown) => {
 // ---------------------------------------------------------------- Borrador actual
 
 const CLAVE_BORRADOR = 'importa-facil:cotizacion'
-export interface Borrador { embarque: EmbarqueForm; productos: Producto[]; numero?: string; emision?: Emision }
+export interface Borrador {
+  embarque: EmbarqueForm; productos: Producto[]; numero?: string; emision?: Emision
+  /** Cotización en la nube que se está editando (Fase 4). */
+  nubeId?: string; nubeEstado?: string
+  /** Perfil del cliente cuando la agencia abre la cotización de otro. */
+  cliente?: Perfil
+}
 
 export function leerBorrador(): Borrador {
   const x = leerJSON<Borrador | null>(CLAVE_BORRADOR, null)
