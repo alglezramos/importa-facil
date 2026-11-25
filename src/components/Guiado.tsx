@@ -43,7 +43,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
   const setP = (c: Partial<Producto>) => setProductos([{ ...p, ...c }, ...productos.slice(1)])
   const [precioId, setPrecioId] = useState<string>(ef.incotermPorConfirmar ? 'nose' : PRECIO.find((x) => x.mar === ef.incoterm || x.otro === ef.incoterm)?.id ?? '')
   const [medida, setMedida] = useState<'exacta' | 'aprox'>(p.datosPorConfirmar?.length ? 'aprox' : 'exacta')
-  const [tamano, setTamano] = useState<string>('')
+  const [tamano, setTamano] = useState<string>(() => TAMANOS.find((t) => t.m3 === p.volumenM3 && t.kg === p.pesoBrutoKg && p.datosPorConfirmar?.length)?.id ?? '')
   const [prioridad, setPrioridad] = useState<'costo' | 'rapidez' | ''>('')
   const [valorModo, setValorModo] = useState<'unitario' | 'total'>('unitario')
   const [ind, setInd] = useState<Indice | null>(null)
@@ -54,7 +54,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
 
   // El perfil precarga la entrega
   useEffect(() => {
-    if (perfil.tieneMontacargas) setEf((x) => ({ ...x, clienteTieneMontacargas: true }))
+    if (perfil.tieneMontacargas) setEf((x) => x.clienteTieneMontacargas ? x : { ...x, clienteTieneMontacargas: true })
   }, [perfil.tieneMontacargas, setEf])
 
   const origen = ORIGENES.find((o) => o.id === ef.origenId) ?? ORIGENES[0]
@@ -84,13 +84,15 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
     !!(p.nombre.trim() && p.cantidad > 0 && p.valorUnitario > 0),
     true,
     !!precioId,
-    medida === 'exacta' ? (p.volumenM3 ?? 0) > 0 && p.pesoBrutoKg > 0 : !!tamano,
+    medida === 'exacta' ? volumenProducto(p) > 0 && p.pesoBrutoKg > 0 : !!tamano,
     true,
     !!prioridad && !!recomendada,
   ]
 
   const siguiente = () => {
+    if (!validos[paso]) return
     if (paso === 2) aplicarIncoterm(precioId, ef.modo)
+    if (paso === 3 && medida === 'exacta') setP({ datosPorConfirmar: (p.datosPorConfirmar ?? []).filter((d) => !d.includes('volumen y peso aproximados')) })
     if (paso === 5 && recomendada) {
       set({ modo: recomendada.modo })
       aplicarIncoterm(precioId, recomendada.modo)
@@ -108,10 +110,11 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
 
   return (
     <div className="guiado">
+      <p className="nota" aria-live="polite">Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}</p>
       <ol className="progreso" aria-label="Pasos">
         {PASOS.map((t, i) => (
           <li key={t} className={i === paso ? 'actual' : i < paso ? 'hecho' : ''}>
-            <button type="button" disabled={i > paso} onClick={() => setPaso(i)}><span>{i + 1}</span>{t}</button>
+            <button type="button" aria-current={i === paso ? "step" : undefined} disabled={i > paso} onClick={() => setPaso(i)}><span>{i + 1}</span>{t}</button>
           </li>
         ))}
       </ol>
@@ -120,6 +123,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
         {paso === 0 && (
           <>
             <h3>¿Qué quieres importar?</h3>
+            <p className="nota">Ten a mano el precio del proveedor. Si todavía no conoces la partida arancelaria, puedes continuar y LANDEX la revisará.</p>
             <label>Nombre del producto<input value={p.nombre} placeholder="Ej.: sillas de oficina" onChange={(e) => setP({ nombre: e.target.value, sku: p.sku || 'PROD-1' })} /></label>
             <label>Descríbelo: de qué material es y para qué sirve<input value={p.descripcion ?? ''} placeholder="Ej.: sillas giratorias de malla con base metálica" onChange={(e) => setP({ descripcion: e.target.value })} /></label>
             <div className="fila2">
@@ -202,12 +206,12 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
           <>
             <h3>¿Qué tan grande es tu carga?</h3>
             <div className="seg">
-              <button type="button" className={medida === 'exacta' ? 'activa' : ''} onClick={() => { setMedida('exacta'); setP({ datosPorConfirmar: [] }) }}>Sé el volumen y el peso</button>
+              <button type="button" className={medida === 'exacta' ? 'activa' : ''} onClick={() => { setMedida('exacta'); setTamano(''); setP({ volumenM3: p.datosPorConfirmar?.length ? 0 : volumenProducto(p), pesoBrutoKg: p.datosPorConfirmar?.length ? 0 : p.pesoBrutoKg, bultos: undefined, datosPorConfirmar: p.datosPorConfirmar }) }}>Sé el volumen y el peso</button>
               <button type="button" className={medida === 'aprox' ? 'activa' : ''} onClick={() => setMedida('aprox')}>No lo sé con exactitud</button>
             </div>
             {medida === 'exacta' ? (
               <div className="fila2">
-                <label>Volumen total (m³)<input type="number" min={0} step="0.01" value={p.volumenM3 ?? ''} onChange={(e) => setP({ volumenM3: Number(e.target.value), bultos: undefined })} /></label>
+                <label>Volumen total (m³)<input type="number" min={0} step="0.01" value={volumenProducto(p) || ''} onChange={(e) => setP({ volumenM3: Number(e.target.value), bultos: undefined })} /></label>
                 <label>Peso total (kg)<input type="number" min={0} value={p.pesoBrutoKg || ''} onChange={(e) => setP({ pesoBrutoKg: Number(e.target.value) })} /></label>
               </div>
             ) : (
@@ -260,6 +264,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
         )}
       </div>
 
+      {!validos[paso] && <p className="nota" role="status">{["Completa el nombre, cantidad y precio del producto.", "", "Selecciona qué incluye el precio o indica que no lo sabes.", "Indica el peso y volumen o elige un tamaño aproximado.", "", "Selecciona una prioridad y revisa las alternativas disponibles."][paso]}</p>}
       <div className="acciones">
         {paso > 0 && <button type="button" className="btn" onClick={() => setPaso(paso - 1)}>Atrás</button>}
         <button type="button" className="btn primario" disabled={!validos[paso]} onClick={siguiente}>{paso === PASOS.length - 1 ? 'Ver mi cotización' : 'Continuar'}</button>
