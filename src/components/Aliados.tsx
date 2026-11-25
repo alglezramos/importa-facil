@@ -1,59 +1,65 @@
 import { useState } from 'react'
-import { ALIADOS, CATEGORIAS, ES_EJEMPLO, type Aliado } from '../data/aliados'
+import { CATEGORIAS, visibles, type Aliado, type Categoria } from '../data/aliados'
 import { AGENCIA } from '../data/config'
 
-const iniciales = (n: string) =>
-  n.split(/\s+/).filter((w) => /^[A-Za-zÁÉÍÓÚÑ0-9]/.test(w)).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
-
-function Logo({ a }: { a: Aliado }) {
+function Tarjeta({ a }: { a: Aliado }) {
   const [falla, setFalla] = useState(false)
-  if (a.logo && !falla) {
-    return <img src={a.logo} alt={`Logo de ${a.nombre}`} onError={() => setFalla(true)} />
-  }
-  return <span className="monograma" aria-hidden>{iniciales(a.nombre)}</span>
+  return (
+    <li className="tarjeta-logo">
+      <div className="logo-caja">
+        {falla
+          ? <span className="logo-texto">{a.nombre}</span>
+          : <img src={a.logo} alt={a.nombre} loading="lazy" width={600} height={320} onError={() => setFalla(true)} />}
+      </div>
+      <span className="logo-nombre">{a.nombre}</span>
+    </li>
+  )
+}
+
+function Bloque({ c }: { c: Categoria }) {
+  const lista = visibles(c.id)
+  if (!lista.length) return null
+  return (
+    <div className="categoria">
+      <h3>{c.nombre} <small>{lista.length}</small></h3>
+      <ul className="rejilla-logos">{lista.map((x) => <Tarjeta key={x.logo} a={x} />)}</ul>
+    </div>
+  )
 }
 
 export function Aliados() {
-  const [filtro, setFiltro] = useState<string>('Todos')
-  const categorias = CATEGORIAS.filter((c) => ALIADOS.some((a) => a.categoria === c))
-  const visibles = categorias.filter((c) => filtro === 'Todos' || filtro === c)
+  const operadores = CATEGORIAS.filter((c) => c.grupo === 'operadores' && visibles(c.id).length)
+  const instituciones = CATEGORIAS.filter((c) => c.grupo === 'instituciones' && visibles(c.id).length)
+  const [filtro, setFiltro] = useState<string>('todos')
+  const mostrados = operadores.filter((c) => filtro === 'todos' || filtro === c.id)
 
   return (
     <section className="panel aliados">
       <h2>Nuestros socios comerciales</h2>
       <p className="intro">
-        Trabajamos con navieras, consolidadores, transportistas y almacenes de confianza para mover tu carga desde el
-        proveedor hasta tu bodega. {AGENCIA.nombre} coordina a todos por ti.
+        Navieras, forwarders, líneas aéreas, terminales y aseguradoras para mover tu carga desde el proveedor hasta tu
+        bodega. {AGENCIA.nombre} es tu único punto de contacto: coordinamos con todos y nos encargamos del trámite aduanal.
       </p>
-      {ES_EJEMPLO && <p className="nota">Socios de ejemplo: esta lista se actualizará con nuestros socios reales.</p>}
 
-      <div className="filtros">
-        {['Todos', ...categorias].map((c) => (
-          <button key={c} type="button" className={filtro === c ? 'activa' : ''} onClick={() => setFiltro(c)}>{c}</button>
+      <div className="filtros" role="group" aria-label="Filtrar por categoría">
+        {[{ id: 'todos', nombre: 'Todos' }, ...operadores].map((c) => (
+          <button key={c.id} type="button" className={filtro === c.id ? 'activa' : ''} aria-pressed={filtro === c.id} onClick={() => setFiltro(c.id)}>
+            {c.nombre}
+          </button>
         ))}
       </div>
 
-      {visibles.map((c) => (
-        <div key={c} className="categoria">
-          <h3>{c}</h3>
-          <div className="tarjetas">
-            {ALIADOS.filter((a) => a.categoria === c).map((a) => {
-              const contenido = (
-                <>
-                  <div className="logo-aliado"><Logo a={a} /></div>
-                  <strong>{a.nombre}</strong>
-                  <span>{a.descripcion}</span>
-                </>
-              )
-              return a.web ? (
-                <a key={a.nombre} className="tarjeta" href={a.web} target="_blank" rel="noreferrer">{contenido}</a>
-              ) : (
-                <div key={a.nombre} className="tarjeta">{contenido}</div>
-              )
-            })}
-          </div>
+      {mostrados.map((c) => <Bloque key={c.id} c={c} />)}
+
+      {instituciones.length > 0 && (
+        <div className="instituciones">
+          <h3 className="titulo-instituciones">Instituciones del comercio exterior</h3>
+          <p className="nota-inst">Organismos y gremios de referencia para el comercio exterior de Costa Rica.</p>
+          {instituciones.map((c) => (
+            <ul key={c.id} className="rejilla-logos">{visibles(c.id).map((x) => <Tarjeta key={x.logo} a={x} />)}</ul>
+          ))}
         </div>
-      ))}
+      )}
 
       <div className="cta-aliado">
         <div>
