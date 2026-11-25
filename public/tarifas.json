@@ -1,0 +1,62 @@
+{
+  "nota": "Tarifas publicadas de LANDEX. Este archivo es visible para cualquier visitante del sitio. Las tarifas con \"ejemplo\": true son de prueba: solo se ven en modo agencia y nunca permiten emitir una cotización formal.",
+  "actualizado": "2026-11-24",
+  "tarifas": [
+    {
+      "id": "ej-fwd-a-asia-fcl", "proveedor": "Forwarder A (ejemplo)", "categoria": "forwarder", "origenId": "cn-este", "modos": ["FCL20", "FCL40", "FCL40HC"], "zona": "",
+      "cargos": [
+        { "concepto": "transporte_origen", "monto": 320, "unidad": "contenedor" },
+        { "concepto": "despacho_export", "monto": 85, "unidad": "fijo" },
+        { "concepto": "documentacion", "monto": 55, "unidad": "fijo" },
+        { "concepto": "thc_origen", "monto": 140, "unidad": "contenedor" },
+        { "concepto": "sellos", "unidad": "incluido", "monto": 0 },
+        { "concepto": "flete", "monto": 2950, "unidad": "contenedor" },
+        { "concepto": "recargos", "monto": 180, "unidad": "contenedor" },
+        { "concepto": "thc_destino", "monto": 210, "unidad": "contenedor" },
+        { "concepto": "doc_llegada", "monto": 75, "unidad": "fijo" }
+      ],
+      "diasTransito": 34, "vigenteDesde": "2026-11-24", "vigenteHasta": "2027-01-23",
+      "incluye": ["Puerta en Ningbo / Shanghái hasta puerto de Moín"], "excluye": ["Almacenaje en origen después de 5 días"],
+      "condiciones": "14 días libres de contenedor en destino. Sujeto a espacio.", "fuente": "Tarifa de demostración", "ejemplo": true
+    },
+    {
+      "id": "ej-nav-b-asia-fcl", "proveedor": "Naviera B (ejemplo)", "categoria": "naviera", "origenId": "cn-este", "modos": ["FCL20", "FCL40", "FCL40HC"], "zona": "",
+      "cargos": [
+        { "concepto": "thc_origen", "monto": 160, "unidad": "contenedor" },
+        { "concepto": "flete", "monto": 2700, "unidad": "contenedor" },
+        { "concepto": "recargos", "monto": 310, "unidad": "contenedor" },
+        { "concepto": "thc_destino", "monto": 230, "unidad": "contenedor" },
+        { "concepto": "doc_llegada", "monto": 90, "unidad": "fijo" }
+      ],
+      "diasTransito": 40, "vigenteDesde": "2026-11-24", "vigenteHasta": "2026-12-15",
+      "incluye": ["Puerto a puerto Ningbo – Moín"], "excluye": ["Recolección en la bodega del proveedor", "Despacho de exportación"],
+      "condiciones": "Tarifa de mes. 10 días libres en destino.", "fuente": "Tarifa de demostración", "ejemplo": true
+    },
+    {
+      "id": "ej-consol-c-asia-lcl", "proveedor": "Consolidador C (ejemplo)", "categoria": "consolidador", "origenId": "", "modos": ["LCL"], "zona": "",
+      "cargos": [
+        { "concepto": "transporte_origen", "monto": 45, "unidad": "m3", "minimo": 120 },
+        { "concepto": "thc_origen", "monto": 22, "unidad": "m3" },
+        { "concepto": "flete", "monto": 95, "unidad": "m3", "minimo": 190 },
+        { "concepto": "recargos", "unidad": "incluido", "monto": 0 },
+        { "concepto": "thc_destino", "monto": 28, "unidad": "m3" },
+        { "concepto": "desconsolidacion", "monto": 35, "unidad": "m3", "minimo": 80 },
+        { "concepto": "doc_llegada", "monto": 65, "unidad": "fijo" }
+      ],
+      "diasTransito": 42, "vigenteDesde": "2026-11-24", "vigenteHasta": "2027-01-23",
+      "incluye": ["Salida semanal"], "excluye": ["Mercancía peligrosa"],
+      "condiciones": "Cobro por m³ o tonelada, lo que sea mayor.", "fuente": "Tarifa de demostración", "ejemplo": true
+    },
+    {
+      "id": "ej-trans-d-gam", "proveedor": "Transportes D (ejemplo)", "categoria": "transporte_nac", "origenId": "", "modos": [], "zona": "GAM",
+      "cargos": [
+        { "concepto": "transporte_nacional", "monto": 520, "unidad": "contenedor" },
+        { "concepto": "peajes", "unidad": "incluido", "monto": 0 },
+        { "concepto": "devolucion", "monto": 160, "unidad": "contenedor" }
+      ],
+      "diasTransito": 1, "vigenteDesde": "2026-11-24", "vigenteHasta": "2027-02-28",
+      "incluye": ["Moín – GAM, chasis incluido"], "excluye": ["Tiempo de espera mayor a 2 horas"],
+      "condiciones": "Para carga suelta se cobra por viaje.", "fuente": "Tarifa de demostración", "ejemplo": true
+    }
+  ]
+}
