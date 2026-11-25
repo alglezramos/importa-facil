@@ -1,3 +1,12 @@
+# Socios comerciales con logotipos (2026-11-24)
+
+- 27 logotipos del kit LANDEX_Logos_Final en `public/logos/<categoría>/`, con su `manifest.json`.
+- Tarjetas blancas uniformes. Cada logo conserva su proporción y sus colores (`object-fit: contain`).
+- Seis categorías de operadores con filtro, más una sección aparte para instituciones.
+- Sin enlaces a los proveedores: LANDEX es el contacto.
+- Esencial Costa Rica está incluida pero oculta (`publicado: false`) hasta tener la licencia de la marca país.
+- Se mantuvo la invitación a ser socio comercial.
+
 # Libro de Marca aplicado (2026-11-24)
 
 - Montserrat en toda la app, servida desde la propia página. Ya no se usan Sora, Inter ni Google Fonts.
