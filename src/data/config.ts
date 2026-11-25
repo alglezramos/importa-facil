@@ -7,13 +7,16 @@
  * y tu lista de precios antes de usar la plataforma con clientes.
  */
 
-export type Modo = 'LCL' | 'FCL20' | 'FCL40' | 'AEREO'
+export type Modo = 'LCL' | 'FCL20' | 'FCL40' | 'FCL40HC' | 'AEREO' | 'TERRESTRE' | 'MULTIMODAL'
 
 export const MODOS: Record<Modo, string> = {
   LCL: 'Marítimo consolidado (LCL)',
   FCL20: 'Marítimo contenedor 20 pies',
   FCL40: 'Marítimo contenedor 40 pies',
+  FCL40HC: 'Marítimo contenedor 40 pies High Cube',
   AEREO: 'Aéreo',
+  TERRESTRE: 'Terrestre internacional (tráiler)',
+  MULTIMODAL: 'Multimodal (requiere cotización)',
 }
 
 export interface TarifaFlete {
@@ -21,6 +24,9 @@ export interface TarifaFlete {
   lclPorWM: number
   fcl20: number
   fcl40: number
+  fcl40hc: number
+  /** USD por tráiler completo; null si no hay ruta terrestre. */
+  terrestre: number | null
   /** USD por kg cobrable (máximo entre peso real y volumétrico). */
   aereoPorKg: number
   aereoMinimo: number
@@ -37,7 +43,7 @@ export interface Origen {
   /** Código de país ISO-2, usado para aplicar tratados (TLC). */
   pais: string
   flete: TarifaFlete
-  dias: DiasTransito
+  dias: DiasTransito & { terrestre?: number }
   /** Recolección en fábrica + despacho de exportación (solo si compras EXW). */
   costosOrigenEXW: number
   /** Ley 6946 (1% sobre CIF). Se marca exento para orígenes centroamericanos. */
@@ -49,7 +55,7 @@ export const ORIGENES: Origen[] = [
     id: 'cn-sur',
     nombre: 'China – Shenzhen / Guangzhou',
     pais: 'CN',
-    flete: { lclPorWM: 95, fcl20: 2600, fcl40: 3600, aereoPorKg: 6.5, aereoMinimo: 180 },
+    flete: { lclPorWM: 95, fcl20: 2600, fcl40: 3600, fcl40hc: 3700, terrestre: null, aereoPorKg: 6.5, aereoMinimo: 180 },
     dias: { maritimo: 35, aereo: 7 },
     costosOrigenEXW: 280,
     exentoLey6946: false,
@@ -58,7 +64,7 @@ export const ORIGENES: Origen[] = [
     id: 'cn-este',
     nombre: 'China – Shanghái / Ningbo',
     pais: 'CN',
-    flete: { lclPorWM: 100, fcl20: 2700, fcl40: 3700, aereoPorKg: 6.8, aereoMinimo: 180 },
+    flete: { lclPorWM: 100, fcl20: 2700, fcl40: 3700, fcl40hc: 3800, terrestre: null, aereoPorKg: 6.8, aereoMinimo: 180 },
     dias: { maritimo: 38, aereo: 7 },
     costosOrigenEXW: 280,
     exentoLey6946: false,
@@ -67,7 +73,7 @@ export const ORIGENES: Origen[] = [
     id: 'us-mia',
     nombre: 'EE. UU. – Miami',
     pais: 'US',
-    flete: { lclPorWM: 85, fcl20: 1900, fcl40: 2500, aereoPorKg: 2.2, aereoMinimo: 90 },
+    flete: { lclPorWM: 85, fcl20: 1900, fcl40: 2500, fcl40hc: 2600, terrestre: null, aereoPorKg: 2.2, aereoMinimo: 90 },
     dias: { maritimo: 8, aereo: 2 },
     costosOrigenEXW: 150,
     exentoLey6946: false,
@@ -76,8 +82,8 @@ export const ORIGENES: Origen[] = [
     id: 'mx',
     nombre: 'México – Manzanillo / CDMX',
     pais: 'MX',
-    flete: { lclPorWM: 110, fcl20: 2400, fcl40: 3200, aereoPorKg: 3.5, aereoMinimo: 120 },
-    dias: { maritimo: 14, aereo: 3 },
+    flete: { lclPorWM: 110, fcl20: 2400, fcl40: 3200, fcl40hc: 3300, terrestre: 4200, aereoPorKg: 3.5, aereoMinimo: 120 },
+    dias: { maritimo: 14, aereo: 3 , terrestre: 9 },
     costosOrigenEXW: 180,
     exentoLey6946: false,
   },
@@ -85,7 +91,7 @@ export const ORIGENES: Origen[] = [
     id: 'eu',
     nombre: 'Europa – Valencia / Rotterdam',
     pais: 'EU',
-    flete: { lclPorWM: 120, fcl20: 2800, fcl40: 3800, aereoPorKg: 4.5, aereoMinimo: 150 },
+    flete: { lclPorWM: 120, fcl20: 2800, fcl40: 3800, fcl40hc: 3900, terrestre: null, aereoPorKg: 4.5, aereoMinimo: 150 },
     dias: { maritimo: 25, aereo: 4 },
     costosOrigenEXW: 250,
     exentoLey6946: false,
@@ -94,26 +100,12 @@ export const ORIGENES: Origen[] = [
     id: 'ca',
     nombre: 'Centroamérica (por tierra)',
     pais: 'CA',
-    flete: { lclPorWM: 70, fcl20: 1400, fcl40: 1900, aereoPorKg: 2.5, aereoMinimo: 80 },
-    dias: { maritimo: 5, aereo: 2 },
+    flete: { lclPorWM: 70, fcl20: 1400, fcl40: 1900, fcl40hc: 2000, terrestre: 1800, aereoPorKg: 2.5, aereoMinimo: 80 },
+    dias: { maritimo: 5, aereo: 2 , terrestre: 4 },
     costosOrigenEXW: 120,
     exentoLey6946: true,
   },
 ]
-
-export interface GastoDestino {
-  fijo: number
-  /** USD por m³ (marítimo LCL) o por kg (aéreo). */
-  variable: number
-}
-
-/** Gastos en destino: THC, desconsolidación, manejo, almacén fiscal estimado. */
-export const GASTOS_DESTINO: Record<Modo, GastoDestino> = {
-  LCL: { fijo: 180, variable: 25 },
-  FCL20: { fijo: 450, variable: 0 },
-  FCL40: { fijo: 550, variable: 0 },
-  AEREO: { fijo: 90, variable: 0.15 },
-}
 
 export type Zona = 'GAM' | 'FUERA_GAM'
 

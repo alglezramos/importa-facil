@@ -21,8 +21,8 @@ export interface Proveedor {
   contacto?: string
 }
 
-const MAR: Modo[] = ['LCL', 'FCL20', 'FCL40']
-const FCL: Modo[] = ['FCL20', 'FCL40']
+const MAR: Modo[] = ['LCL', 'FCL20', 'FCL40', 'FCL40HC']
+const FCL: Modo[] = ['FCL20', 'FCL40', 'FCL40HC']
 
 export const PROVEEDORES: Proveedor[] = [
   // Navieras (contenedor completo)
@@ -41,7 +41,10 @@ export const PROVEEDORES: Proveedor[] = [
   { id: 'consol-1', nombre: 'Consolidador socio Asia', tipo: 'consolidador', origenes: ['cn-sur', 'cn-este'], modos: ['LCL'] },
   { id: 'consol-2', nombre: 'Consolidador socio Miami', tipo: 'consolidador', origenes: ['us-mia'], modos: ['LCL'] },
   { id: 'consol-3', nombre: 'Consolidador socio Europa / México', tipo: 'consolidador', origenes: ['eu', 'mx'], modos: ['LCL'] },
-  { id: 'consol-4', nombre: 'Consolidador socio Centroamérica', tipo: 'consolidador', origenes: ['ca'], modos: ['LCL', 'FCL20', 'FCL40'] },
+  { id: 'consol-4', nombre: 'Consolidador socio Centroamérica', tipo: 'consolidador', origenes: ['ca'], modos: ['LCL', 'FCL20', 'FCL40', 'FCL40HC', 'TERRESTRE'] },
+
+  { id: 'terr-int-1', nombre: 'Transportista internacional socio', tipo: 'consolidador', origenes: ['ca', 'mx'], modos: ['TERRESTRE'] },
+  { id: 'multi-1', nombre: 'Forwarder socio (multimodal)', tipo: 'consolidador', origenes: [], modos: ['MULTIMODAL'] },
 
   // Carga aérea: reemplazar por socios reales
   { id: 'aereo-1', nombre: 'Agente de carga aérea socio', tipo: 'aereo', origenes: [], modos: ['AEREO'] },
