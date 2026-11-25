@@ -1,4 +1,6 @@
-# Importa Fácil – Cotizador de importaciones para pymes
+# LANDEX – International Trade Intelligence
+
+*Importa con inteligencia.* Plataforma de cotización y Landed Cost de **LANDEX**, A Ramos & Co. Company. Identidad en [MARCA.md](MARCA.md) · dominio en [DOMINIO.md](DOMINIO.md).
 
 Plataforma web de la agencia de aduanas para que una pyme cotice **el costo total de su importación puesto en su bodega**, desde la compra al proveedor (por ejemplo, en Alibaba) hasta la descarga.
 

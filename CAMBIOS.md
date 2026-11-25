@@ -1,3 +1,16 @@
+# Rebranding a LANDEX (2026-11-24)
+
+Respaldo previo: rama `respaldo-v2`. **Sin cambios en fórmulas, tarifas, aranceles, impuestos ni identificadores internos** (la clave de guardado local se mantiene para no perder cotizaciones guardadas). Las 29 pruebas del motor siguen pasando.
+
+- Nueva identidad: logotipo LANDEX (claro, oscuro, con descriptor), ícono compacto, favicon, íconos de app e imagen para redes (`public/brand/`).
+- Paleta y tipografía LANDEX en toda la interfaz: botones, tarjetas, tablas, gráficos y navegación.
+- Encabezado con logotipo y descriptor, presentación "Importa con inteligencia." sobre el cotizador, y firma "A Ramos & Co. Company" en el pie.
+- Título del navegador, descripción, Open Graph, `manifest.webmanifest` e ícono para pantalla de inicio en móviles.
+- Cotizaciones impresas o guardadas en PDF con encabezado LANDEX; solicitudes de cotización firmadas como LANDEX.
+- Nuevo en el embarque: **datos del proveedor** (empresa, dirección, contacto, teléfono y email), que se guardan y viajan en la solicitud. No intervienen en el cálculo.
+- Guía del dominio `landex.co.cr` en `DOMINIO.md`. No se agregó archivo CNAME: va cuando el dominio esté comprado.
+- "Iniciar sesión" no se agregó todavía: sin cuentas reales del lado del servidor sería un botón falso. Llega con la Fase 4.
+
 # Cambios – Fase 1: motor de Landed Cost multiproducto
 
 Fecha: 2026-11-24 · Respaldo de la versión anterior: rama `respaldo-v1` (GitHub) y etiqueta `respaldo-v1` (local).
