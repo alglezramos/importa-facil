@@ -2,7 +2,7 @@
  * Arancel completo (SAC, VII Enmienda): carga, búsqueda y navegación.
  * Los datos viven en public/arancel.json y se cargan solo cuando se necesitan.
  */
-import type { Partida } from '../data/arancel'
+import type { Clasificacion } from './landed'
 
 export type Item = [codigo: string, descripcion: string, dai: string | null]
 
@@ -194,19 +194,18 @@ export function etiqueta(ind: Indice, codigo: string): string {
   return ultima ? `${partida} › ${ultima}` : partida
 }
 
-export function aPartida(ind: Indice, codigo: string): Partida {
+export function aClasificacion(ind: Indice, codigo: string): Clasificacion {
   const it = ind.porCodigo.get(codigo)
-  const dai = it?.[2] && /^\d+(\.\d+)?$/.test(it[2]) ? Number(it[2]) / 100 : 0
+  const dai = it?.[2] && /^\d+(\.\d+)?$/.test(it[2]) ? Number(it[2]) / 100 : null
   return {
     codigo,
     descripcion: etiqueta(ind, codigo),
-    palabrasClave: [],
     dai,
-    sc: 0,
+    sc: null,
     iva: 0.13,
-    tlc: {},
-    permisos: [],
-    verificado: false,
+    otros: 0,
+    estado: 'preliminar',
+    fuente: 'DAI del Arancel Centroamericano (referencia regional); Selectivo por confirmar',
   }
 }
 
