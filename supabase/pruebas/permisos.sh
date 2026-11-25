@@ -50,6 +50,29 @@ $ADM -c "update tarifas set ejemplo=true where id='t4'"
 VIS=$(psql -h /tmp/pgt -p 5544 -U authenticator -d landex -qtA -f $(dirname "$0")/vis.sql)
 echo "    visitante ve tarifas: $VIS (esperado solo t1: publicada, vigente y real)"
 esperar "operador asigna rol a otro usuario" ok "$(como $O authenticated "update perfiles set rol='agente' where id='$B'")"
-esperar "agente no puede asignar roles" error "$(como $G authenticated "update perfiles set rol='operador' where id='$A'")"
+como $G authenticated "update perfiles set rol='operador' where id='$A'" >/dev/null
+echo "    agente intenta asignar rol → A queda: $($ADM -c "select rol from perfiles where id='$A'") (esperado cliente)"
 esperar "cliente A no puede borrar una cotización aceptada/formal" ok "$(como $A authenticated "update cotizaciones set estado='estimada' where id='$CA'" ; echo)"
 echo "    consecutivo siguiente: $($ADM -c "select siguiente_numero()")"
+# ---- Fase 1 comercial: estado "solicitada" y solicitudes públicas
+C=55555555-5555-5555-5555-555555555555  # cliente C (B ya es agente en este punto)
+$ADM -c "insert into auth.users values ('$C','c@x.cr')"
+esperar "cliente A pide cotización formal (solicitada)" ok "$(como $A authenticated "insert into cotizaciones (nombre, datos, estado) values ('pedido','{\"p\":3}','solicitada')")"
+echo "    estado guardado: $($ADM -c "select estado from cotizaciones where nombre='pedido'") (esperado solicitada)"
+CS=$($ADM -c "select id from cotizaciones where nombre='pedido'")
+esperar "cliente A no puede pasar su solicitud a formal" error "$(como $A authenticated "update cotizaciones set estado='formal' where id='$CS'")"
+esperar "agente emite formal sobre una solicitada" ok "$(como $G authenticated "update cotizaciones set estado='formal', emision='{\"vence\":\"2099-01-01\"}' where id='$CS'")"
+esperar "visitante anónimo envía solicitud de desalmacenaje" ok "$(como '' anon "insert into solicitudes (tipo, nombre, correo, consentimiento, estado, notas) values ('desalmacenaje','Luis','luis@x.cr',true,'cerrado','hack')")"
+echo "    estado y notas forzados: $($ADM -c "select estado||'/'||notas||'/'||coalesce(usuario_id::text,'anon') from solicitudes where nombre='Luis'") (esperado nuevo//anon)"
+esperar "solicitud sin consentimiento rechazada" error "$(como '' anon "insert into solicitudes (tipo, nombre, correo, consentimiento) values ('contacto','Ana','ana@x.cr',false)")"
+esperar "solicitud con correo inválido rechazada" error "$(como '' anon "insert into solicitudes (tipo, nombre, correo, consentimiento) values ('contacto','Ana','no-es-correo',true)")"
+esperar "tipo de solicitud desconocido rechazado" error "$(como '' anon "insert into solicitudes (tipo, nombre, correo, consentimiento) values ('spam','Ana','ana@x.cr',true)")"
+esperar "visitante anónimo no ve solicitudes" ok "$(como '' anon "do \$\$ begin if (select count(*) from solicitudes) > 0 then raise exception 've'; end if; end \$\$")"
+esperar "cliente C no ve solicitudes ajenas" ok "$(como $C authenticated "do \$\$ begin if (select count(*) from solicitudes) > 0 then raise exception 've'; end if; end \$\$")"
+esperar "cliente C envía solicitud con su cuenta" ok "$(como $C authenticated "insert into solicitudes (tipo, nombre, correo, consentimiento, usuario_id) values ('empresarial','Beto','b@x.cr',true,'$A')")"
+echo "    dueño forzado: $($ADM -c "select usuario_id from solicitudes where nombre='Beto'") (esperado $C)"
+como $C authenticated "update solicitudes set estado='cerrado' where nombre='Beto'" >/dev/null
+echo "    cliente intenta cambiar estado → $($ADM -c "select estado from solicitudes where nombre='Beto'") (esperado nuevo)"
+esperar "agente ve solicitudes" ok "$(como $G authenticated "do \$\$ begin if (select count(*) from solicitudes) < 2 then raise exception 'no ve'; end if; end \$\$")"
+esperar "agente marca contactado" ok "$(como $G authenticated "update solicitudes set estado='contactado', notas='llamado' where nombre='Luis'")"
+echo "    estado tras agente: $($ADM -c "select estado from solicitudes where nombre='Luis'") (esperado contactado)"
