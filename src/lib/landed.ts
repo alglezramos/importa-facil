@@ -626,6 +626,8 @@ export function compararModalidades(e: Embarque, productos: Producto[]) {
         dias: r.tiempo.dias,
         contenedores: r.carga.contenedores,
         fletePendiente: flete?.estado === 'pendiente',
+        incompleta: r.estado === 'incompleta',
+        pendientes: r.pendientes.length,
         alertas: r.carga.alertas,
       }
     })
