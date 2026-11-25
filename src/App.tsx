@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Acceso } from './components/Acceso'
+import { AgenciaAduanal, type Seccion } from './components/AgenciaAduanal'
+import { Inicio } from './components/Inicio'
+import { Solicitudes } from './components/Solicitudes'
 import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
 import { Cotizador, type Apertura } from './components/Cotizador'
@@ -10,26 +13,55 @@ import { Guia } from './components/Guia'
 import { Tarifas } from './components/Tarifas'
 import { fijarAgencia } from './lib/formal'
 import { alCambiarSesion, cargarUsuario, esStaff, ROLES, salir, type Usuario } from './lib/nube'
-import { MARCA } from './data/config'
+import { AGENCIA, EMPRESA, MARCA } from './data/config'
 import { Logotipo } from './components/Marca'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'cotizar' | 'cotizaciones' | 'clasificar' | 'guia' | 'aliados' | 'perfil' | 'tarifas'
+type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
 
 const VISTAS: Record<Vista, string> = {
+  inicio: 'Inicio',
   cotizar: 'Cotizar importación',
-  cotizaciones: 'Mis cotizaciones',
+  agencia: 'Agencia aduanal',
   clasificar: 'Clasificación e impuestos',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
+  cotizaciones: 'Mis cotizaciones',
   perfil: 'Mi perfil',
+  solicitudes: 'Solicitudes',
   tarifas: 'Tarifas',
 }
 
+/** Rutas con # para enlazar secciones (compatible con GitHub Pages y con el regreso del enlace de acceso). */
+const RUTAS: Record<string, Vista> = {
+  '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
+  clasificacion: 'clasificar', 'como-funciona': 'guia', socios: 'aliados', cotizaciones: 'cotizaciones', perfil: 'perfil',
+  solicitudes: 'solicitudes', tarifas: 'tarifas',
+}
+const HASH: Record<Vista, string> = {
+  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'clasificacion', guia: 'como-funciona', aliados: 'socios',
+  cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
+}
+const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
+const vistaDeRuta = (): Vista => RUTAS[leerRuta()] ?? 'inicio'
+
 export default function App() {
-  const [vista, setVista] = useState<Vista>('cotizar')
+  const [vista, setVistaEstado] = useState<Vista>(vistaDeRuta)
+  const [seccion, setSeccion] = useState<Seccion>(leerRuta() === 'empresas' ? 'empresarial' : 'desalmacenaje')
+  const setVista = (v: Vista) => {
+    setVistaEstado(v)
+    const h = HASH[v]
+    if (leerRuta() !== h) history.pushState(null, '', h ? `#${h}` : location.pathname + location.search)
+    window.scrollTo(0, 0)
+  }
+  useEffect(() => {
+    const alCambiar = () => { setVistaEstado(vistaDeRuta()); if (leerRuta() === 'empresas') setSeccion('empresarial'); if (leerRuta() === 'desalmacenar') setSeccion('desalmacenaje') }
+    window.addEventListener('popstate', alCambiar)
+    return () => window.removeEventListener('popstate', alCambiar)
+  }, [])
+  const irAgencia = (s: Seccion) => { setSeccion(s); setVista('agencia') }
   const [clasificacionNueva, setClasificacionNueva] = useState<Cls | null>(null)
-  const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar'); window.scrollTo(0, 0) }
+  const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar') }
   const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
   const [apertura, setApertura] = useState<Apertura | null>(null)
   const [usuario, setUsuario] = useState<Usuario | null>(null)
@@ -37,7 +69,7 @@ export default function App() {
   const [versionTarifas, setVersionTarifas] = useState(0)
   const agencia = esStaff(usuario)
   fijarAgencia(agencia)
-  const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar'); window.scrollTo(0, 0) }
+  const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar') }
 
   useEffect(() => alCambiarSesion(async (s) => {
     if (!s) { setUsuario(null); return }
@@ -51,19 +83,19 @@ export default function App() {
     if (location.search.includes('code=')) history.replaceState(null, '', location.pathname + location.hash)
   }), [])
 
-  const visibles = (Object.keys(VISTAS) as Vista[]).filter((v) => v !== 'tarifas' || usuario?.rol === 'operador')
+  const visibles = (Object.keys(VISTAS) as Vista[]).filter((v) => (v !== 'tarifas' || usuario?.rol === 'operador') && (v !== 'solicitudes' || agencia))
 
   return (
     <div className="app">
       <header>
         <div className="marca">
-          <h1 className="marca-h1"><Logotipo sobre="oscuro" alto={30} descriptor /></h1>
+          <h1 className="marca-h1"><a href="#" onClick={(e) => { e.preventDefault(); setVista('inicio') }} aria-label="LANDEX, ir al inicio"><Logotipo sobre="oscuro" alto={30} descriptor /></a></h1>
         </div>
         <div className="cuenta">
           {usuario ? (
             <>
               <span className="quien"><b>{perfil.nombre || usuario.email}</b><small>{ROLES[usuario.rol]}</small></span>
-              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('cotizar') }}>Salir</button>
+              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>Salir</button>
             </>
           ) : (
             <button type="button" className="btn-cuenta" onClick={() => setAcceso(true)}>Iniciar sesión</button>
@@ -71,7 +103,7 @@ export default function App() {
         </div>
         <nav>
           {visibles.map((v) => (
-            <button key={v} className={vista === v ? 'activa' : ''} onClick={() => setVista(v)}>
+            <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
               {VISTAS[v]}
             </button>
           ))}
@@ -85,6 +117,12 @@ export default function App() {
       </div>
 
       <main>
+        {vista === 'inicio' && (
+          <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia}
+            onSocios={() => setVista('aliados')} onGuia={() => setVista('guia')} />
+        )}
+        {vista === 'agencia' && <AgenciaAduanal seccion={seccion} onSeccion={setSeccion} usuario={usuario} onCotizar={() => setVista('cotizar')} />}
+        {vista === 'solicitudes' && agencia && <Solicitudes perfilBase={perfil} onAbrir={(a) => abrir(a)} />}
         {vista === 'cotizar' && (
           <section className="hero">
             <div>
@@ -99,7 +137,7 @@ export default function App() {
         )}
         {vista === 'cotizar' && (
           <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
-            usuario={usuario} onIniciarSesion={() => setAcceso(true)} />
+            usuario={usuario} onIniciarSesion={() => setAcceso(true)} onPerfil={setPerfil} />
         )}
         {vista === 'cotizaciones' && (
           <MisCotizaciones usuario={usuario} perfilBase={perfil} onAbrir={(a) => abrir(a)} onNueva={() => abrir({ cotizacion: null })}
@@ -115,9 +153,18 @@ export default function App() {
       {acceso && <Acceso onCerrar={() => setAcceso(false)} />}
 
       <footer>
+        <nav className="pie-enlaces" aria-label="Enlaces del pie">
+          <button type="button" className="link" onClick={() => setVista('cotizar')}>Cotizar</button>
+          <button type="button" className="link" onClick={() => irAgencia('desalmacenaje')}>Necesito desalmacenar</button>
+          <button type="button" className="link" onClick={() => irAgencia('empresarial')}>Empresas</button>
+          <button type="button" className="link" onClick={() => setVista('aliados')}>Socios comerciales</button>
+          <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>
+          {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>Términos y condiciones</a>}
+          {EMPRESA.privacidadUrl && <a href={EMPRESA.privacidadUrl}>Política de privacidad</a>}
+        </nav>
         <p>
-          Cotización referencial. La clasificación, los impuestos y las tarifas se confirman en la cotización formal del
-          agente aduanero. Tarifas y tasas de esta versión son de ejemplo.
+          Las estimaciones son referenciales. La clasificación, los impuestos y las tarifas se confirman en la cotización
+          formal del agente aduanero. Las tarifas y tasas de esta versión son de ejemplo.
         </p>
         <p className="firma"><span>A Ramos &amp; Co. Company</span> {MARCA.nombre} © {new Date().getFullYear()}</p>
       </footer>
