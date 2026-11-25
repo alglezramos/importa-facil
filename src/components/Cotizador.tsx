@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ARANCEL, type Partida } from '../data/arancel'
 import { MODOS, ORIGENES, TIPO_CAMBIO_DEFAULT, ZONAS, type Modo, type Zona } from '../data/config'
 import { cotizar, INCOTERMS, type Incoterm } from '../lib/calculo'
@@ -7,9 +7,12 @@ import { SelectorPartida } from './SelectorPartida'
 
 const num = (v: string) => (Number.isFinite(Number(v)) ? Number(v) : 0)
 
-export function Cotizador() {
+interface Props { partidaInicial?: Partida | null }
+
+export function Cotizador({ partidaInicial }: Props) {
   const [producto, setProducto] = useState('')
-  const [partida, setPartida] = useState<Partida | null>(ARANCEL[4])
+  const [partida, setPartida] = useState<Partida | null>(partidaInicial ?? { ...ARANCEL[4], tlc: {} })
+  useEffect(() => { if (partidaInicial) setPartida(partidaInicial) }, [partidaInicial])
   const [valor, setValor] = useState(8000)
   const [unidades, setUnidades] = useState(200)
   const [incoterm, setIncoterm] = useState<Incoterm>('FOB')
@@ -86,6 +89,9 @@ export function Cotizador() {
             <input type="checkbox" checked={tlc} onChange={(e) => setTlc(e.target.checked)} />
             El proveedor me da certificado de origen (aplicar TLC)
           </label>
+          {tlc && partida && !Object.keys(partida.tlc).length && (
+            <small className="nota">La tasa preferencial de este inciso la confirma el agente; mientras tanto se usa el DAI general.</small>
+          )}
         </fieldset>
 
         <fieldset>

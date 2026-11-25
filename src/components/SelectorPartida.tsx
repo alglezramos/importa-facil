@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
-import { buscarPartidas, type Partida } from '../data/arancel'
+import { useEffect, useMemo, useState } from 'react'
+import type { Partida } from '../data/arancel'
+import { aPartida, buscar, cargarArancel, etiqueta, type Indice } from '../lib/arancel'
 import { pct } from '../lib/formato'
 
 interface Props {
@@ -7,71 +8,54 @@ interface Props {
   onSeleccionar: (p: Partida) => void
 }
 
-const MANUAL: Partida = {
-  codigo: 'Por clasificar',
-  descripcion: 'Producto no listado (tasas ingresadas manualmente)',
-  palabrasClave: [],
-  dai: 0.14, sc: 0, iva: 0.13, tlc: {}, permisos: [], verificado: false,
-}
-
 export function SelectorPartida({ seleccionada, onSeleccionar }: Props) {
+  const [ind, setInd] = useState<Indice | null>(null)
   const [consulta, setConsulta] = useState('')
-  const [manual, setManual] = useState<Partida>(MANUAL)
-  const resultados = useMemo(() => buscarPartidas(consulta).slice(0, 6), [consulta])
-  const esManual = seleccionada?.codigo === manual.codigo
+  useEffect(() => { cargarArancel().then(setInd).catch(() => setInd(null)) }, [])
+  const resultados = useMemo(() => (ind && consulta.trim().length >= 2 ? buscar(ind, consulta, 6) : []), [ind, consulta])
 
-  const actualizarManual = (cambios: Partial<Partida>) => {
-    const nueva = { ...manual, ...cambios }
-    setManual(nueva)
-    onSeleccionar(nueva)
-  }
+  const ajustar = (cambios: Partial<Partida>) => seleccionada && onSeleccionar({ ...seleccionada, ...cambios })
 
   return (
     <div className="selector">
       <input
         type="search"
-        placeholder="Busca tu producto: laptop, camisetas, muebles, 9403…"
+        placeholder={ind ? 'Busca en el arancel: escritorio de madera, laptop, 9403…' : 'Cargando arancel…'}
         value={consulta}
         onChange={(e) => setConsulta(e.target.value)}
       />
-      <ul className="partidas">
-        {resultados.map((p) => (
-          <li key={p.codigo}>
-            <button
-              type="button"
-              className={seleccionada?.codigo === p.codigo ? 'activa' : ''}
-              onClick={() => onSeleccionar(p)}
-            >
-              <span className="codigo">{p.codigo}</span>
-              <span className="desc">{p.descripcion}</span>
-              <span className="tasa">DAI {pct(p.dai)}</span>
-            </button>
-          </li>
-        ))}
-        <li>
-          <button type="button" className={esManual ? 'activa' : ''} onClick={() => onSeleccionar(manual)}>
-            <span className="codigo">¿No aparece?</span>
-            <span className="desc">Ingresar tasas manualmente y pedir clasificación al agente</span>
-          </button>
-        </li>
-      </ul>
-      {esManual && (
-        <div className="fila3">
-          <label>
-            DAI %
-            <input type="number" min={0} step={1} value={manual.dai * 100}
-              onChange={(e) => actualizarManual({ dai: Number(e.target.value) / 100 })} />
-          </label>
-          <label>
-            Selectivo %
-            <input type="number" min={0} step={1} value={manual.sc * 100}
-              onChange={(e) => actualizarManual({ sc: Number(e.target.value) / 100 })} />
-          </label>
-          <label>
-            IVA %
-            <input type="number" min={0} step={1} value={manual.iva * 100}
-              onChange={(e) => actualizarManual({ iva: Number(e.target.value) / 100 })} />
-          </label>
+      {resultados.length > 0 && ind && (
+        <ul className="partidas">
+          {resultados.map(({ item }) => (
+            <li key={item[0]}>
+              <button type="button" className={seleccionada?.codigo === item[0] ? 'activa' : ''}
+                onClick={() => { onSeleccionar(aPartida(ind, item[0])); setConsulta('') }}>
+                <span className="codigo">{item[0]}</span>
+                <span className="desc">{etiqueta(ind, item[0])}</span>
+                <span className="tasa">DAI {item[2] && /^\d/.test(item[2]) ? `${item[2]}%` : '—'}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {seleccionada && (
+        <div className="elegida">
+          <div><span className="codigo">{seleccionada.codigo}</span> {seleccionada.descripcion}</div>
+          <div className="fila3">
+            <label>DAI %
+              <input type="number" min={0} step={1} value={+(seleccionada.dai * 100).toFixed(2)}
+                onChange={(e) => ajustar({ dai: Number(e.target.value) / 100 })} />
+            </label>
+            <label>Selectivo %
+              <input type="number" min={0} step={1} value={+(seleccionada.sc * 100).toFixed(2)}
+                onChange={(e) => ajustar({ sc: Number(e.target.value) / 100 })} />
+            </label>
+            <label>IVA %
+              <input type="number" min={0} step={1} value={+(seleccionada.iva * 100).toFixed(2)}
+                onChange={(e) => ajustar({ iva: Number(e.target.value) / 100 })} />
+            </label>
+          </div>
+          <small className="nota">Tasas preliminares (DAI {pct(seleccionada.dai)}): ajústalas si el agente indica otras.</small>
         </div>
       )}
     </div>
