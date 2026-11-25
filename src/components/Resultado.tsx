@@ -36,7 +36,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
-  const compatibles = comp.filter((m) => m.compatible && !m.fletePendiente)
+  const compatibles = comp.filter((m) => m.compatible && !m.fletePendiente && !m.incompleta)
   const recomendada = compatibles.length ? compatibles.reduce((a, b) => (b.total < a.total ? b : a)) : null
   const unidades = r.productos.reduce((s, p) => s + p.cantidad, 0)
   const segmentos: { k: Etapa | 0; nombre: string; v: number }[] = [
@@ -49,7 +49,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
     <section className="resultado">
       <div className="total">
         <div className="fila-estado">
-          <span className="etiqueta">Costo total puesto y descargado en tu bodega</span>
+          <span className="etiqueta">{r.estado === 'incompleta' ? 'Subtotal estimado (faltan costos)' : e.requiereDescarga ? 'Costo estimado puesto y descargado en tu bodega' : 'Costo estimado puesto en tu bodega'}</span>
           <span className={`estado-cot ${formal ? 'formal' : r.estado}`}>{formal ? `Cotización formal · vence el ${formal.vence}` : r.estado === 'incompleta' ? `Estimada incompleta · ${r.pendientes.length} pendiente(s)` : 'Cotización estimada'}</span>
         </div>
         <strong>{usd(r.totales.total)}</strong>
@@ -86,6 +86,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
       </div>
 
       <h3>Carga y modalidades</h3>
+      <p className="nota">Comparación con tarifas de referencia, sin ajustes particulares de proveedores. Los subtotales incompletos no permiten identificar la opción más barata.</p>
       <p className="nota">
         {r.carga.volumenM3.toFixed(2)} m³ · {r.carga.pesoKg.toLocaleString('es-CR')} kg · {r.carga.bultos} bultos
         {r.carga.contenedores ? ` · ${r.carga.contenedores} unidad(es) · ocupación ${Math.round((r.carga.ocupacionVolumen ?? 0) * 100)}% del volumen y ${Math.round((r.carga.ocupacionPeso ?? 0) * 100)}% del peso` : ''}
@@ -97,10 +98,10 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
           <tbody>
             {comp.map((m) => (
               <tr key={m.modo} className={m.modo === e.modo ? 'actual' : ''}>
-                <td>{MODOS[m.modo]}{recomendada?.modo === m.modo && <span className="sello validada">Menor costo</span>}</td>
+                <td>{MODOS[m.modo]}{recomendada?.modo === m.modo && <span className="sello validada">Menor costo de referencia</span>}</td>
                 <td>{m.contenedores || '—'}</td>
                 <td className="num">{m.fletePendiente ? 'Pendiente' : usd(m.logistica)}</td>
-                <td className="num">{m.fletePendiente ? 'Pendiente' : usd(m.total)}</td>
+                <td className="num">{m.fletePendiente ? 'Pendiente' : m.incompleta ? `${usd(m.total)} + pendientes` : usd(m.total)}</td>
                 <td className="num">{m.dias}</td>
                 <td>{!m.compatible ? <span className="sello no">No compatible</span> : m.modo === e.modo ? <span className="nota">Actual</span> : <button type="button" className="link" onClick={() => onModo(m.modo)}>Usar</button>}</td>
               </tr>
