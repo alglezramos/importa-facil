@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LANDEX">
-  <rect width="64" height="64" rx="14" fill="#101E30"/>
-  <path d="M14 14h7.5v28.5H34V50H14z" fill="#FFFFFF"/>
-  <g transform="translate(42.5 31) rotate(45)" fill="#48A9FF">
-    <rect x="-3.2" y="-12" width="6.4" height="24" rx="0.8"/>
-    <rect x="-12" y="-3.2" width="24" height="6.4" rx="0.8"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="LANDEX"><title>LANDEX</title><rect width="64" height="64" rx="14.0" fill="#101E30"/><g transform="scale(0.125)"><path d="M176 126H236L196 314H306L294 372H122Z" fill="#FFFFFF"/><path d="M398 126H458L332 372H272Z" fill="#48A9FF"/><path d="M262 126H322L410 372H350Z" fill="#48A9FF"/></g></svg>
