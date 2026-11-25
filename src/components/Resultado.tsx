@@ -25,12 +25,14 @@ interface Props {
   ofertas?: ReactNode
   /** Expediente de documentos, antes de la solicitud. */
   expediente?: ReactNode
+  /** Alcance del servicio (LANDEX / cliente), después de la confiabilidad. */
+  alcance?: ReactNode
 }
 
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente }: Props) {
+export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance }: Props) {
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
@@ -65,6 +67,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
       </div>
 
       {!formal && <Confiabilidad c={confiabilidad(e, productos, r)} />}
+      {alcance}
 
       {r.pendientes.length > 0 && (
         <div className="pendientes">

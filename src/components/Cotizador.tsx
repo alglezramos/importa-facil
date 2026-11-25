@@ -21,6 +21,9 @@ import { PanelAgencia } from './PanelAgencia'
 import { Expediente } from './Expediente'
 import { Guiado } from './Guiado'
 import { ProductoEditor } from './ProductoEditor'
+import { AGENCIA } from '../data/config'
+import { Alcance } from './Alcance'
+import { Contratar, resumenTexto, type Intencion } from './Contratar'
 import { Resultado } from './Resultado'
 
 export interface Apertura {
@@ -31,6 +34,8 @@ export interface Apertura {
   nube?: CotNube
   /** Perfil del cliente dueño, cuando la abre la agencia. */
   cliente?: Perfil
+  /** Modo con el que se abre el cotizador (desde la página de inicio). */
+  modo?: 'guiado' | 'experto'
 }
 
 interface Props {
@@ -41,9 +46,10 @@ interface Props {
   versionTarifas?: number
   usuario: Usuario | null
   onIniciarSesion: () => void
+  onPerfil?: (p: Perfil) => void
 }
 
-export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas, usuario, onIniciarSesion }: Props) {
+export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas, usuario, onIniciarSesion, onPerfil }: Props) {
   const inicial = useRef(leerBorrador())
   const [ef, setEf] = useState<EmbarqueForm>(inicial.current.embarque)
   const [productos, setProductos] = useState<Producto[]>(inicial.current.productos)
@@ -53,6 +59,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
   const [modoVista, setModoVista] = useState<'guiado' | 'experto'>(
     inicial.current.productos.length ? 'experto' : perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
   const [doc, setDoc] = useState(false)
+  const [contratar, setContratar] = useState<Intencion | null>(null)
   const archivo = useRef<HTMLInputElement>(null)
   const resultadoRef = useRef<HTMLDivElement>(null)
 
@@ -86,7 +93,9 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     setCliente(apertura.nube && !apertura.copia && apertura.cliente && apertura.nube.cliente_id !== usuario?.id ? apertura.cliente : undefined)
     setEditando(null)
     setMensaje(c ? (apertura.copia ? `Copia de ${c.numero}: al guardar recibirá un número nuevo.` : `Editando ${c.numero}.`) : '')
-    if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
+    if (apertura.modo) setModoVista(apertura.modo)
+    else if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
+    setContratar(null)
   }, [apertura]) // eslint-disable-line
 
   useEffect(() => { if (clasificacionNueva) setEditando(nuevoProducto(clasificacionNueva)) }, [clasificacionNueva])
@@ -103,10 +112,11 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     return { embarque: e2, r: calcularLanded(e2, productos), protegidos: conceptosProtegidos(base.conceptos) }
   }, [JSON.stringify(ef), JSON.stringify(productos), todas]) // eslint-disable-line
   const candidatas = todas.filter((t) => aplicaA(t, ef) && usable(t) && (agencia || !t.ejemplo))
-  const huellaActual = huella({ ef: { ...ef, documentos: undefined }, productos, cliente: [clientePerfil.nombre, clientePerfil.empresa, clientePerfil.identificacion] })
+  const huellaActual = huella({ ef: { ...ef, documentos: undefined, intencion: undefined }, productos, cliente: [clientePerfil.nombre, clientePerfil.empresa, clientePerfil.identificacion] })
   const formalVigente = !!emision && emision.huella === huellaActual && emision.vence >= new Date().toISOString().slice(0, 10)
   const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(clientePerfil) && !!clientePerfil.identificacion.trim()) : []
   const bloqueada = !!nubeEstado && BLOQUEADA.includes(nubeEstado)
+  const puedeSolicitar = !nubeEstado || nubeEstado === 'estimada' || nubeEstado === 'incompleta'
   const aplicarT = (t: Tarifa) => setEf((x) => ({
     ...x, ajustes: liberarConceptos(x.ajustes, t),
     tarifasAplicadas: [...(x.tarifasAplicadas ?? []).filter((id) => { const y = todas.find((z) => z.id === id); return y && tramoTarifa(y) !== tramoTarifa(t) }), t.id],
@@ -181,20 +191,22 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
    * Guarda la cotización. Con sesión, en la nube (número oficial LDX); sin sesión, en este navegador.
    * `em`: emisión a conservar (undefined = la vigente, null = sin emisión).
    */
-  const guardarCot = async (em: Emision | null | undefined = formalVigente ? emision : undefined): Promise<CotNube | null> => {
+  const guardarCot = async (em: Emision | null | undefined = formalVigente ? emision : undefined, op: { estado?: EstadoNube; intencion?: Intencion } = {}): Promise<CotNube | null> => {
     if (!r) return null
     const nombre = (productos.map((p) => p.nombre).filter(Boolean).slice(0, 2).join(', ') + (productos.length > 2 ? ` y ${productos.length - 2} más` : '')) || 'Cotización sin nombre'
     if (usuario) {
       if (bloqueada) { setMensaje(`Esta cotización está ${ESTADOS_NUBE[nubeEstado!].toLowerCase()}: no se modifica. Duplícala desde "Mis cotizaciones" para cambiarla.`); return null }
       setOcupado(true)
       const vigente = em === undefined ? formalVigente : !!em
-      const estado: EstadoNube = vigente && nubeEstado === 'formal' ? 'formal' : r.estado
-      const { cot, error } = await guardarCotizacionNube(nubeId, nombre, ef, productos, r, estado, staff ? (vigente ? emision ?? null : null) : undefined)
+      const estado: EstadoNube = vigente && nubeEstado === 'formal' ? 'formal' : op.estado ?? (nubeEstado === 'solicitada' ? 'solicitada' : r.estado)
+      const efGuardar = op.intencion ? { ...ef, intencion: op.intencion } : ef
+      const { cot, error } = await guardarCotizacionNube(nubeId, nombre, efGuardar, productos, r, estado, staff ? (vigente ? emision ?? null : null) : undefined)
       setOcupado(false)
       if (error || !cot) { setMensaje(`No se pudo guardar en tu cuenta: ${error}`); return null }
+      if (op.intencion) setEf((x) => ({ ...x, intencion: op.intencion }))
       setNubeId(cot.id); setNumero(cot.numero); setNubeEstado(cot.estado)
       if (!cot.emision) setEmision(undefined)
-      setMensaje(`Cotización ${cot.numero} guardada en ${staff && cliente ? 'la cuenta del cliente' : 'tu cuenta'}.`)
+      setMensaje(op.estado === 'solicitada' ? `Solicitud ${cot.numero} enviada a LANDEX.` : `Cotización ${cot.numero} guardada en ${staff && cliente ? 'la cuenta del cliente' : 'tu cuenta'}.`)
       return cot
     }
     const num = numero ?? siguienteNumero()
@@ -350,13 +362,28 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
       <div ref={resultadoRef} className="col-resultado">
       {r ? (
         <>
+          {!staff && puedeSolicitar && (
+            <div className="cta-contratar">
+              <button type="button" className="btn primario grande" onClick={() => setContratar('contratar')}>Quiero importar con LANDEX</button>
+              <span>Tu agencia aduanal se encarga de todo, de la fábrica a tu bodega.</span>
+            </div>
+          )}
+          {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.</p>}
           <div className="acciones arriba">
-            {!bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
-            <button type="button" className="btn" onClick={abrirDoc}>Ver cotización en PDF</button>
+            {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
+            {!staff && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>Solicitar cotización formal</button>}
+            {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>Hablar con un especialista</a>}
+            {!staff && !bloqueada && <button type="button" className="btn" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar estimación'}</button>}
+            <button type="button" className="btn" onClick={abrirDoc}>Descargar PDF</button>
             {!staff && nubeEstado === 'formal' && formalVigente && (
               <button type="button" className="btn primario" onClick={aceptar}>Aceptar cotización formal</button>
             )}
           </div>
+          {contratar && (
+            <Contratar intencion={contratar} r={r} ef={ef} productos={productos} usuario={usuario} perfil={perfil}
+              onEnviarCuenta={async (i) => (await guardarCot(undefined, { estado: 'solicitada', intencion: i })) ? null : 'No se pudo enviar la solicitud. Intenta de nuevo.'}
+              onIniciarSesion={onIniciarSesion} onPerfil={(p) => onPerfil?.(p)} onCerrar={() => setContratar(null)} />
+          )}
           {!usuario && <p className="nota">¿Quieres guardarla en tu cuenta, subir documentos y recibir una cotización formal? <button type="button" className="link" onClick={onIniciarSesion}>Inicia sesión</button></p>}
           {!staff && nubeEstado === 'formal' && formalVigente && <p className="aviso-formal">LANDEX te envió esta <b>cotización formal</b>, válida hasta el {emision!.vence}. Revísala en PDF y, si estás de acuerdo, acéptala para iniciar tu importación.</p>}
           {mensaje && <p className="nota" role="status">{mensaje}</p>}
@@ -371,6 +398,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
           )}
           <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
             formal={formalVigente ? emision : undefined}
+            alcance={<Alcance r={r} externos={ef.gestionCliente ?? []} soloLectura={bloqueada} onCambio={(x) => set({ gestionCliente: x })} />}
             ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
               aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />}
             expediente={<Expediente e={embarque} productos={productos} estados={ef.documentos ?? {}} agencia={agencia}

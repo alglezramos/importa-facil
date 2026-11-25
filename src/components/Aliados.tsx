@@ -66,7 +66,9 @@ export function Aliados() {
           <strong>¿Quieres ser socio comercial de {AGENCIA.nombre}?</strong>
           <span>Si eres naviera, forwarder, transportista o almacén, conversemos.</span>
         </div>
-        <a className="btn primario" href={`https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent('Hola, me interesa ser socio comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">
+        <a className="btn primario" href={AGENCIA.whatsapp
+          ? `https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent('Hola, me interesa ser socio comercial de ' + AGENCIA.nombre)}`
+          : `mailto:${AGENCIA.emailInfo}?subject=${encodeURIComponent('Quiero ser socio comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">
           Escríbenos
         </a>
       </div>

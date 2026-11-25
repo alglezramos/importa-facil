@@ -99,7 +99,7 @@ export function Solicitud({ entrada, r, productos }: Props) {
 
   return (
     <div className="solicitud">
-      <h3>Pide tu cotización formal</h3>
+      <h3>Prefieres enviarla por correo</h3>
       <p className="nota">
         Elige con quién quieres cotizar. {AGENCIA.nombre} pide las tarifas por ti, las compara y te envía la mejor opción con la
         clasificación confirmada por el agente aduanero.
@@ -153,14 +153,16 @@ export function Solicitud({ entrada, r, productos }: Props) {
       </details>
 
       <div className="acciones">
-        <a
-          className={`btn primario ${completo ? '' : 'deshabilitado'}`}
-          aria-disabled={!completo}
-          target="_blank" rel="noreferrer"
-          href={completo ? `https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent(texto)}` : undefined}
-        >
-          Enviar solicitud por WhatsApp
-        </a>
+        {AGENCIA.whatsapp && (
+          <a
+            className={`btn ${completo ? '' : 'deshabilitado'}`}
+            aria-disabled={!completo}
+            target="_blank" rel="noreferrer"
+            href={completo ? `https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent(texto)}` : undefined}
+          >
+            Enviar por WhatsApp
+          </a>
+        )}
         <a className={`btn ${completo ? '' : 'deshabilitado'}`} aria-disabled={!completo}
           href={completo ? `mailto:${AGENCIA.email}?subject=${encodeURIComponent('Solicitud de cotización – ' + (contacto.empresa || contacto.nombre))}&body=${encodeURIComponent(texto)}` : undefined}>
           Enviar por correo
