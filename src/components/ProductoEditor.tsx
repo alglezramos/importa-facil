@@ -1,3 +1,4 @@
+import { modoAgencia } from '../lib/formal'
 import { useEffect, useMemo, useState } from 'react'
 import { aClasificacion, buscar, cargarArancel, etiqueta, type Indice } from '../lib/arancel'
 import { volumenProducto, type Producto } from '../lib/landed'
@@ -105,7 +106,9 @@ export function ProductoEditor({ inicial, onGuardar, onCancelar }: Props) {
               <label>Otros %<input placeholder="pendiente" value={pctIn(cl.otros)} onChange={(e) => setCl({ otros: pctOut(e.target.value) })} /></label>
             </div>
             <small className="nota">Un campo vacío queda como <b>pendiente de validación</b> y no se calcula como cero. {cl.fuente ? `Fuente: ${cl.fuente}.` : ''}</small>
-            <label className="check"><input type="checkbox" checked={cl.estado === 'validada'} onChange={(e) => setCl({ estado: e.target.checked ? 'validada' : 'preliminar' })} />Clasificación y tasas validadas por el agente aduanero</label>
+            {modoAgencia()
+              ? <label className="check"><input type="checkbox" checked={cl.estado === 'validada'} onChange={(e) => setCl({ estado: e.target.checked ? 'validada' : 'preliminar', fuente: e.target.checked ? cl.fuente : undefined })} />Clasificación y tasas validadas por el agente aduanero</label>
+              : cl.estado !== 'validada' && <small className="nota">El agente aduanero de LANDEX valida la clasificación y las tasas antes de la cotización formal.</small>}
           </div>
         ) : (
           <>

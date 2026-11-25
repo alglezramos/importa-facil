@@ -35,7 +35,7 @@ export function MisCotizaciones({ onAbrir, onNueva }: Props) {
                     <td>{c.nombre}<small>{c.productos.length} producto(s)</small></td>
                     <td>{new Date(c.fecha).toLocaleDateString('es-CR')}</td>
                     <td>{vencida ? <span className="sello no">Vencida</span> : `hasta ${vence.toLocaleDateString('es-CR')}`}</td>
-                    <td><span className={`sello ${c.estado === 'incompleta' ? 'pend' : 'validada'}`}>{c.estado === 'incompleta' ? 'Incompleta' : 'Estimada'}</span></td>
+                    <td><span className={`sello ${c.emision ? 'validada' : c.estado === 'incompleta' ? 'pend' : ''}`}>{c.emision ? 'Formal' : c.estado === 'incompleta' ? 'Incompleta' : 'Estimada'}</span></td>
                     <td className="num">{usd(c.total)}</td>
                     <td className="mini-acc">
                       <button type="button" className="link" onClick={() => onAbrir(c)}>Abrir</button>

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+import type { Emision } from '../lib/formal'
 import { useState } from 'react'
 import { MODOS, type Modo } from '../data/config'
 import { VIGENCIA_TARIFAS } from '../data/logistica'
@@ -15,12 +17,16 @@ interface Props {
   r: ResultadoLanded
   onAjuste: (id: string, a: Ajuste | null) => void
   onModo: (m: Modo) => void
+  /** Emisión formal vigente (Fase 3). */
+  formal?: Emision
+  /** Ofertas de proveedores, antes del desglose. */
+  ofertas?: ReactNode
 }
 
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
+export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas }: Props) {
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
@@ -38,7 +44,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
       <div className="total">
         <div className="fila-estado">
           <span className="etiqueta">Costo total puesto y descargado en tu bodega</span>
-          <span className={`estado-cot ${r.estado}`}>{r.estado === 'incompleta' ? `Estimada incompleta · ${r.pendientes.length} pendiente(s)` : 'Cotización estimada'}</span>
+          <span className={`estado-cot ${formal ? 'formal' : r.estado}`}>{formal ? `Cotización formal · vence el ${formal.vence}` : r.estado === 'incompleta' ? `Estimada incompleta · ${r.pendientes.length} pendiente(s)` : 'Cotización estimada'}</span>
         </div>
         <strong>{usd(r.totales.total)}</strong>
         <span className="crc">{crc(r.totales.total * e.tipoCambio)} · rango referencial {usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? ' + pendientes' : ''}</span>
@@ -93,6 +99,8 @@ export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
           </tbody>
         </table>
       </div>
+
+      {ofertas}
 
       <h3>Desglose por etapa</h3>
       <p className="nota">Toca una etapa para ver y ajustar cada concepto. Cambia el estado a "Confirmado" cuando tengas la tarifa real del proveedor.</p>

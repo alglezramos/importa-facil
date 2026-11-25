@@ -11,7 +11,12 @@ import {
   calcularLanded, INCOTERMS, incotermCompatible, volumenProducto, type Ajuste, type Clasificacion, type Embarque,
   type Incoterm, type Producto,
 } from '../lib/landed'
+import { huella, modoAgencia, requisitosFormal, venceFormal, type Emision } from '../lib/formal'
+import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, leerTarifasLocales, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
+import { perfilCompleto } from '../lib/almacen'
 import { Documento } from './Documento'
+import { Ofertas } from './Ofertas'
+import { PanelAgencia } from './PanelAgencia'
 import { Guiado } from './Guiado'
 import { ProductoEditor } from './ProductoEditor'
 import { Resultado } from './Resultado'
@@ -22,9 +27,11 @@ interface Props {
   clasificacionNueva?: Clasificacion | null
   perfil: Perfil
   apertura?: Apertura | null
+  /** Cambia cuando se editan tarifas en este navegador. */
+  versionTarifas?: number
 }
 
-export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
+export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas }: Props) {
   const inicial = useRef(leerBorrador())
   const [ef, setEf] = useState<EmbarqueForm>(inicial.current.embarque)
   const [productos, setProductos] = useState<Producto[]>(inicial.current.productos)
@@ -37,7 +44,15 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
   const archivo = useRef<HTMLInputElement>(null)
   const resultadoRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { guardarBorrador({ embarque: ef, productos, numero }) }, [ef, productos, numero])
+  const [emision, setEmision] = useState<Emision | undefined>(inicial.current.emision)
+  const agencia = useMemo(modoAgencia, [])
+  const [publicadas, setPublicadas] = useState<Tarifa[]>([])
+  const [locales, setLocales] = useState<Tarifa[]>(leerTarifasLocales)
+  useEffect(() => { cargarTarifasPublicadas().then(setPublicadas) }, [])
+  useEffect(() => { setLocales(leerTarifasLocales()) }, [versionTarifas])
+  const todas = useMemo(() => [...(agencia ? locales : []), ...publicadas.filter((p) => !(agencia && locales.some((l) => l.id === p.id)))], [agencia, locales, publicadas])
+
+  useEffect(() => { guardarBorrador({ embarque: ef, productos, numero, emision }) }, [ef, productos, numero, emision])
 
   useEffect(() => {
     if (!apertura) return
@@ -45,6 +60,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
     setEf(c ? { ...EMBARQUE_INICIAL, ...c.embarque } : EMBARQUE_INICIAL)
     setProductos(c ? c.productos.map((p) => ({ ...p })) : [])
     setNumero(c && !apertura.copia ? c.numero : undefined)
+    setEmision(c && !apertura.copia ? c.emision : undefined)
     setEditando(null)
     setMensaje(c ? (apertura.copia ? `Copia de ${c.numero}: al guardar recibirá un número nuevo.` : `Editando ${c.numero}.`) : '')
     if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
@@ -53,8 +69,33 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
   useEffect(() => { if (clasificacionNueva) setEditando(nuevoProducto(clasificacionNueva)) }, [clasificacionNueva])
 
   const origen = ORIGENES.find((o) => o.id === ef.origenId) ?? ORIGENES[0]
-  const embarque: Embarque = { ...ef, origen }
-  const r = useMemo(() => (productos.length ? calcularLanded(embarque, productos) : null), [JSON.stringify(ef), JSON.stringify(productos)]) // eslint-disable-line
+  const embarqueManual: Embarque = { ...ef, origen }
+  // Tarifas aplicadas que siguen sirviendo para esta ruta y modalidad
+  const aplicadas = (ef.tarifasAplicadas ?? []).map((id) => todas.find((t) => t.id === id)).filter((t): t is Tarifa => !!t && aplicaA(t, ef))
+  const { embarque, r, protegidos } = useMemo(() => {
+    if (!productos.length) return { embarque: embarqueManual, r: null, protegidos: new Set<string>() }
+    const base = calcularLanded({ ...embarqueManual, ajustes: {} }, productos)
+    const aj = ajustesEfectivos(todas, aplicadas.map((t) => t.id), ef.ajustes, base.carga, base.totales.mercancia, conceptosProtegidos(base.conceptos))
+    const e2: Embarque = { ...embarqueManual, ajustes: aj }
+    return { embarque: e2, r: calcularLanded(e2, productos), protegidos: conceptosProtegidos(base.conceptos) }
+  }, [JSON.stringify(ef), JSON.stringify(productos), todas]) // eslint-disable-line
+  const candidatas = todas.filter((t) => aplicaA(t, ef) && usable(t) && (agencia || !t.ejemplo))
+  const huellaActual = huella({ ef, productos, cliente: [perfil.nombre, perfil.empresa, perfil.identificacion] })
+  const formalVigente = !!emision && emision.huella === huellaActual && emision.vence >= new Date().toISOString().slice(0, 10)
+  const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(perfil) && !!perfil.identificacion.trim()) : []
+  const aplicarT = (t: Tarifa) => setEf((x) => ({
+    ...x, ajustes: liberarConceptos(x.ajustes, t),
+    tarifasAplicadas: [...(x.tarifasAplicadas ?? []).filter((id) => { const y = todas.find((z) => z.id === id); return y && tramoTarifa(y) !== tramoTarifa(t) }), t.id],
+  }))
+  const quitarT = (t: Tarifa) => setEf((x) => ({ ...x, tarifasAplicadas: (x.tarifasAplicadas ?? []).filter((id) => id !== t.id) }))
+  const validar = (ids: string[], agente: string) => setProductos((ps) => ps.map((p) => (ids.includes(p.id) && p.clasificacion
+    ? { ...p, clasificacion: { ...p.clasificacion, estado: 'validada', fuente: `Validada por ${agente} el ${new Date().toISOString().slice(0, 10)}` } } : p)))
+  const emitir = (agente: string) => {
+    if (!r) return
+    const em: Emision = { emitida: new Date().toISOString(), por: agente, huella: huellaActual, vence: venceFormal(new Date(), VIGENCIA_DIAS, aplicadas) }
+    setEmision(em)
+    guardarCot(em)
+  }
   const set = (c: Partial<EmbarqueForm>) => setEf((x) => ({ ...x, ...c }))
   const esD = ['DAP', 'DPU', 'DDP'].includes(ef.incoterm)
   const prov = ef.proveedor ?? {}
@@ -92,11 +133,11 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
     setMensaje(`${nuevos.length} producto(s) importado(s).${malas.length ? ` ${malas.length} fila(s) con errores: ${malas.map((m, i) => `fila ${i + 2} (${m.errores.join(', ')})`).join('; ')}` : ''}`)
   }
 
-  const guardarCot = () => {
+  const guardarCot = (em: Emision | undefined = formalVigente ? emision : undefined) => {
     if (!r) return
     const num = numero ?? siguienteNumero()
     const nombre = productos.map((p) => p.nombre).filter(Boolean).slice(0, 2).join(', ') + (productos.length > 2 ? ` y ${productos.length - 2} más` : '')
-    guardarCotizacion({ numero: num, fecha: new Date().toISOString(), vigenciaDias: VIGENCIA_DIAS, nombre: nombre || 'Cotización sin nombre', embarque: ef, productos, total: r.totales.total, estado: r.estado })
+    guardarCotizacion({ numero: num, fecha: new Date().toISOString(), vigenciaDias: VIGENCIA_DIAS, nombre: nombre || 'Cotización sin nombre', embarque: ef, productos, total: r.totales.total, estado: r.estado, emision: em })
     setNumero(num)
     setMensaje(`Cotización ${num} guardada. La encuentras en "Mis cotizaciones".`)
   }
@@ -243,7 +284,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
       {r ? (
         <>
           <div className="acciones arriba">
-            <button type="button" className="btn primario" onClick={guardarCot}>{numero ? 'Guardar cambios' : 'Guardar cotización'}</button>
+            <button type="button" className="btn primario" onClick={() => guardarCot()}>{numero ? 'Guardar cambios' : 'Guardar cotización'}</button>
             <button type="button" className="btn" onClick={abrirDoc}>Ver cotización en PDF</button>
           </div>
           {mensaje && modoVista === 'guiado' && <p className="nota" role="status">{mensaje}</p>}
@@ -252,7 +293,14 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
               Tu monto disponible: {usd(presupuesto)} · {r.totales.desembolso <= presupuesto ? `el desembolso estimado cabe (quedan ${usd(presupuesto - r.totales.desembolso)})` : `el desembolso estimado lo supera en ${usd(r.totales.desembolso - presupuesto)}`}{r.pendientes.length ? ', sin contar los pendientes' : ''}.
             </p>
           ) : null}
-          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })} />
+          {agencia && (
+            <PanelAgencia productos={productos} requisitos={requisitos} emision={emision} vigente={formalVigente}
+              onValidar={validar} onEmitir={emitir} onAnular={() => setEmision(undefined)} />
+          )}
+          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
+            formal={formalVigente ? emision : undefined}
+            ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
+              aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />} />
         </>
       ) : (
         <section className="resultado vacio">
@@ -270,7 +318,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
       </div>
     )}
     {doc && r && (
-      <Documento numero={numero ?? 'Borrador'} fecha={new Date()} vigenciaDias={VIGENCIA_DIAS} perfil={perfil} e={embarque} productos={productos} r={r} onCerrar={() => setDoc(false)} />
+      <Documento numero={numero ?? 'Borrador'} fecha={formalVigente && emision ? new Date(emision.emitida) : new Date()} formal={formalVigente ? emision : undefined} tarifas={aplicadas} vigenciaDias={VIGENCIA_DIAS} perfil={perfil} e={embarque} productos={productos} r={r} onCerrar={() => setDoc(false)} />
     )}
     </>
   )
