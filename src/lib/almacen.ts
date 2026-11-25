@@ -1,3 +1,4 @@
+import type { Emision } from './formal'
 /**
  * Estado compartido del cotizador, perfil del cliente y cotizaciones guardadas.
  * Por ahora se guardan en el navegador (localStorage). En la Fase 4 pasan a la base de datos.
@@ -43,7 +44,7 @@ const guardarJSON = (clave: string, v: unknown) => {
 // ---------------------------------------------------------------- Borrador actual
 
 const CLAVE_BORRADOR = 'importa-facil:cotizacion'
-export interface Borrador { embarque: EmbarqueForm; productos: Producto[]; numero?: string }
+export interface Borrador { embarque: EmbarqueForm; productos: Producto[]; numero?: string; emision?: Emision }
 
 export function leerBorrador(): Borrador {
   const x = leerJSON<Borrador | null>(CLAVE_BORRADOR, null)
@@ -92,6 +93,8 @@ export interface CotizacionGuardada {
   total: number
   estado: ResultadoLanded['estado']
   actualizada: string
+  /** Emisión formal (Fase 3). */
+  emision?: Emision
 }
 
 const CLAVE_COTS = 'landex:cotizaciones'

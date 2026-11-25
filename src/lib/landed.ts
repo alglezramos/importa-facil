@@ -148,6 +148,8 @@ export interface Embarque {
   embalajeAdicional?: boolean
   custodia?: boolean
   ajustes?: Record<string, Ajuste>
+  /** Tarifas de proveedores aplicadas (Fase 3). El motor no las lee: llegan como ajustes. */
+  tarifasAplicadas?: string[]
 }
 
 export interface Concepto {
