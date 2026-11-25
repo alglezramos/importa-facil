@@ -1,3 +1,4 @@
+import { Logotipo } from './Marca'
 import { useEffect, useState } from 'react'
 import { enviarEnlace } from '../lib/nube'
 
@@ -27,7 +28,7 @@ export function Acceso({ onCerrar }: Props) {
     <div className="modal-fondo" role="dialog" aria-modal="true" aria-label="Iniciar sesión" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="cerrar" aria-label="Cerrar" onClick={onCerrar}>×</button>
-        <div className="wordmark"><span className="land">LAND</span><span className="ex">EX</span></div>
+        <Logotipo alto={28} descriptor />
         {estado === 'enviado' ? (
           <>
             <h3>Revisa tu correo</h3>

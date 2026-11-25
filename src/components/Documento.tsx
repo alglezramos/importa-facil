@@ -1,3 +1,4 @@
+import { Logotipo } from './Marca'
 import { confiabilidad } from '../lib/confianza'
 import { documentosRequeridos, RESPONSABLES } from '../lib/expediente'
 import { useEffect } from 'react'
@@ -57,11 +58,12 @@ export function Documento({ numero, fecha, vigenciaDias, perfil, e, productos, r
       <article className="documento">
         <div className="doc-cab">
           <div>
-            <div className="wordmark doc-marca"><span className="land">LAND</span><span className="ex">EX</span></div>
-            <div className="doc-desc">{MARCA.descriptor} · {MARCA.firma}</div>
+            <Logotipo alto={34} descriptor />
+            <div className="doc-desc">{MARCA.firma}</div>
           </div>
           <div className="doc-num">
-            <b>{formal ? 'COTIZACIÓN FORMAL' : 'COTIZACIÓN ESTIMADA'}</b>
+            <b className="doc-titulo">{formal ? 'Cotización formal' : 'Cotización estimada'}</b>
+            <span className="doc-sub">Operación de importación</span>
             <span>N.º {numero}</span>
             <span>Emitida: {fecha.toLocaleDateString('es-CR')}</span>
             <span>Válida hasta: {vence.toLocaleDateString('es-CR')}</span>
