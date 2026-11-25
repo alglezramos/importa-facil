@@ -7,6 +7,7 @@ import { desdeNube } from './MisCotizaciones'
 import type { Apertura } from './Cotizador'
 import { Track, Finanzas } from './Operaciones'
 import { Proveedores } from './Gestion'
+import { Connect } from './Connect'
 
 interface Props {
   usuario: Usuario
@@ -68,6 +69,9 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
           {staff && <button type="button" className="btn" onClick={onSolicitudes}>Gestionar solicitudes</button>}
           {usuario.rol === 'operador' && <button type="button" className="btn" onClick={() => setVerProveedores(v => !v)}>Proveedores</button>}
         </div>
+        <Connect key={usuario.id + '-' + version} usuario={usuario} cotizaciones={cots} solicitudes={sols}
+          onCot={(c) => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfil) })}
+          onTrack={(id) => setSeleccion(id)} onCRM={onSolicitudes} onTarifas={onTarifas}/>
         <h3>Seguimiento de operaciones</h3>
         <p className="nota">Estado comercial registrado por LANDEX. No representa rastreo del transporte ni confirma la ubicación de la carga.</p>
         {!operaciones.length ? <p className="nota">Aún no hay operaciones aceptadas, en proceso o cerradas.</p> :
