@@ -8,6 +8,7 @@ import {
 } from '../lib/nube'
 import type { Apertura } from './Cotizador'
 import { desdeNube } from './MisCotizaciones'
+import { CRMDetalle } from './Gestion'
 
 const ETIQUETAS: Record<string, string> = {
   mercancia: 'Mercancía', pais: 'País de origen', modalidad: 'Modalidad', valor: 'Valor (USD)', llegada: 'Llegada estimada',
@@ -60,7 +61,8 @@ export function Solicitudes({ perfilBase, onAbrir }: { perfilBase: Perfil; onAbr
 
   return (
     <section className="panel solicitudes">
-      <h2>Solicitudes</h2>
+      <h2>LANDEX CRM · Solicitudes</h2>
+      <div className="columnas">{Object.entries(ESTADOS_SOLICITUD).map(([k,v]) => <div key={k}><b>{sols.filter(s=>s.estado===k).length}</b><p>{v}</p></div>)}</div>
       <p className="intro">Lo que llega desde la web: cotizaciones que los clientes enviaron, pedidos de desalmacenaje, empresas y personas sin cuenta que quieren importar.</p>
       {faltan.length > 0 && <p className="aviso">Datos corporativos sin configurar (no se muestran en la web): {faltan.join(', ')}.</p>}
       {error && <p className="error" role="alert">{error}</p>}
@@ -104,6 +106,7 @@ export function Solicitudes({ perfilBase, onAbrir }: { perfilBase: Perfil; onAbr
               {s.usuario_id && <span className="sello">con cuenta</span>}
             </div>
             <Detalle s={s} />
+            <CRMDetalle sol={s}/>
             <div className="sol-acciones">
               <label>Estado
                 <select value={s.estado} onChange={(e) => cambiar(s, { estado: e.target.value as EstadoSolicitud })}>
