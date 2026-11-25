@@ -5,7 +5,13 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 // Mixto: Haiku identifica partidas (barato); Sonnet elige el inciso (más preciso).
 const MODELOS: Record<string, string> = { partidas: 'claude-haiku-5-5', incisos: 'claude-sonnet-5-5' }
-const LIMITE_DIARIO = 30
+// Precio USD por millón de tokens [entrada, salida] (platform.claude.com, nov-2026).
+const PRECIOS: Record<string, [number, number]> = { 'claude-haiku-5-5': [0.10, 0.50], 'claude-sonnet-5-5': [2, 10] }
+// Clasificaciones (fase "partidas") por mes calendario, según nivel.
+const LIMITES = { gratis: 3, cliente: 100, equipo: 1000 }
+// Tope global de gasto mensual: al llegar, la IA se apaga para cuentas gratis.
+const TOPE_MENSUAL_USD = 4
+type Nivel = keyof typeof LIMITES
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -55,8 +61,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
-  const clave = Deno.env.get('ANTHROPIC_API_KEY')
-  if (!clave) return json({ error: 'LANDEX AI todavía no está activado.' }, 503)
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+  if (!apiKey) return json({ error: 'LANDEX AI todavía no está activado.' }, 503)
 
   const url = Deno.env.get('SUPABASE_URL')!
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -72,9 +78,45 @@ Deno.serve(async (req) => {
   const opciones = (cuerpo.opciones ?? []).slice(0, 150).map((o) => ({ codigo: String(o.codigo).slice(0, 20), texto: String(o.texto).slice(0, 300) }))
   if (fase === 'incisos' && opciones.length === 0) return json({ error: 'No hay incisos para comparar.' }, 400)
 
-  const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-  const { count } = await admin.from('ai_consultas').select('id', { count: 'exact', head: true }).eq('usuario', u.user.id).gte('creada', desde)
-  if ((count ?? 0) >= LIMITE_DIARIO) return json({ error: `Alcanzaste el límite de ${LIMITE_DIARIO} consultas en 24 horas. Escríbenos a cotizaciones@landex.cr.` }, 429)
+  // Nivel del usuario
+  const { data: perfil } = await admin.from('perfiles').select('rol').eq('id', u.user.id).maybeSingle()
+  let nivel: Nivel = 'gratis'
+  if (perfil?.rol === 'agente' || perfil?.rol === 'operador') nivel = 'equipo'
+  else {
+    const { count: ops } = await admin.from('cotizaciones').select('id', { count: 'exact', head: true }).eq('cliente_id', u.user.id).in('estado', ['aceptada', 'en_proceso', 'cerrada'])
+    const { data: acceso } = await admin.from('ai_accesos').select('usuario').eq('usuario', u.user.id).maybeSingle()
+    if ((ops ?? 0) > 0 || acceso) nivel = 'cliente'
+  }
+  if (fase === 'incisos' && nivel === 'gratis') return json({ error: 'El inciso exacto está disponible para clientes LANDEX.', nivel }, 403)
+
+  const ahora = new Date()
+  const mes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1)).toISOString()
+  const { count: usadas } = await admin.from('ai_consultas').select('id', { count: 'exact', head: true }).eq('usuario', u.user.id).eq('fase', 'partidas').gte('creada', mes)
+  const limite = LIMITES[nivel]
+  if (fase === 'partidas' && (usadas ?? 0) >= limite) {
+    return json({ error: nivel === 'gratis'
+      ? `Usaste tus ${limite} clasificaciones gratis de este mes. Cotiza con LANDEX para usar LANDEX AI sin límite práctico.`
+      : `Alcanzaste el límite de ${limite} clasificaciones de este mes. Escríbenos a cotizaciones@landex.cr.`, nivel, restantes: 0 }, 429)
+  }
+  if (nivel === 'gratis') {
+    const { data: gasto } = await admin.from('ai_consultas').select('costo_usd').gte('creada', mes)
+    const total = (gasto ?? []).reduce((a: number, g: { costo_usd: number }) => a + Number(g.costo_usd), 0)
+    if (total >= TOPE_MENSUAL_USD) return json({ error: 'El cupo gratuito de LANDEX AI de este mes se agotó. Usa el buscador del arancel o cotiza con LANDEX.', nivel }, 503)
+  }
+  const restantes = fase === 'partidas' ? Math.max(0, limite - (usadas ?? 0) - 1) : Math.max(0, limite - (usadas ?? 0))
+
+  // Caché (sin foto): misma descripción y mismas opciones → misma respuesta, sin costo.
+  const norm = descripcion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim()
+  const huella = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(fase + '|' + norm + '|' + opciones.map((o) => o.codigo).join(',')))
+  const clave = Array.from(new Uint8Array(huella)).map((b) => b.toString(16).padStart(2, '0')).join('')
+  const conFoto = !!cuerpo.imagen && fase === 'partidas'
+  if (!conFoto) {
+    const { data: hit } = await admin.from('ai_cache').select('resultado').eq('clave', clave).maybeSingle()
+    if (hit) {
+      await admin.from('ai_consultas').insert({ usuario: u.user.id, fase, cache: true })
+      return json({ fase, resultado: hit.resultado, nivel, restantes, cache: true })
+    }
+  }
 
   const contenido: unknown[] = []
   const img = cuerpo.imagen
@@ -85,7 +127,7 @@ Deno.serve(async (req) => {
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'x-api-key': clave, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({ model: MODELOS[fase], max_tokens: 2000, system: SISTEMA, messages: [{ role: 'user', content: contenido }],
       tools: [{ name: 'responder', description: 'Entrega la clasificación', input_schema: ESQUEMAS[fase] }], tool_choice: { type: 'auto' } }),
   })
@@ -95,13 +137,19 @@ Deno.serve(async (req) => {
   }
   const out = await r.json()
   const uso = (out.content ?? []).find((c: { type: string }) => c.type === 'tool_use')
-  await admin.from('ai_consultas').insert({ usuario: u.user.id, fase, tokens_entrada: out.usage?.input_tokens ?? 0, tokens_salida: out.usage?.output_tokens ?? 0 })
+  const te = out.usage?.input_tokens ?? 0, ts = out.usage?.output_tokens ?? 0
+  const [pe, ps] = PRECIOS[MODELOS[fase]] ?? [0, 0]
+  await admin.from('ai_consultas').insert({ usuario: u.user.id, fase, tokens_entrada: te, tokens_salida: ts, costo_usd: (te * pe + ts * ps) / 1e6 })
+  const responder = async (resultado: unknown) => {
+    if (!conFoto) await admin.from('ai_cache').upsert({ clave, resultado })
+    return json({ fase, resultado, nivel, restantes })
+  }
 
-  if (uso?.input) return json({ fase, resultado: uso.input })
+  if (uso?.input) return responder(uso.input)
   // Respaldo: JSON dentro del texto
   const texto: string = (out.content ?? []).filter((c: { type: string }) => c.type === 'text').map((c: { text: string }) => c.text).join('')
   const m = texto.match(/\{[\s\S]*\}/)
-  try { return json({ fase, resultado: JSON.parse(m ? m[0] : texto) }) } catch {
+  try { return await responder(JSON.parse(m ? m[0] : texto)) } catch {
     console.error('sin tool_use', out.stop_reason, texto.slice(0, 300))
     return json({ error: 'La respuesta no se pudo leer. Intenta de nuevo.' }, 502)
   }
