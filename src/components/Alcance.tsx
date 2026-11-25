@@ -30,7 +30,7 @@ export function Alcance({ r, externos, onCambio, soloLectura }: Props) {
       <ul className="servicios">
         <li className="servicio fijo">
           <div><b>Agenciamiento aduanero</b><small>Clasificación, declaración y trámite ante Aduanas</small></div>
-          <span className="quien landex">LANDEX</span>
+          <span className="prestador landex">LANDEX</span>
         </li>
         {visibles.map((l) => (
           <li key={l.servicio.id} className="servicio">
@@ -38,7 +38,7 @@ export function Alcance({ r, externos, onCambio, soloLectura }: Props) {
               <b>{l.servicio.nombre}</b>
               <small>{l.incluido ? 'Incluido en el precio de tu proveedor' : `${l.servicio.ayuda} · ${l.pendiente ? 'monto por confirmar' : usd(l.monto)}`}</small>
             </div>
-            {l.incluido ? <span className="quien">Proveedor</span> : (
+            {l.incluido ? <span className="prestador">Proveedor</span> : (
               <div className="seg mini" role="radiogroup" aria-label={`Quién presta ${l.servicio.nombre}`}>
                 <button type="button" role="radio" aria-checked={l.proveedor === 'landex'} className={l.proveedor === 'landex' ? 'activa' : ''} disabled={soloLectura} onClick={() => alternar(l.servicio.id, false)}>LANDEX</button>
                 <button type="button" role="radio" aria-checked={l.proveedor === 'cliente'} className={l.proveedor === 'cliente' ? 'activa' : ''} disabled={soloLectura} onClick={() => alternar(l.servicio.id, true)}>Ya lo tengo</button>

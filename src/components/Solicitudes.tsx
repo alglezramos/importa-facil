@@ -9,6 +9,13 @@ import {
 import type { Apertura } from './Cotizador'
 import { desdeNube } from './MisCotizaciones'
 
+const ETIQUETAS: Record<string, string> = {
+  mercancia: 'Mercancía', pais: 'País de origen', modalidad: 'Modalidad', valor: 'Valor (USD)', llegada: 'Llegada estimada',
+  ubicacion: 'Ubicación', detalleUbicacion: 'Detalle', documentos: 'Documentos', servicios: 'Servicios', notas: 'Comentarios',
+  cargo: 'Cargo', frecuencia: 'Importaciones al año', modalidades: 'Modalidades', origenes: 'Orígenes', productos: 'Productos',
+  intereses: 'Le interesa', intencion: 'Pidió',
+}
+const VALORES: Record<string, string> = { contratar: 'Quiere importar con LANDEX', cotizacion_formal: 'Cotización formal' }
 const fecha = (s: string) => new Date(s).toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' })
 
 /** Detalle legible de lo que envió el prospecto. */
@@ -20,7 +27,7 @@ function Detalle({ s }: { s: Solicitud }) {
     <dl className="detalle-sol">
       {res && <><dt>Estimación</dt><dd>{usd(res.total ?? 0)} · {res.dias} días · {res.estado}</dd></>}
       {Array.isArray(d.productos) && <><dt>Productos</dt><dd>{(d.productos as { nombre?: string; cantidad?: number }[]).map((p) => `${p.nombre} (${p.cantidad})`).join(', ')}</dd></>}
-      {pares.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{Array.isArray(v) ? v.join(', ') : String(v)}</dd></div>)}
+      {pares.map(([k, v]) => <div key={k}><dt>{ETIQUETAS[k] ?? k}</dt><dd>{Array.isArray(v) ? v.join(', ') : VALORES[String(v)] ?? String(v)}</dd></div>)}
     </dl>
   )
 }
