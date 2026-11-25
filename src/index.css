@@ -427,3 +427,53 @@ fieldset { min-width: 0; }
   .resumen-movil, .modo-barra { display: none !important; }
   @page { margin: 14mm; }
 }
+
+/* ===== Fase 3: tarifas, ofertas y cotización formal ===== */
+.banda-agencia { max-width: 1240px; margin: 0 auto; padding: 6px 32px; font-size: 12.5px; color: var(--accent-ink); background: #ffd76a; display: flex; gap: 12px; align-items: center; }
+.banda-agencia .link { color: var(--accent-ink); }
+.aviso-agencia { background: #fff8e1; border: 1px solid #f2d27a; border-radius: 10px; padding: 10px 12px; font-size: 13px; margin: 8px 0 14px; }
+.aviso-agencia code { background: #fff; padding: 1px 4px; border-radius: 4px; }
+.tarifas-barra { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 10px; }
+.tarifas-barra .filtros { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tarifas-barra .filtros select { width: auto; }
+.tarifas-barra .check { margin: 0; }
+.tarifa-form { border: 1px solid var(--accent); border-radius: 12px; padding: 14px; margin: 10px 0 18px; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+.tarifa-form h3 { margin: 0; color: var(--navy); }
+.tabla.cargos td { padding: 4px; }
+.tabla.cargos select, .tabla.cargos input { margin: 0; }
+.errores { background: #fde8e7; color: #b42318; border-radius: 8px; padding: 8px 8px 8px 26px; margin: 0; font-size: 13px; }
+.tabla td small { display: block; color: var(--muted); font-size: 11.5px; }
+.acciones-fila { white-space: nowrap; }
+.acciones-fila .link { margin-right: 8px; }
+.tabla-scroll { overflow-x: auto; }
+.ofertas { margin: 22px 0 8px; border-top: 2px solid var(--navy); padding-top: 6px; }
+.ofertas .tramo h4 { margin: 12px 0 6px; font-size: 14px; color: var(--navy); }
+.ofertas tr.actual td { background: var(--accent-soft); }
+.ofertas .sello { margin: 2px 4px 0 0; }
+.detalle-oferta { font-size: 12.5px; margin-top: 4px; }
+.detalle-oferta summary { cursor: pointer; color: var(--navy-2); }
+.detalle-oferta ul { margin: 4px 0; padding-left: 18px; }
+.detalle-oferta p { margin: 4px 0; }
+.tachado { text-decoration: line-through; color: var(--muted); }
+.panel-agencia { border: 2px dashed #f2b705; background: #fffbea; border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
+.pa-cab { display: flex; justify-content: space-between; align-items: baseline; }
+.pa-cab small { color: var(--muted); }
+.pa-bloque { display: flex; flex-direction: column; gap: 6px; }
+.pa-bloque > span { font-weight: 600; color: var(--navy); }
+.pa-bloque ul { margin: 0; padding-left: 18px; }
+.pa-bloque .btn { align-self: flex-start; }
+.pa-bloque.emitida { background: #e7f6ec; border-radius: 8px; padding: 8px 10px; color: #14532d; }
+.requisitos { list-style: none; padding: 0 !important; }
+.requisitos > li { padding: 2px 0; }
+.requisitos > li.ok { color: #14532d; }
+.requisitos > li.falta { color: #8a5a00; }
+.requisitos ul { color: var(--muted); font-size: 12px; }
+.panel-agencia > .btn { align-self: flex-start; }
+.estado-cot.formal { background: #e7f6ec; color: #14532d; }
+@media (max-width: 900px) { .banda-agencia { padding: 6px 16px; } }
+@media print { .panel-agencia, .banda-agencia, .ofertas .btn, .ofertas .link { display: none !important; } }
+
+.ofertas .tabla th, .ofertas .tabla td { white-space: normal; vertical-align: top; }
+.ofertas .tabla td:first-child { min-width: 170px; }
+.ofertas .sello { white-space: nowrap; }
+.tarifas .tabla td small { white-space: normal; }

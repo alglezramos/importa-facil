@@ -6,10 +6,12 @@ import { MisCotizaciones } from './components/MisCotizaciones'
 import { Perfil } from './components/Perfil'
 import { leerPerfil, type Perfil as TPerfil } from './lib/almacen'
 import { Guia } from './components/Guia'
+import { Tarifas } from './components/Tarifas'
+import { modoAgencia, salirModoAgencia } from './lib/formal'
 import { MARCA } from './data/config'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'cotizar' | 'cotizaciones' | 'clasificar' | 'guia' | 'aliados' | 'perfil'
+type Vista = 'cotizar' | 'cotizaciones' | 'clasificar' | 'guia' | 'aliados' | 'perfil' | 'tarifas'
 
 const VISTAS: Record<Vista, string> = {
   cotizar: 'Cotizar importación',
@@ -18,6 +20,7 @@ const VISTAS: Record<Vista, string> = {
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
   perfil: 'Mi perfil',
+  tarifas: 'Tarifas',
 }
 
 export default function App() {
@@ -26,6 +29,8 @@ export default function App() {
   const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar'); window.scrollTo(0, 0) }
   const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
   const [apertura, setApertura] = useState<Apertura | null>(null)
+  const [agencia] = useState(modoAgencia)
+  const [versionTarifas, setVersionTarifas] = useState(0)
   const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar'); window.scrollTo(0, 0) }
 
   return (
@@ -36,12 +41,18 @@ export default function App() {
           <p className="descriptor">{MARCA.descriptor}</p>
         </div>
         <nav>
-          {(Object.keys(VISTAS) as Vista[]).map((v) => (
+          {(Object.keys(VISTAS) as Vista[]).filter((v) => v !== 'tarifas' || agencia).map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} onClick={() => setVista(v)}>
               {VISTAS[v]}
             </button>
           ))}
         </nav>
+        {agencia && (
+          <div className="banda-agencia">
+            Modo agencia: herramientas del operador (no es un acceso protegido).
+            <button type="button" className="link" onClick={() => { salirModoAgencia(); location.hash = ''; location.reload() }}>Salir</button>
+          </div>
+        )}
       </header>
 
       <div className="print-brand" aria-hidden>
@@ -61,12 +72,13 @@ export default function App() {
             </ul>
           </section>
         )}
-        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} />}
+        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas} />}
         {vista === 'cotizaciones' && <MisCotizaciones onAbrir={(c, copia) => abrir({ cotizacion: c, copia })} onNueva={() => abrir({ cotizacion: null })} />}
         {vista === 'perfil' && <Perfil onGuardado={setPerfil} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
         {vista === 'guia' && <Guia />}
         {vista === 'aliados' && <Aliados />}
+        {vista === 'tarifas' && agencia && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
       </main>
 
       <footer>
