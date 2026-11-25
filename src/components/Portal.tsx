@@ -5,6 +5,8 @@ import { ESTADOS_NUBE, esStaff, listarCotizacionesNube, listarSolicitudes, perfi
 import type { Perfil } from '../lib/almacen'
 import { desdeNube } from './MisCotizaciones'
 import type { Apertura } from './Cotizador'
+import { Track, Finanzas } from './Operaciones'
+import { Proveedores } from './Gestion'
 
 interface Props {
   usuario: Usuario
@@ -12,12 +14,15 @@ interface Props {
   onAbrir: (a: Omit<Apertura, 'vez'>) => void
   onCotizaciones: () => void
   onSolicitudes: () => void
+  onTarifas: () => void
 }
 
 const activos = (c: CotNube) => c.estado === 'aceptada' || c.estado === 'en_proceso'
 
-export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes }: Props) {
+export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes, onTarifas }: Props) {
   const staff = esStaff(usuario)
+  const [seleccion, setSeleccion] = useState<string | null>(null)
+  const [verProveedores, setVerProveedores] = useState(false)
   const [cots, setCots] = useState<CotNube[]>([])
   const [sols, setSols] = useState<Solicitud[]>([])
   const [cargando, setCargando] = useState(true)
@@ -38,6 +43,7 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
   }, [usuario.id, staff, version])
   const operaciones = cots.filter((c) => activos(c) || c.estado === 'cerrada')
   const abiertas = cots.filter(activos)
+  const seleccionada = operaciones.find(c => c.id === seleccion)
   const formales = cots.filter((c) => c.estado === 'formal')
   const solicitudes = sols.filter((s) => s.estado !== 'cerrado' && s.estado !== 'descartado')
   const productos = new Map<string, { nombre: string; sku: string }>()
@@ -60,6 +66,7 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
         <div className="acciones">
           <button type="button" className="btn primario" onClick={onCotizaciones}>Ver cotizaciones</button>
           {staff && <button type="button" className="btn" onClick={onSolicitudes}>Gestionar solicitudes</button>}
+          {usuario.rol === 'operador' && <button type="button" className="btn" onClick={() => setVerProveedores(v => !v)}>Proveedores</button>}
         </div>
         <h3>Seguimiento de operaciones</h3>
         <p className="nota">Estado comercial registrado por LANDEX. No representa rastreo del transporte ni confirma la ubicación de la carga.</p>
@@ -71,9 +78,11 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
               <td>{ORIGENES.find((o) => o.id === c.datos.embarque.origenId)?.nombre ?? 'Origen por confirmar'} → Costa Rica<small>{MODOS[c.datos.embarque.modo]}</small></td>
               <td>{ESTADOS_NUBE[c.estado]}</td><td>{new Date(c.actualizada).toLocaleDateString('es-CR')}</td>
               <td>{c.total == null ? '—' : usd(Number(c.total))}</td>
-              <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfil) })}>Ver expediente</button></td>
+              <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfil) })}>Ver expediente</button> <button type="button" className="link" onClick={() => setSeleccion(c.id)}>Seguimiento{usuario.rol === 'operador' ? ' y finanzas' : ''}</button></td>
             </tr>)}</tbody>
           </table></div>}
+        {seleccionada && <><Track key={seleccionada.id} cot={seleccionada} usuario={usuario}/>{usuario.rol === 'operador' && <Finanzas key={seleccionada.id} cot={seleccionada}/>}</>}
+        {usuario.rol === 'operador' && verProveedores && <Proveedores onTarifas={onTarifas}/>}
         {staff ? <><h3>Resumen comercial</h3><p className="nota">El total cotizado incluye mercancía e impuestos: no equivale a ingresos, facturación ni margen de LANDEX.</p><p>Solicitudes de cotización: {cots.filter((c) => c.estado === 'solicitada').length} · Clientes con operaciones activas: {new Set(abiertas.map((c) => c.cliente_id)).size}</p></> :
           <><h3>Productos de tus cotizaciones</h3><p className="nota">Historial de productos registrados, no inventario disponible.</p>{productos.size ? <ul>{Array.from(productos.entries()).map(([k,p]) => <li key={k}>{p.sku ? p.sku + ' · ' : ''}{p.nombre}</li>)}</ul> : <p className="nota">Todavía no tienes productos registrados.</p>}</>}
       </>}
