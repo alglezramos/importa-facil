@@ -763,8 +763,8 @@ nav button { white-space: nowrap; }
 .servicio div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .servicio small { color: var(--muted); font-size: 12.5px; }
 .servicio.fijo { background: var(--accent-soft); border-color: #cfe5fb; }
-.quien { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); white-space: nowrap; }
-.quien.landex { background: var(--navy); color: #fff; }
+.prestador { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.prestador.landex { background: var(--navy); color: #fff; }
 .seg.mini button { padding: 6px 12px; font-size: 12.5px; }
 .tabla-alcance { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tabla-alcance th { text-align: left; font-weight: 500; padding: 7px 0; color: var(--muted); }
@@ -811,6 +811,6 @@ nav button { white-space: nowrap; }
 .form-servicio > label.check, .contratar > label.check { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; font-weight: 400; font-size: 14px; color: var(--text, inherit); }
 .form-servicio > label.check input, .contratar > label.check input { margin-top: 3px; }
 @media (max-width: 700px) {
-  .servicio .quien { align-self: flex-start; }
+  .servicio .prestador { align-self: flex-start; }
   .tabla-alcance th { font-size: 13px; padding-right: 10px; }
 }
