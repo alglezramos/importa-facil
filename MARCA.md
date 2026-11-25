@@ -47,4 +47,4 @@ La interfaz sigue el *Libro de Marca LANDEX* (manual de identidad corporativa):
 - **Estilo:** botones en píldora (la acción principal en azul eléctrico, con texto blanco en mayúsculas), barra azul corta sobre los títulos, etiquetas de sección "/ TÍTULO" en mayúsculas espaciadas, franjas diagonales azules como acento y firma "| A Ramos & Co. Company".
 - **Regenerar los recursos** (`public/brand`, `public/favicon.svg`): `python3 scripts/marca.py`, que requiere rsvg-convert y Montserrat instalada.
 
-Nota de accesibilidad: el texto blanco sobre azul eléctrico, como pide el libro para el botón principal, tiene un contraste de unos 2,5:1, por debajo del 4,5:1 que recomienda la WCAG. Por eso el botón usa letra gruesa y en mayúsculas. Si se quiere cumplir la norma, la alternativa es poner el texto en azul marino sobre el azul eléctrico, o usar un azul más oscuro como fondo.
+Nota de accesibilidad: el libro pide texto blanco sobre azul eléctrico en el botón principal, pero ese contraste es de unos 2,5:1, por debajo del 4,5:1 que recomienda la WCAG. Por decisión de Ale (24/11/2026), el botón usa texto azul marino sobre azul eléctrico, que da un contraste de unos 7:1.
