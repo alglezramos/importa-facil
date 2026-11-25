@@ -1,24 +1,32 @@
 import { useState } from 'react'
 import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
-import { Cotizador } from './components/Cotizador'
+import { Cotizador, type Apertura } from './components/Cotizador'
+import { MisCotizaciones } from './components/MisCotizaciones'
+import { Perfil } from './components/Perfil'
+import { leerPerfil, type Perfil as TPerfil } from './lib/almacen'
 import { Guia } from './components/Guia'
 import { MARCA } from './data/config'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'cotizar' | 'clasificar' | 'guia' | 'aliados'
+type Vista = 'cotizar' | 'cotizaciones' | 'clasificar' | 'guia' | 'aliados' | 'perfil'
 
 const VISTAS: Record<Vista, string> = {
   cotizar: 'Cotizar importación',
+  cotizaciones: 'Mis cotizaciones',
   clasificar: 'Clasificación e impuestos',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
+  perfil: 'Mi perfil',
 }
 
 export default function App() {
   const [vista, setVista] = useState<Vista>('cotizar')
   const [clasificacionNueva, setClasificacionNueva] = useState<Cls | null>(null)
   const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar'); window.scrollTo(0, 0) }
+  const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
+  const [apertura, setApertura] = useState<Apertura | null>(null)
+  const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar'); window.scrollTo(0, 0) }
 
   return (
     <div className="app">
@@ -53,7 +61,9 @@ export default function App() {
             </ul>
           </section>
         )}
-        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} />}
+        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} />}
+        {vista === 'cotizaciones' && <MisCotizaciones onAbrir={(c, copia) => abrir({ cotizacion: c, copia })} onNueva={() => abrir({ cotizacion: null })} />}
+        {vista === 'perfil' && <Perfil onGuardado={setPerfil} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
         {vista === 'guia' && <Guia />}
         {vista === 'aliados' && <Aliados />}
