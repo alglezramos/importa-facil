@@ -7,15 +7,31 @@ export interface CandidatoIA { codigo: string; confianza: 'alta' | 'media' | 'ba
 export interface RespIncisos { candidatos: CandidatoIA[]; preguntas?: string[]; advertencia?: string }
 export interface Imagen { tipo: string; datos: string }
 
-async function llamar<T>(cuerpo: Record<string, unknown>): Promise<{ r: T | null; error: string | null }> {
+export type NivelIA = 'gratis' | 'cliente' | 'equipo'
+export interface Meta { nivel?: NivelIA; restantes?: number }
+
+async function llamar<T>(cuerpo: Record<string, unknown>): Promise<{ r: T | null; error: string | null; meta: Meta }> {
   const { data, error } = await nube().functions.invoke('landex-ai', { body: cuerpo })
   if (error) {
     let msg = 'LANDEX AI no está disponible en este momento.'
-    try { const b = await (error as { context?: Response }).context?.json(); if (b?.error) msg = b.error } catch { /* sin cuerpo */ }
-    return { r: null, error: msg }
+    let meta: Meta = {}
+    try { const b = await (error as { context?: Response }).context?.json(); if (b?.error) msg = b.error; meta = { nivel: b?.nivel, restantes: b?.restantes } } catch { /* sin cuerpo */ }
+    return { r: null, error: msg, meta }
   }
-  if (data?.error) return { r: null, error: data.error }
-  return { r: data.resultado as T, error: null }
+  if (data?.error) return { r: null, error: data.error, meta: { nivel: data.nivel } }
+  return { r: data.resultado as T, error: null, meta: { nivel: data.nivel, restantes: data.restantes } }
+}
+
+/** El equipo otorga o quita acceso de cliente a LANDEX AI por correo. */
+export async function otorgarAcceso(correo: string, dar: boolean): Promise<string | null> {
+  const { data: p, error } = await nube().from('perfiles').select('id').ilike('email', correo.trim().toLowerCase()).maybeSingle()
+  if (error) return error.message
+  if (!p) return `No hay ninguna cuenta con ${correo.trim()}. Pídele que ingrese una vez a landex.cr.`
+  const id = (p as { id: string }).id
+  const r = dar
+    ? await nube().from('ai_accesos').upsert({ usuario: id, nivel: 'cliente' })
+    : await nube().from('ai_accesos').delete().eq('usuario', id)
+  return r.error ? r.error.message : null
 }
 
 /** Incisos oficiales bajo las partidas propuestas (máx. 150), con su descripción completa. */
