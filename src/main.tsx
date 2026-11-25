@@ -9,6 +9,7 @@ import '@fontsource/montserrat/latin-500-italic.css'
 import '@fontsource/montserrat/latin-700-italic.css'
 import '@fontsource/montserrat/latin-800-italic.css'
 import './index.css'
+import './design-v45.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

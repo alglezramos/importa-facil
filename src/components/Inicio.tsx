@@ -56,13 +56,30 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
       <section className="portada">
         <div className="portada-texto">
           <span className="sobretitulo">Tu agencia aduanal digital</span>
-          <h2>{MARCA.eslogan}</h2>
-          <p className="bajada">{MARCA.propuesta} Conoce cuánto cuesta importar a Costa Rica y solicita una cotización formal para coordinar tu operación.</p>
+          <h2>Importa con <span>inteligencia.</span></h2>
+          <p className="bajada">De la fábrica a tu bodega. Conoce el costo de importar a Costa Rica y gestiona tu operación con LANDEX.</p>
           <p className="nota portada-nota">Estimación gratuita, sin registro. Los costos definitivos se validan antes de contratar.</p>
           <div className="acciones">
             <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
             <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Necesito una agencia aduanal</button>
           </div>
+        </div>
+        <div className="portada-visual">
+          <div className="visual-top"><span>GLOBAL TRADE</span><span>ORIGEN → COSTA RICA</span></div>
+          <svg viewBox="0 0 400 210" role="img" aria-label="Ilustración de un buque de carga en ruta">
+            <defs><linearGradient id="ldx-ocean" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#24405f"/><stop offset="1" stopColor="#101e30"/></linearGradient></defs>
+            <rect width="400" height="210" rx="18" fill="url(#ldx-ocean)"/>
+            {[35,75,115,155,195].map(y=><path key={y} d={`M0 ${y} H400`} stroke="#91a4bd" strokeOpacity=".12"/>)}
+            {[40,100,160,220,280,340].map(x=><path key={x} d={`M${x} 0 V210`} stroke="#91a4bd" strokeOpacity=".12"/>)}
+            <path d="M24 48 C130 8 220 95 372 40" fill="none" stroke="#48a9ff" strokeWidth="2" strokeDasharray="5 7"/>
+            <circle cx="24" cy="48" r="5" fill="#48a9ff"/><circle cx="372" cy="40" r="5" fill="#48a9ff"/>
+            <path d="M49 151 H358 L325 179 H84 Z" fill="#91a4bd"/>
+            <path d="M49 151 H358 L344 164 H65 Z" fill="#48a9ff"/>
+            <path d="M69 146 V100 H110 V146 M80 100 V85 H96 V100" fill="#f5f7fa"/>
+            {Array.from({length:10},(_,i)=><g key={i}><rect x={120+(i%5)*42} y={i<5?116:92} width="38" height="21" rx="2" fill={i%3===0?'#48a9ff':'#b8c9de'} opacity={i<5?'.9':'.7'}/><path d={`M${126+(i%5)*42} ${i<5?120:96} v13`} stroke="#101e30" strokeOpacity=".5"/></g>)}
+            <path d="M20 189 Q60 181 100 189 T180 189 T260 189 T340 189 T420 189" fill="none" stroke="#48a9ff" strokeOpacity=".7"/>
+          </svg>
+          <div className="visual-bottom"><div><span>Planificación</span><b>Landed Cost</b></div><div><span>Coordinación</span><b>Puerta a puerta</b></div></div>
         </div>
         <ol className="portada-ruta" aria-label="De la fábrica a tu bodega">
           {[['fabrica', 'Fábrica'], ['barco', 'Transporte'], ['aduana', 'Aduana'], ['camion', 'Entrega'], ['bodega', 'Tu bodega']].map(([i, t]) => (
@@ -73,7 +90,7 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
 
       <section className="bloque">
         <span className="etiqueta">¿Cómo te ayudamos?</span>
-        <h2>Elige por dónde empezar</h2>
+        <h2>Tu importación empieza aquí.</h2>
         <div className="entradas">
           <button type="button" className="entrada" onClick={() => onCotizar('guiado')}>
             <Icono n="ruta" /><b>Mi primera importación</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.</span><em>Cotizar paso a paso →</em>
