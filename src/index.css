@@ -851,3 +851,39 @@ nav button { white-space: nowrap; }
 .pa-fila { display: flex; gap: 8px; margin: 6px 0; }
 .pa-fila input { flex: 1; min-width: 0; }
 .estado-op { margin: 6px 0 10px; }
+
+/* LANDEX AI */
+.ai { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; border-radius: 18px; padding: 24px; margin-bottom: 28px; }
+.ai-cab h2 { color: #fff; margin: 6px 0 6px; }
+.ai-cab p { color: var(--gris-azul); margin: 0 0 14px; max-width: 720px; }
+.ai-marca { font-weight: 800; letter-spacing: .12em; font-size: 12px; color: var(--gris-azul); }
+.ai-marca b { color: var(--accent); }
+.ai textarea { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); padding: 12px; font: inherit; color: var(--text); background: #fff; }
+.ai-ejemplos { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.ai-ejemplos .chip { background: rgba(255,255,255,.08); color: var(--gris-azul); border: 1px solid rgba(255,255,255,.18); cursor: pointer; font-size: 12px; }
+.ai-ejemplos .chip:hover { color: #fff; border-color: var(--accent); }
+.ai-acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
+.ai-acciones .link { color: var(--gris-azul); }
+.ai-foto { cursor: pointer; background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
+.ai-entrar p { color: var(--gris-azul); }
+.ai-error { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+.ai-razon { margin-top: 14px; color: var(--gris-azul); }
+.ai-razon b { color: #fff; }
+.ai-razon .nota { color: var(--gris); }
+.ai-resultados { display: grid; gap: 10px; margin-top: 12px; }
+.ai-cand { background: #fff; color: var(--text); border-radius: 14px; padding: 14px 16px; border: 2px solid transparent; }
+.ai-cand.top { border-color: var(--accent); }
+.ai-cand-cab { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ai-cand .codigo { font-weight: 700; font-size: 16px; }
+.ai-cand .conf { font-size: 12px; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); }
+.ai-cand .conf.alta { background: #dff5e7; color: #17663a; }
+.ai-cand .conf.baja { background: var(--warn-bg); color: var(--warn); }
+.ai-cand .tasa { margin-left: auto; font-weight: 600; }
+.ai-texto { font-weight: 600; margin: 6px 0 4px; }
+.ai-por { color: var(--muted); margin: 0 0 8px; }
+.ai-preguntas { background: rgba(255,255,255,.08); border-radius: 12px; padding: 12px 14px; }
+.ai-preguntas ul { margin: 6px 0; }
+.ai-preguntas small, .ai-resultados > .nota { color: var(--gris-azul); }
+.ai-legal { font-size: 12px; color: var(--gris); margin: 16px 0 0; }
+.ai-sep { margin-top: 4px; }
+@media (max-width: 640px) { .ai { padding: 18px; border-radius: 14px; } .ai-cand .tasa { margin-left: 0; } }

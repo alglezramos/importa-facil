@@ -24,7 +24,7 @@ const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
   cotizar: 'Cotizar',
   agencia: 'Agencia aduanal',
-  clasificar: 'Clasificación arancelaria',
+  clasificar: 'LANDEX AI',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
   portal: 'Mi LANDEX',
@@ -37,11 +37,11 @@ const VISTAS: Record<Vista, string> = {
 /** Rutas con # para enlazar secciones (compatible con GitHub Pages y con el regreso del enlace de acceso). */
 const RUTAS: Record<string, Vista> = {
   '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
-  clasificacion: 'clasificar', 'como-funciona': 'guia', socios: 'aliados', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
+  clasificacion: 'clasificar', 'landex-ai': 'clasificar', 'como-funciona': 'guia', socios: 'aliados', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
   solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const HASH: Record<Vista, string> = {
-  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'clasificacion', guia: 'como-funciona', aliados: 'socios',
+  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'landex-ai', guia: 'como-funciona', aliados: 'socios',
   portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
@@ -166,7 +166,7 @@ export default function App() {
             onIniciarSesion={() => setAcceso(true)} />
         )}
         {vista === 'perfil' && <Perfil usuario={usuario} onGuardado={setPerfil} />}
-        {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
+        {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} conectado={!!usuario} onIngresar={() => setAcceso(true)} />}
         {vista === 'guia' && <Guia onCotizar={() => setVista('cotizar')} onAgencia={() => irAgencia('desalmacenaje')} />}
         {vista === 'aliados' && <Aliados />}
         {vista === 'tarifas' && usuario?.rol === 'operador' && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
