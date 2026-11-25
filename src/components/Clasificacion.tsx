@@ -15,6 +15,8 @@ export function Clasificacion({ onUsar }: Props) {
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<string | null>(null)
   const [capAbierto, setCapAbierto] = useState<number | null>(null)
+  const [comparar, setComparar] = useState<string[]>([])
+  const alternar = (c: string) => setComparar((xs) => (xs.includes(c) ? xs.filter((x) => x !== c) : xs.length >= 3 ? xs : [...xs, c]))
 
   useEffect(() => { cargarArancel().then(setInd).catch((e) => setError(String(e.message || e))) }, [])
 
@@ -38,6 +40,36 @@ export function Clasificacion({ onUsar }: Props) {
 
       <input type="search" placeholder="Describe el producto (material, uso, tipo) o escribe un código…" value={q}
         onChange={(e) => { setQ(e.target.value); setSel(null) }} />
+
+      {comparar.length > 0 && (
+        <div className="comparacion">
+          <div className="comp-cab"><b>Comparación de partidas</b> <small>Elige hasta 3. Lee las notas: definen qué entra en cada una.</small>
+            <button type="button" className="link" onClick={() => setComparar([])}>Limpiar</button></div>
+          <div className="comp-grid" style={{ gridTemplateColumns: `repeat(${comparar.length}, minmax(0, 1fr))` }}>
+            {comparar.map((c) => {
+              const it = ind.porCodigo.get(c)
+              if (!it) return null
+              const { cap: cp } = capituloDe(ind, c)
+              return (
+                <div key={c} className="comp-col">
+                  <span className="codigo">{c}</span>
+                  <p>{etiqueta(ind, c)}</p>
+                  <dl>
+                    <dt>Capítulo</dt><dd>{cp ? `${cp.n} · ${cp.title}` : '—'}</dd>
+                    <dt>Partida</dt><dd>{ancestros(ind, c)[0]?.[1] ?? '—'}</dd>
+                    <dt>DAI de referencia</dt><dd><b>{dai(it[2])}</b></dd>
+                  </dl>
+                  <div className="acciones">
+                    <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c))}>Usar esta</button>
+                    <button type="button" className="link" onClick={() => setSel(c)}>Ver notas</button>
+                    <button type="button" className="link peligro" onClick={() => alternar(c)}>Quitar</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="clasif-grid">
         <div className="col-lista">
@@ -111,6 +143,9 @@ export function Clasificacion({ onUsar }: Props) {
               </p>
               <div className="acciones">
                 <button className="btn primario" type="button" onClick={() => onUsar(aClasificacion(ind, detalle[0]))}>Agregar al cotizador</button>
+                <button className="btn" type="button" onClick={() => alternar(detalle[0])} disabled={!comparar.includes(detalle[0]) && comparar.length >= 3}>
+                  {comparar.includes(detalle[0]) ? 'Quitar de la comparación' : `Comparar (${comparar.length}/3)`}
+                </button>
                 <a className="btn" href="https://www.hacienda.go.cr/tica/web/hdbaranc.aspx" target="_blank" rel="noreferrer">Verificar en TICA</a>
               </div>
               {cap?.notes && (

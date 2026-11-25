@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MODOS, ORIGENES, TIPO_CAMBIO_DEFAULT, ZONAS, type Modo, type Zona } from '../data/config'
+import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
+import {
+  EJEMPLO_NOVA, EMBARQUE_INICIAL, guardarBorrador, guardarCotizacion, leerBorrador, nuevoProducto, siguienteNumero, VIGENCIA_DIAS,
+  type CotizacionGuardada, type EmbarqueForm, type Perfil,
+} from '../lib/almacen'
 import { aClasificacion, cargarArancel } from '../lib/arancel'
 import { descargar, importarCSV, plantillaCSV } from '../lib/csv'
 import { usd } from '../lib/formato'
@@ -7,54 +11,44 @@ import {
   calcularLanded, INCOTERMS, incotermCompatible, volumenProducto, type Ajuste, type Clasificacion, type Embarque,
   type Incoterm, type Producto,
 } from '../lib/landed'
+import { Documento } from './Documento'
+import { Guiado } from './Guiado'
 import { ProductoEditor } from './ProductoEditor'
 import { Resultado } from './Resultado'
 
-type EmbarqueForm = Omit<Embarque, 'origen'> & { origenId: string }
+export interface Apertura { cotizacion: CotizacionGuardada | null; copia?: boolean; vez: number }
 
-const EMBARQUE_INICIAL: EmbarqueForm = {
-  proveedor: { empresa: '', direccion: '', contacto: '', telefono: '', email: '' },
-  incoterm: 'EXW', lugarConvenido: '', entregaDestino: 'bodega', origenId: ORIGENES[1].id, modo: 'FCL40', zona: 'GAM',
-  tipoCambio: TIPO_CAMBIO_DEFAULT, diasProduccion: 0, seguro: true, requiereDescarga: true, clienteTieneMontacargas: false,
-  requiereDevolucionContenedor: true, inspeccionOrigen: false, embalajeAdicional: false, custodia: false, ajustes: {},
+interface Props {
+  clasificacionNueva?: Clasificacion | null
+  perfil: Perfil
+  apertura?: Apertura | null
 }
 
-const nuevoProducto = (cl: Clasificacion | null = null): Producto => ({
-  id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, sku: '', nombre: '', paisFabricacion: 'CN',
-  cantidad: 0, valorUnitario: 0, pesoBrutoKg: 0, clasificacion: cl, certificadoOrigen: false,
-})
-
-/** Escenario de prueba NOVA HOME CR (cliente ficticio). */
-export const EJEMPLO_NOVA: { embarque: EmbarqueForm; productos: Producto[] } = {
-  embarque: { ...EMBARQUE_INICIAL, incoterm: 'EXW', lugarConvenido: 'Bodega del proveedor, Ningbo', origenId: 'cn-este', modo: 'FCL40' },
-  productos: [{
-    id: 'nova-1', sku: 'NOVA-001', nombre: 'Mobiliario para el hogar (ejemplo)', paisFabricacion: 'CN', cantidad: 1000,
-    valorUnitario: 55, pesoBrutoKg: 9000, volumenM3: 55, clasificacion: null, certificadoOrigen: false,
-  }],
-}
-
-const CLAVE = 'importa-facil:cotizacion'
-function leer(): { embarque: EmbarqueForm; productos: Producto[] } {
-  try {
-    const x = JSON.parse(localStorage.getItem(CLAVE) || 'null')
-    if (x?.embarque && Array.isArray(x.productos)) return { embarque: { ...EMBARQUE_INICIAL, ...x.embarque }, productos: x.productos }
-  } catch { /* sin almacenamiento */ }
-  return { embarque: EMBARQUE_INICIAL, productos: [] }
-}
-
-interface Props { clasificacionNueva?: Clasificacion | null }
-
-export function Cotizador({ clasificacionNueva }: Props) {
-  const inicial = useRef(leer())
+export function Cotizador({ clasificacionNueva, perfil, apertura }: Props) {
+  const inicial = useRef(leerBorrador())
   const [ef, setEf] = useState<EmbarqueForm>(inicial.current.embarque)
   const [productos, setProductos] = useState<Producto[]>(inicial.current.productos)
+  const [numero, setNumero] = useState<string | undefined>(inicial.current.numero)
   const [editando, setEditando] = useState<Producto | null>(null)
   const [mensaje, setMensaje] = useState('')
+  const [modoVista, setModoVista] = useState<'guiado' | 'experto'>(
+    inicial.current.productos.length ? 'experto' : perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
+  const [doc, setDoc] = useState(false)
   const archivo = useRef<HTMLInputElement>(null)
+  const resultadoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { guardarBorrador({ embarque: ef, productos, numero }) }, [ef, productos, numero])
 
   useEffect(() => {
-    try { localStorage.setItem(CLAVE, JSON.stringify({ embarque: ef, productos })) } catch { /* sin almacenamiento */ }
-  }, [ef, productos])
+    if (!apertura) return
+    const c = apertura.cotizacion
+    setEf(c ? { ...EMBARQUE_INICIAL, ...c.embarque } : EMBARQUE_INICIAL)
+    setProductos(c ? c.productos.map((p) => ({ ...p })) : [])
+    setNumero(c && !apertura.copia ? c.numero : undefined)
+    setEditando(null)
+    setMensaje(c ? (apertura.copia ? `Copia de ${c.numero}: al guardar recibirá un número nuevo.` : `Editando ${c.numero}.`) : '')
+    if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
+  }, [apertura]) // eslint-disable-line
 
   useEffect(() => { if (clasificacionNueva) setEditando(nuevoProducto(clasificacionNueva)) }, [clasificacionNueva])
 
@@ -98,14 +92,50 @@ export function Cotizador({ clasificacionNueva }: Props) {
     setMensaje(`${nuevos.length} producto(s) importado(s).${malas.length ? ` ${malas.length} fila(s) con errores: ${malas.map((m, i) => `fila ${i + 2} (${m.errores.join(', ')})`).join('; ')}` : ''}`)
   }
 
+  const guardarCot = () => {
+    if (!r) return
+    const num = numero ?? siguienteNumero()
+    const nombre = productos.map((p) => p.nombre).filter(Boolean).slice(0, 2).join(', ') + (productos.length > 2 ? ` y ${productos.length - 2} más` : '')
+    guardarCotizacion({ numero: num, fecha: new Date().toISOString(), vigenciaDias: VIGENCIA_DIAS, nombre: nombre || 'Cotización sin nombre', embarque: ef, productos, total: r.totales.total, estado: r.estado })
+    setNumero(num)
+    setMensaje(`Cotización ${num} guardada. La encuentras en "Mis cotizaciones".`)
+  }
+
+  const abrirDoc = () => {
+    if (!numero) guardarCot()
+    setDoc(true)
+  }
+
   const cargarEjemplo = () => {
     setEf(EJEMPLO_NOVA.embarque)
     setProductos(EJEMPLO_NOVA.productos)
+    setNumero(undefined)
+    setModoVista('experto')
     setMensaje('Escenario de prueba NOVA HOME CR cargado (cliente ficticio). Clasifica el producto para calcular impuestos.')
   }
 
+  const presupuesto = perfil.presupuestoUSD
+
   return (
+    <>
+    <div className="modo-barra">
+      <div className="seg grande" role="tablist" aria-label="Modo de cotización">
+        <button type="button" role="tab" aria-selected={modoVista === 'guiado'} className={modoVista === 'guiado' ? 'activa' : ''} onClick={() => setModoVista('guiado')}>Mi primera importación</button>
+        <button type="button" role="tab" aria-selected={modoVista === 'experto'} className={modoVista === 'experto' ? 'activa' : ''} onClick={() => setModoVista('experto')}>Tengo experiencia importando</button>
+      </div>
+      {numero && <span className="nota">Cotización <b>{numero}</b></span>}
+    </div>
     <div className="cotizador">
+      {modoVista === 'guiado' ? (
+        <div className="formulario">
+          <fieldset>
+            <legend><span>✓</span> Cotización guiada</legend>
+            <Guiado ef={ef} setEf={setEf} productos={productos} setProductos={setProductos} perfil={perfil}
+              onTerminar={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+          </fieldset>
+          {productos.length > 0 && <p className="nota">¿Tienes más de un producto? <button type="button" className="link" onClick={() => setModoVista('experto')}>Agrégalos en el modo detallado</button>: tus datos se conservan.</p>}
+        </div>
+      ) : (
       <form className="formulario" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend><span>1</span> El embarque</legend>
@@ -204,12 +234,26 @@ export function Cotizador({ clasificacionNueva }: Props) {
         </fieldset>
         <div className="acciones">
           <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>
-          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje('') }}>Empezar de cero</button>}
+          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setNumero(undefined) }}>Empezar de cero</button>}
         </div>
       </form>
+      )}
 
+      <div ref={resultadoRef} className="col-resultado">
       {r ? (
-        <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })} />
+        <>
+          <div className="acciones arriba">
+            <button type="button" className="btn primario" onClick={guardarCot}>{numero ? 'Guardar cambios' : 'Guardar cotización'}</button>
+            <button type="button" className="btn" onClick={abrirDoc}>Ver cotización en PDF</button>
+          </div>
+          {mensaje && modoVista === 'guiado' && <p className="nota" role="status">{mensaje}</p>}
+          {presupuesto ? (
+            <p className={`presupuesto ${r.totales.desembolso <= presupuesto ? 'ok' : 'excede'}`}>
+              Tu monto disponible: {usd(presupuesto)} · {r.totales.desembolso <= presupuesto ? `el desembolso estimado cabe (quedan ${usd(presupuesto - r.totales.desembolso)})` : `el desembolso estimado lo supera en ${usd(r.totales.desembolso - presupuesto)}`}{r.pendientes.length ? ', sin contar los pendientes' : ''}.
+            </p>
+          ) : null}
+          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })} />
+        </>
       ) : (
         <section className="resultado vacio">
           <h3>Tu cotización aparecerá aquí</h3>
@@ -217,6 +261,17 @@ export function Cotizador({ clasificacionNueva }: Props) {
           <button type="button" className="btn" onClick={cargarEjemplo}>Ver un ejemplo</button>
         </section>
       )}
+      </div>
     </div>
+    {r && (
+      <div className="resumen-movil" aria-hidden={doc}>
+        <div><small>{r.estado === 'incompleta' ? 'Estimada incompleta' : 'Estimada'}</small><b>{usd(r.totales.total)}</b></div>
+        <button type="button" className="btn primario" onClick={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth' })}>Ver resumen</button>
+      </div>
+    )}
+    {doc && r && (
+      <Documento numero={numero ?? 'Borrador'} fecha={new Date()} vigenciaDias={VIGENCIA_DIAS} perfil={perfil} e={embarque} productos={productos} r={r} onCerrar={() => setDoc(false)} />
+    )}
+    </>
   )
 }

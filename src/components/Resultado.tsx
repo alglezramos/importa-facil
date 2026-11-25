@@ -21,6 +21,7 @@ interface Props {
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
 export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
+  const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
   const compatibles = comp.filter((m) => m.compatible && !m.fletePendiente)
@@ -44,7 +45,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
         <div className="kpis">
           <div><span>Mercancía</span><b>{usd(r.totales.mercancia)}</b></div>
           <div><span>Servicios logísticos</span><b>{usd(r.totales.logistica)}</b></div>
-          <div><span>Impuestos</span><b>{usd(r.totales.impuestos)}</b></div>
+          <div><span>Impuestos</span><b>{impPend ? (r.totales.impuestos ? `${usd(r.totales.impuestos)} + pendientes` : 'Pendiente') : usd(r.totales.impuestos)}</b></div>
           <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
           <div><span>Desembolso total</span><b>{usd(r.totales.desembolso)}</b></div>
           <div><span>IVA recuperable*</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
@@ -168,7 +169,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
                 <td className="num">{usd(p.landedTotal)}</td>
               </tr>
             ))}
-            <tr className="suma"><td colSpan={2}>Total</td><td className="num">{unidades.toLocaleString('es-CR')}</td><td className="num">{usd(r.totales.mercancia)}</td><td className="num">{usd(r.totales.logistica)}</td><td className="num">{usd(r.totales.impuestos)}</td><td></td><td className="num">{usd(r.totales.total)}</td></tr>
+            <tr className="suma"><td colSpan={2}>Total</td><td className="num">{unidades.toLocaleString('es-CR')}</td><td className="num">{usd(r.totales.mercancia)}</td><td className="num">{usd(r.totales.logistica)}</td><td className="num">{impPend && !r.totales.impuestos ? 'Pendiente' : usd(r.totales.impuestos)}</td><td></td><td className="num">{usd(r.totales.total)}</td></tr>
           </tbody>
         </table>
       </div>
@@ -191,7 +192,6 @@ export function Resultado({ e, productos, r, onAjuste, onModo }: Props) {
 
       <div className="acciones">
         <button type="button" className="btn" onClick={() => descargar(`landed-cost-${new Date().toISOString().slice(0, 10)}.csv`, exportarSKU(r))}>Exportar por SKU (Excel/CSV)</button>
-        <button type="button" className="btn" onClick={() => window.print()}>Imprimir / PDF</button>
       </div>
 
       <Solicitud entrada={e} r={r} productos={productos} />

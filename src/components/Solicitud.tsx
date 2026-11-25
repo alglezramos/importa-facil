@@ -1,3 +1,4 @@
+import { leerPerfil } from '../lib/almacen'
 import { useEffect, useMemo, useState } from 'react'
 import { AGENCIA, MODOS, ZONAS } from '../data/config'
 import { proveedoresInternacionales, TIPO_ETIQUETA, TRANSPORTISTAS, type Proveedor } from '../data/proveedores'
@@ -22,7 +23,9 @@ const VACIO: Contacto = { nombre: '', empresa: '', correo: '', telefono: '', not
 
 function leerContacto(): Contacto {
   try {
-    return { ...VACIO, ...JSON.parse(localStorage.getItem('contacto') || '{}') }
+    const c = { ...VACIO, ...JSON.parse(localStorage.getItem('contacto') || '{}') }
+    const pf = leerPerfil()
+    return { ...c, nombre: c.nombre || pf.nombre, empresa: c.empresa || pf.empresa, correo: c.correo || pf.email, telefono: c.telefono || pf.telefono }
   } catch {
     return VACIO
   }
