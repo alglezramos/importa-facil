@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Acceso } from './components/Acceso'
 import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
 import { Cotizador, type Apertura } from './components/Cotizador'
 import { MisCotizaciones } from './components/MisCotizaciones'
 import { Perfil } from './components/Perfil'
-import { leerPerfil, type Perfil as TPerfil } from './lib/almacen'
+import { guardarPerfil, leerPerfil, type Perfil as TPerfil } from './lib/almacen'
 import { Guia } from './components/Guia'
 import { Tarifas } from './components/Tarifas'
-import { modoAgencia, salirModoAgencia } from './lib/formal'
+import { fijarAgencia } from './lib/formal'
+import { alCambiarSesion, cargarUsuario, esStaff, ROLES, salir, type Usuario } from './lib/nube'
 import { MARCA } from './data/config'
 import type { Clasificacion as Cls } from './lib/landed'
 
@@ -29,9 +31,26 @@ export default function App() {
   const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar'); window.scrollTo(0, 0) }
   const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
   const [apertura, setApertura] = useState<Apertura | null>(null)
-  const [agencia] = useState(modoAgencia)
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  const [acceso, setAcceso] = useState(false)
   const [versionTarifas, setVersionTarifas] = useState(0)
+  const agencia = esStaff(usuario)
+  fijarAgencia(agencia)
   const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar'); window.scrollTo(0, 0) }
+
+  useEffect(() => alCambiarSesion(async (s) => {
+    if (!s) { setUsuario(null); return }
+    const x = await cargarUsuario(s, leerPerfil())
+    if (!x) return
+    setUsuario(x.usuario)
+    setPerfil(x.perfil)
+    guardarPerfil(x.perfil)
+    setAcceso(false)
+    // Limpia el código de acceso de la dirección
+    if (location.search.includes('code=')) history.replaceState(null, '', location.pathname + location.hash)
+  }), [])
+
+  const visibles = (Object.keys(VISTAS) as Vista[]).filter((v) => v !== 'tarifas' || usuario?.rol === 'operador')
 
   return (
     <div className="app">
@@ -40,19 +59,24 @@ export default function App() {
           <h1 className="wordmark" aria-label={MARCA.nombre}><span className="land">LAND</span><span className="ex">EX</span></h1>
           <p className="descriptor">{MARCA.descriptor}</p>
         </div>
+        <div className="cuenta">
+          {usuario ? (
+            <>
+              <span className="quien"><b>{perfil.nombre || usuario.email}</b><small>{ROLES[usuario.rol]}</small></span>
+              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('cotizar') }}>Salir</button>
+            </>
+          ) : (
+            <button type="button" className="btn-cuenta" onClick={() => setAcceso(true)}>Iniciar sesión</button>
+          )}
+        </div>
         <nav>
-          {(Object.keys(VISTAS) as Vista[]).filter((v) => v !== 'tarifas' || agencia).map((v) => (
+          {visibles.map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} onClick={() => setVista(v)}>
               {VISTAS[v]}
             </button>
           ))}
         </nav>
-        {agencia && (
-          <div className="banda-agencia">
-            Modo agencia: herramientas del operador (no es un acceso protegido).
-            <button type="button" className="link" onClick={() => { salirModoAgencia(); location.hash = ''; location.reload() }}>Salir</button>
-          </div>
-        )}
+        {agencia && <div className="banda-agencia">Sesión de agencia · {ROLES[usuario!.rol]}: ves las cotizaciones de todos los clientes.</div>}
       </header>
 
       <div className="print-brand" aria-hidden>
@@ -72,14 +96,22 @@ export default function App() {
             </ul>
           </section>
         )}
-        {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas} />}
-        {vista === 'cotizaciones' && <MisCotizaciones onAbrir={(c, copia) => abrir({ cotizacion: c, copia })} onNueva={() => abrir({ cotizacion: null })} />}
-        {vista === 'perfil' && <Perfil onGuardado={setPerfil} />}
+        {vista === 'cotizar' && (
+          <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
+            usuario={usuario} onIniciarSesion={() => setAcceso(true)} />
+        )}
+        {vista === 'cotizaciones' && (
+          <MisCotizaciones usuario={usuario} perfilBase={perfil} onAbrir={(a) => abrir(a)} onNueva={() => abrir({ cotizacion: null })}
+            onIniciarSesion={() => setAcceso(true)} />
+        )}
+        {vista === 'perfil' && <Perfil usuario={usuario} onGuardado={setPerfil} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
         {vista === 'guia' && <Guia />}
         {vista === 'aliados' && <Aliados />}
-        {vista === 'tarifas' && agencia && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
+        {vista === 'tarifas' && usuario?.rol === 'operador' && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
       </main>
+
+      {acceso && <Acceso onCerrar={() => setAcceso(false)} />}
 
       <footer>
         <p>
