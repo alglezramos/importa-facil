@@ -39,6 +39,11 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
   const compatibles = comp.filter((m) => m.compatible && !m.fletePendiente && !m.incompleta)
   const recomendada = compatibles.length ? compatibles.reduce((a, b) => (b.total < a.total ? b : a)) : null
   const unidades = r.productos.reduce((s, p) => s + p.cantidad, 0)
+  const propios = r.conceptos.filter((k) => ['honorarios', 'coordinacion'].includes(k.id))
+  const honorarios = propios.filter((k) => k.estado === 'estimado' || k.estado === 'confirmado').reduce((s, k) => s + (k.monto ?? 0), 0)
+  const otrosServicios = Math.round((r.totales.logistica - honorarios) * 100) / 100
+  const adicional = r.totales.total - r.totales.mercancia
+
   const segmentos: { k: Etapa | 0; nombre: string; v: number }[] = [
     { k: 0, nombre: 'Mercancía', v: r.totales.mercancia },
     ...([1, 2, 3, 4, 6, 7] as Etapa[]).map((k) => ({ k, nombre: ETAPAS[k], v: r.porEtapa[k].total })),
@@ -56,13 +61,15 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         <span className="crc">{crc(r.totales.total * e.tipoCambio)} · rango referencial {usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? ' + pendientes' : ''}</span>
         <div className="kpis">
           <div><span>Mercancía</span><b>{usd(r.totales.mercancia)}</b></div>
-          <div><span>Servicios logísticos</span><b>{usd(r.totales.logistica)}</b></div>
+          <div><span>Logística y otros gastos</span><b>{usd(otrosServicios)}</b></div>
+          <div><span>Honorarios y coordinación LANDEX</span><b>{usd(honorarios)}{propios.some((k) => k.estado === 'pendiente') ? ' + pendientes' : ''}</b></div>
+          <div><span>Costos adicionales a la mercancía</span><b>{usd(adicional)}{r.estado === 'incompleta' ? ' + pendientes' : ''}</b></div>
           <div><span>Impuestos</span><b>{impPend ? (r.totales.impuestos ? `${usd(r.totales.impuestos)} + pendientes` : 'Pendiente') : usd(r.totales.impuestos)}</b></div>
           <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
-          <div><span>Desembolso total</span><b>{usd(r.totales.desembolso)}</b></div>
+          <div><span>Desembolso {r.estado === "incompleta" ? "parcial" : "estimado"}</span><b>{usd(r.totales.desembolso)}</b></div>
           <div><span>IVA recuperable*</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
-          <div><span>Costo neto sin IVA</span><b>{usd(r.totales.totalSinIVA)}</b></div>
-          <div><span>Landed Cost unitario promedio</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
+          <div><span>Costo sin IVA potencialmente recuperable</span><b>{usd(r.totales.totalSinIVA)}</b></div>
+          <div><span>Landed Cost unitario promedio {r.estado === "incompleta" ? "(parcial)" : ""}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
         </div>
       </div>
 
