@@ -1,3 +1,4 @@
+import type { EstadoDoc } from './expediente'
 import type { Emision } from './formal'
 /**
  * Estado compartido del cotizador, perfil del cliente y cotizaciones guardadas.
@@ -6,7 +7,11 @@ import type { Emision } from './formal'
 import { ORIGENES, TIPO_CAMBIO_DEFAULT } from '../data/config'
 import type { Clasificacion, Embarque, Producto, ResultadoLanded } from './landed'
 
-export type EmbarqueForm = Omit<Embarque, 'origen'> & { origenId: string }
+export type EmbarqueForm = Omit<Embarque, 'origen'> & {
+  origenId: string
+  /** Estado de cada documento del expediente (no interviene en el cálculo). */
+  documentos?: Record<string, EstadoDoc>
+}
 
 export const EMBARQUE_INICIAL: EmbarqueForm = {
   proveedor: { empresa: '', direccion: '', contacto: '', telefono: '', email: '' },
