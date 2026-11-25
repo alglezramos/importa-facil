@@ -84,9 +84,9 @@ export async function guardarPerfilNube(id: string, p: Perfil): Promise<string |
 
 // ---------------------------------------------------------------- Cotizaciones
 
-export type EstadoNube = 'estimada' | 'incompleta' | 'formal' | 'aceptada' | 'en_proceso' | 'cerrada' | 'cancelada'
+export type EstadoNube = 'estimada' | 'incompleta' | 'solicitada' | 'formal' | 'aceptada' | 'en_proceso' | 'cerrada' | 'cancelada'
 export const ESTADOS_NUBE: Record<EstadoNube, string> = {
-  estimada: 'Estimada', incompleta: 'Incompleta', formal: 'Formal', aceptada: 'Aceptada por el cliente',
+  estimada: 'Estimada', incompleta: 'Incompleta', solicitada: 'Solicitud enviada', formal: 'Formal', aceptada: 'Aceptada por el cliente',
   en_proceso: 'En proceso', cerrada: 'Cerrada', cancelada: 'Cancelada',
 }
 /** Estados en que el cliente ya no edita la cotización. */
@@ -203,4 +203,51 @@ export async function eliminarDocumento(d: DocNube): Promise<string | null> {
   if (error) return errorTexto(error)
   await nube().storage.from('documentos').remove([d.archivo])
   return null
+}
+
+// ---------------------------------------------------------------- Solicitudes (prospectos)
+
+export type TipoSolicitud = 'importacion' | 'desalmacenaje' | 'empresarial' | 'contacto'
+export const TIPOS_SOLICITUD: Record<TipoSolicitud, string> = {
+  importacion: 'Quiere importar', desalmacenaje: 'Desalmacenaje', empresarial: 'Soluciones empresariales', contacto: 'Contacto',
+}
+export type EstadoSolicitud = 'nuevo' | 'contactado' | 'en_proceso' | 'cerrado' | 'descartado'
+export const ESTADOS_SOLICITUD: Record<EstadoSolicitud, string> = {
+  nuevo: 'Nuevo', contactado: 'Contactado', en_proceso: 'En proceso', cerrado: 'Cerrado', descartado: 'Descartado',
+}
+
+export interface SolicitudNueva {
+  tipo: TipoSolicitud
+  nombre: string
+  empresa: string
+  correo: string
+  telefono: string
+  datos: Record<string, unknown>
+  consentimiento: boolean
+}
+export interface Solicitud extends SolicitudNueva {
+  id: string
+  estado: EstadoSolicitud
+  notas: string
+  usuario_id: string | null
+  creada: string
+}
+
+/** Cualquier visitante puede enviar una solicitud (con consentimiento). No devuelve filas: solo el personal las ve. */
+export async function enviarSolicitud(s: SolicitudNueva): Promise<string | null> {
+  const { error } = await nube().from('solicitudes').insert({ ...s, nombre: s.nombre.trim(), correo: s.correo.trim(), empresa: s.empresa.trim(), telefono: s.telefono.trim() })
+  if (!error) return null
+  if (/check constraint|violates/i.test(error.message)) return 'Revisa tu nombre y correo: alguno no es válido.'
+  return 'No pudimos enviar tu solicitud. Intenta de nuevo o escríbenos por correo.'
+}
+
+export async function listarSolicitudes(): Promise<Solicitud[]> {
+  const { data, error } = await nube().from('solicitudes').select('*').order('creada', { ascending: false }).limit(300)
+  if (error) throw new Error(error.message)
+  return (data ?? []) as Solicitud[]
+}
+
+export async function cambiarSolicitud(id: string, cambio: { estado?: EstadoSolicitud; notas?: string }): Promise<string | null> {
+  const { error } = await nube().from('solicitudes').update(cambio).eq('id', id)
+  return error ? error.message : null
 }
