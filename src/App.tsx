@@ -52,6 +52,7 @@ export default function App() {
   const [seccion, setSeccion] = useState<Seccion>(leerRuta() === 'empresas' ? 'empresarial' : 'desalmacenaje')
   const setVista = (v: Vista) => {
     setVistaEstado(v)
+    setAcceso(false)
     const h = HASH[v]
     if (leerRuta() !== h) history.pushState(null, '', h ? `#${h}` : location.pathname + location.search)
     window.scrollTo(0, 0)
@@ -73,6 +74,8 @@ export default function App() {
   const [apertura, setApertura] = useState<Apertura | null>(null)
   const [usuario, setUsuario] = useState<Usuario | null>(null)
   const [acceso, setAcceso] = useState(false)
+  // La ventana de ingreso se cierra al iniciar sesión o al cambiar de sección.
+  useEffect(() => { if (usuario) setAcceso(false) }, [usuario])
   const [versionTarifas, setVersionTarifas] = useState(0)
   const agencia = esStaff(usuario)
   fijarAgencia(agencia)
