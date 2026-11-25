@@ -7,6 +7,7 @@ import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
 import { Cotizador, type Apertura } from './components/Cotizador'
 import { MisCotizaciones } from './components/MisCotizaciones'
+import { Portal } from './components/Portal'
 import { Perfil } from './components/Perfil'
 import { guardarPerfil, leerPerfil, type Perfil as TPerfil } from './lib/almacen'
 import { Guia } from './components/Guia'
@@ -17,7 +18,7 @@ import { AGENCIA, EMPRESA, MARCA } from './data/config'
 import { Logotipo } from './components/Marca'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
+type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'portal' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
 
 const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
@@ -26,7 +27,8 @@ const VISTAS: Record<Vista, string> = {
   clasificar: 'Aranceles e impuestos',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
-  cotizaciones: 'Mi LANDEX',
+  portal: 'Mi LANDEX',
+  cotizaciones: 'Mis cotizaciones',
   perfil: 'Mi perfil',
   solicitudes: 'Solicitudes',
   tarifas: 'Tarifas',
@@ -35,12 +37,12 @@ const VISTAS: Record<Vista, string> = {
 /** Rutas con # para enlazar secciones (compatible con GitHub Pages y con el regreso del enlace de acceso). */
 const RUTAS: Record<string, Vista> = {
   '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
-  clasificacion: 'clasificar', 'como-funciona': 'guia', socios: 'aliados', cotizaciones: 'cotizaciones', perfil: 'perfil',
+  clasificacion: 'clasificar', 'como-funciona': 'guia', socios: 'aliados', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
   solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const HASH: Record<Vista, string> = {
   inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'clasificacion', guia: 'como-funciona', aliados: 'socios',
-  cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
+  portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
 const vistaDeRuta = (): Vista => RUTAS[leerRuta()] ?? 'inicio'
@@ -103,13 +105,13 @@ export default function App() {
               <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>Salir</button>
             </>
           ) : (
-            <button type="button" className="btn-cuenta" onClick={() => setAcceso(true)}>Ingresar a Mi LANDEX</button>
+            <button type="button" className="btn-cuenta" onClick={() => { setVista('portal'); setAcceso(true) }}>Ingresar a Mi LANDEX</button>
           )}
         </div>
         <nav>
           {visibles.map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
-              {VISTAS[v]}
+              {v === 'portal' && agencia ? 'LANDEX Business' : VISTAS[v]}
             </button>
           ))}
         </nav>
@@ -144,6 +146,7 @@ export default function App() {
           <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
             usuario={usuario} onIniciarSesion={() => setAcceso(true)} onPerfil={setPerfil} />
         )}
+        {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} /> : <section className="panel"><h2>Mi LANDEX</h2><p>Ingresa para consultar tus operaciones y cotizaciones.</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>Ingresar</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>Ver cotizaciones locales</button></div></section>)}
         {vista === 'cotizaciones' && (
           <MisCotizaciones usuario={usuario} perfilBase={perfil} onAbrir={(a) => abrir(a)} onNueva={() => abrir({ cotizacion: null })}
             onIniciarSesion={() => setAcceso(true)} />

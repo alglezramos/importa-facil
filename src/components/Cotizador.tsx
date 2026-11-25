@@ -25,6 +25,7 @@ import { AGENCIA } from '../data/config'
 import { Alcance } from './Alcance'
 import { Contratar, resumenTexto, type Intencion } from './Contratar'
 import { Resultado } from './Resultado'
+import { Proforma } from './Proforma'
 
 export interface Apertura {
   cotizacion: CotizacionGuardada | null
@@ -246,6 +247,18 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
         </span>
       )}
     </div>
+    {!bloqueada && nubeEstado !== 'formal' && !formalVigente && (
+      <Proforma key={apertura?.vez ?? 0} onAplicar={(producto, proveedor, incoterm) => {
+        setProductos((ps) => [...ps, producto])
+        setEf((x) => ({
+          ...x,
+          ...(proveedor ? { proveedor: { ...x.proveedor, empresa: proveedor } } : {}),
+          ...(incoterm ? { incoterm, incotermPorConfirmar: false } : { incotermPorConfirmar: true }),
+        }))
+        setModoVista('experto')
+        setMensaje('Producto agregado desde la proforma. Revisa el origen, la modalidad, la clasificación y los demás datos del embarque.')
+      }} />
+    )}
     <div className="cotizador">
       {modoVista === 'guiado' ? (
         <div className="formulario">
