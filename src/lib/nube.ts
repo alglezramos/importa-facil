@@ -6,7 +6,8 @@
  * supabase/pruebas. Nunca poner aquí la clave service_role.
  */
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js'
-import type { EmbarqueForm, Perfil } from './almacen'
+import { PERFIL_VACIO, type EmbarqueForm, type Perfil } from './almacen'
+const leerPerfilVacio = (): Perfil => ({ ...PERFIL_VACIO })
 import type { Emision } from './formal'
 import type { Producto, ResultadoLanded } from './landed'
 import type { Tarifa } from './tarifas'
@@ -133,6 +134,17 @@ export async function cambiarEstadoNube(id: string, estado: EstadoNube, emision?
   if (emision !== undefined) cambio.emision = emision
   const { error } = await nube().from('cotizaciones').update(cambio).eq('id', id)
   return error ? errorTexto(error) : null
+}
+
+/** La agencia asigna una cotización a la cuenta de un cliente por su correo (el cliente debe haber ingresado al menos una vez). */
+export async function asignarCliente(id: string, correo: string): Promise<{ perfil: Perfil | null; error: string | null }> {
+  const email = correo.trim().toLowerCase()
+  const { data, error } = await nube().from('perfiles').select('*').ilike('email', email).maybeSingle()
+  if (error) return { perfil: null, error: errorTexto(error) }
+  if (!data) return { perfil: null, error: `No hay ninguna cuenta con ${email}. Pide al cliente que ingrese una vez a landex.cr con ese correo.` }
+  const { error: e2 } = await nube().from('cotizaciones').update({ cliente_id: (data as { id: string }).id }).eq('id', id)
+  if (e2) return { perfil: null, error: errorTexto(e2) }
+  return { perfil: aPerfil(data as FilaPerfil, leerPerfilVacio()), error: null }
 }
 
 export async function eliminarCotizacionNube(id: string): Promise<string | null> {
