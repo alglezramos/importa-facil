@@ -630,3 +630,20 @@ footer .firma span { font-style: italic; font-weight: 500; color: var(--navy); p
 @media (max-width: 700px) { .doc-num { padding-right: 0; } .doc-cab::after { display: none; } header::after { width: 160px; } .hero::after { width: 70%; opacity: .5; } }
 @media print { header::after { display: none; } }
 nav button { white-space: nowrap; }
+
+/* Socios comerciales: logotipos en tarjetas blancas uniformes */
+.aliados .categoria h3 small { font-size: 11px; color: var(--gris); letter-spacing: 1px; margin-left: 6px; }
+.rejilla-logos { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.tarjeta-logo { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: border-color .15s, box-shadow .15s; }
+.tarjeta-logo:hover { border-color: var(--gris-azul); box-shadow: 0 4px 14px rgba(16,30,48,.06); }
+.logo-caja { width: 100%; aspect-ratio: 15 / 8; display: flex; align-items: center; justify-content: center; }
+.logo-caja img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.logo-texto { font-weight: 700; color: var(--navy); text-align: center; }
+.logo-nombre { font-size: 12px; color: var(--gris); text-align: center; line-height: 1.3; }
+.instituciones { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--border); }
+.nota-inst { color: var(--muted); font-size: 13.5px; margin: 4px 0 0; }
+.instituciones .rejilla-logos { grid-template-columns: repeat(auto-fill, minmax(170px, 220px)); }
+@media (max-width: 560px) {
+  .rejilla-logos, .instituciones .rejilla-logos { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .tarjeta-logo { padding: 10px 10px 8px; border-radius: 12px; }
+}
