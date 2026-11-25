@@ -1,3 +1,20 @@
+# Fase 4, parte 1: confiabilidad, expediente y base de datos (2026-11-24)
+
+Respaldo previo: etiqueta `respaldo-v5` y rama `respaldo-v5`. **Sin cambios en fórmulas, tarifas, aranceles ni impuestos.** Hay 46 pruebas y todas pasan, más 27 pruebas de permisos de la base de datos.
+
+- **Indicador de confiabilidad** en el resultado y el PDF: porcentaje de los costos de importación (logística e impuestos, sin la mercancía) respaldado por tarifas confirmadas y clasificación validada. Lo acompaña una lista de lo que falta confirmar: Incoterm, medidas, clasificación, flete, destino, transporte y descarga. No se presenta como garantía de exactitud.
+- **Documentos de tu importación**: lista automática según el caso.
+  - Factura comercial, lista de empaque, documento de transporte (BL, AWB o carta de porte según la modalidad), ficha técnica, identificación del importador, comprobante de pago, y DUA y declaración de valor.
+  - Certificado de origen solo con TLC, póliza de seguro solo si va asegurada, y permisos solo si el producto los requiere.
+  - Indica quién aporta cada documento (tú, tu proveedor o LANDEX) según el Incoterm.
+  - El cliente marca "Ya lo tengo"; en modo agencia hay estados: recibido, revisado u observado. El PDF usa la misma lista.
+  - La carga de archivos llega al conectar Supabase.
+- **Base de datos** (`supabase/schema.sql`), lista para Supabase:
+  - Tablas de perfiles con rol (cliente, agente, operador), cotizaciones con consecutivo `LDX-AAAA-0001`, tarifas y documentos, más un bucket privado para los archivos.
+  - La seguridad la aplica la base de datos: cada cliente ve solo lo suyo, nadie se sube de rol, solo la agencia emite formales y revisa documentos, solo el operador maneja tarifas, y una formal se anula si cambian los datos.
+  - Probada en un PostgreSQL local que simula Supabase (`supabase/pruebas/`).
+- Guía de configuración en `SUPABASE.md`.
+
 # Fase 3: ecosistema logístico (2026-11-24)
 
 Respaldo previo: etiqueta `respaldo-v4` y rama `respaldo-v4`. **Sin cambios en fórmulas, tarifas de referencia, aranceles ni impuestos.** Las tarifas de proveedores entran al motor como ajustes, un mecanismo que ya existía. Hay 39 pruebas y todas pasan. La guía de uso está en `TARIFAS.md`.
