@@ -106,6 +106,8 @@ export interface Producto {
   /** Tasa DAI preferencial validada por el agente (fracción). */
   daiPreferencial?: number | null
   requierePermiso?: boolean
+  /** Datos que el cliente indicó como aproximados o desconocidos. */
+  datosPorConfirmar?: string[]
 }
 
 export interface Ajuste {
@@ -128,6 +130,8 @@ export interface Embarque {
   /** Datos de contacto del proveedor (no intervienen en el cálculo). */
   proveedor?: DatosProveedor
   incoterm: Incoterm
+  /** El cliente no sabe qué incluye el precio: se usa EXW (el escenario más completo) hasta confirmarlo. */
+  incotermPorConfirmar?: boolean
   lugarConvenido?: string
   /** Para términos D: dónde entrega el proveedor. */
   entregaDestino?: 'bodega' | 'puerto'
@@ -563,6 +567,9 @@ export function calcularLanded(e: Embarque, productos: Producto[]): ResultadoLan
   if (productos.some((p) => p.clasificacion?.estado !== 'validada')) supuestos.push('Hay clasificaciones preliminares: el agente aduanero debe validarlas.')
   if (productos.some((p) => p.certificadoOrigen && p.daiPreferencial == null)) supuestos.push('Hay productos con certificado de origen sin tasa preferencial validada: se aplica el DAI general.')
   supuestos.push('Tarifas logísticas referenciales: no son ofertas de proveedores.')
+
+  for (const p of productos) for (const d of p.datosPorConfirmar ?? []) pendientes.push(`Dato por confirmar de ${p.sku || p.nombre}: ${d}`)
+  if (e.incotermPorConfirmar) pendientes.push('Confirmar con el proveedor qué incluye su precio (Incoterm)')
 
   const incotermOk = incotermCompatible(e.incoterm, e.modo)
   if (!incotermOk) pendientes.push(`El Incoterm ${e.incoterm} es solo para transporte marítimo`)

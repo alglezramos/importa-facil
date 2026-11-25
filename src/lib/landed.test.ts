@@ -181,3 +181,14 @@ describe('tasas sin validar', () => {
     expect(calcularLanded(base, v).productos[0].impuestos.tasaDAIAplicada).toBe(0)
   })
 })
+
+describe('datos por confirmar', () => {
+  it('un volumen aproximado se calcula pero deja la cotización incompleta', () => {
+    const p = [{ ...nova[0], clasificacion: cls('9403.60.00.00', 0.14), datosPorConfirmar: ['volumen y peso aproximados'] }]
+    const r = calcularLanded({ ...base, incotermPorConfirmar: true }, p)
+    expect(r.totales.total).toBeGreaterThan(0)
+    expect(r.estado).toBe('incompleta')
+    expect(r.pendientes.some((x) => x.includes('aproximados'))).toBe(true)
+    expect(r.pendientes.some((x) => x.includes('Incoterm'))).toBe(true)
+  })
+})
