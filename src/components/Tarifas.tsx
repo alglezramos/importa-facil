@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
 import { descargar } from '../lib/csv'
 import { usd } from '../lib/formato'
+import { eliminarTarifaNube, guardarTarifaNube, listarTarifasNube } from '../lib/nube'
 import {
   CATEGORIAS_PROVEEDOR, CONCEPTOS_TARIFA, cargarTarifasPublicadas, exportarTarifas, guardarTarifasLocales, leerTarifasLocales,
   TRAMOS, tramoTarifa, UNIDAD_CORTA, UNIDADES, validarTarifa, vigencia, VIGENCIAS, type Cargo, type CategoriaProveedor, type Tarifa, type Unidad,
@@ -22,6 +23,7 @@ interface Props { onCambio?: () => void }
 
 export function Tarifas({ onCambio }: Props) {
   const [publicadas, setPublicadas] = useState<Tarifa[]>([])
+  const [nubeTs, setNubeTs] = useState<Tarifa[]>([])
   const [locales, setLocales] = useState<Tarifa[]>(leerTarifasLocales)
   const [editando, setEditando] = useState<Tarifa | null>(null)
   const [errores, setErrores] = useState<string[]>([])
@@ -30,23 +32,38 @@ export function Tarifas({ onCambio }: Props) {
   const [msg, setMsg] = useState('')
   const archivo = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { cargarTarifasPublicadas().then(setPublicadas) }, [])
-  const guardarLocales = (ts: Tarifa[]) => { setLocales(ts); guardarTarifasLocales(ts); onCambio?.() }
+  const cargar = async () => { setNubeTs(await listarTarifasNube()); onCambio?.() }
+  useEffect(() => { cargarTarifasPublicadas().then(setPublicadas); cargar() }, []) // eslint-disable-line
+  const enNube = (t: Tarifa) => t.publicada !== undefined
 
-  const todas = useMemo(() => [...locales, ...publicadas.filter((p) => !locales.some((l) => l.id === p.id))], [locales, publicadas])
+  const subirVarias = async (ts: Tarifa[]) => {
+    let ok = 0
+    for (const t of ts) { const { local: _l, ...x } = t; if (!(await guardarTarifaNube({ ...x, publicada: false }))) ok++ }
+    await cargar()
+    return ok
+  }
+  const subirLocales = async () => {
+    const ok = await subirVarias(locales)
+    guardarTarifasLocales([]); setLocales([])
+    setMsg(`${ok} tarifa(s) de este navegador subidas como internas. Márcalas como publicadas cuando quieras que las vean los clientes.`)
+  }
+
+  const todas = useMemo(() => [...nubeTs, ...publicadas.filter((p) => !nubeTs.some((l) => l.id === p.id))], [nubeTs, publicadas])
   const visibles = todas.filter((t) => (verEjemplos || !t.ejemplo) && (filtro === 'todas' || t.categoria === filtro || vigencia(t) === filtro))
   const porVencer = todas.filter((t) => !t.ejemplo && vigencia(t) === 'por_vencer').length
   const vencidas = todas.filter((t) => !t.ejemplo && vigencia(t) === 'vencida').length
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!editando) return
     const e = validarTarifa(editando)
     setErrores(e)
     if (e.length) return
-    const t = { ...editando, local: true }
-    guardarLocales(locales.some((x) => x.id === t.id) ? locales.map((x) => (x.id === t.id ? t : x)) : [t, ...locales])
+    const { local: _l, ...t } = editando
+    const err = await guardarTarifaNube({ ...t, publicada: !!t.publicada })
+    if (err) { setErrores([err]); return }
     setEditando(null)
-    setMsg(`Tarifa de ${t.proveedor} guardada en este navegador.`)
+    await cargar()
+    setMsg(`Tarifa de ${t.proveedor} guardada${t.publicada ? ' y publicada para los clientes' : ' como interna (solo la agencia la ve)'}.`)
   }
 
   const importar = async (f: File) => {
@@ -55,8 +72,8 @@ export function Tarifas({ onCambio }: Props) {
       const ts: Tarifa[] = Array.isArray(x) ? x : x.tarifas
       if (!Array.isArray(ts)) throw new Error('formato')
       const validas = ts.filter((t) => t?.id && Array.isArray(t.cargos))
-      guardarLocales([...validas.map((t) => ({ ...t, local: true })), ...locales.filter((l) => !validas.some((v) => v.id === l.id))])
-      setMsg(`${validas.length} tarifa(s) importada(s).`)
+      const ok = await subirVarias(validas)
+      setMsg(`${ok} tarifa(s) importada(s) como internas.`)
     } catch { setMsg('El archivo no tiene el formato de tarifas de LANDEX.') }
   }
 
@@ -72,9 +89,10 @@ export function Tarifas({ onCambio }: Props) {
         <b> cotización formal</b>. Registra el precio que le cobrarás al cliente.
       </p>
       <div className="aviso-agencia">
-        <b>Dónde se guardan:</b> las que registras quedan solo en este navegador. Para que las usen tus clientes, descarga el
-        archivo y súbelo a GitHub como <code>public/tarifas.json</code>. <b>Ese archivo es público</b>: cualquiera puede
-        leerlo. La edición desde la web, con usuarios y permisos, llega con la Fase 4.
+        <b>Dónde se guardan:</b> en la base de datos de LANDEX. Solo el operador puede crearlas o cambiarlas.
+        Las <b>internas</b> solo las ve la agencia; las <b>publicadas</b> (reales y vigentes) las ven tus clientes en el cotizador.
+        Las del archivo <code>public/tarifas.json</code> son de ejemplo o de respaldo.
+        {locales.length > 0 && <> Tienes {locales.length} tarifa(s) guardada(s) solo en este navegador: <button type="button" className="link" onClick={subirLocales}>subirlas a la base de datos</button>.</>}
       </div>
 
       <div className="tarifas-barra">
@@ -90,7 +108,7 @@ export function Tarifas({ onCambio }: Props) {
         </div>
         <div className="acciones">
           <button type="button" className="btn primario" onClick={() => { setEditando(nueva()); setErrores([]) }}>Registrar tarifa</button>
-          <button type="button" className="btn" onClick={() => descargar('tarifas.json', exportarTarifas(todas.filter((t) => !t.ejemplo || t.local)))}>Descargar tarifas.json</button>
+          <button type="button" className="btn" onClick={() => descargar('tarifas.json', exportarTarifas(nubeTs))}>Descargar respaldo</button>
           <button type="button" className="btn" onClick={() => archivo.current?.click()}>Importar</button>
           <input ref={archivo} type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) importar(f); e.target.value = '' }} />
         </div>
@@ -99,7 +117,8 @@ export function Tarifas({ onCambio }: Props) {
 
       {editando && (
         <form className="tarifa-form" onSubmit={(e) => { e.preventDefault(); guardar() }}>
-          <h3>{locales.some((x) => x.id === editando.id) ? 'Editar tarifa' : 'Nueva tarifa'}</h3>
+          <h3>{nubeTs.some((x) => x.id === editando.id) ? 'Editar tarifa' : 'Nueva tarifa'}</h3>
+          <label className="check"><input type="checkbox" checked={!!editando.publicada} disabled={!!editando.ejemplo} onChange={(e) => set({ publicada: e.target.checked })} />Publicada: la ven los clientes (si es real y está vigente)</label>
           <div className="fila3">
             <label>Proveedor *<input value={editando.proveedor} onChange={(e) => set({ proveedor: e.target.value })} /></label>
             <label>Categoría
@@ -183,16 +202,16 @@ export function Tarifas({ onCambio }: Props) {
                 return (
                   <tr key={t.id}>
                     <td><b>{t.proveedor}</b><small>{CATEGORIAS_PROVEEDOR[t.categoria]}</small>
-                      {t.ejemplo && <span className="sello pend">Ejemplo</span>}{t.local && <span className="sello">Este navegador</span>}</td>
+                      {t.ejemplo && <span className="sello pend">Ejemplo</span>}{enNube(t) ? (t.publicada ? <span className="sello validada">Publicada</span> : <span className="sello">Interna</span>) : <span className="sello">Archivo</span>}</td>
                     <td>{t.origenId ? ORIGENES.find((o) => o.id === t.origenId)?.nombre : 'Cualquier origen'}<small>{t.modos.length ? t.modos.map((m) => MODOS[m]).join(', ') : 'Todas las modalidades'}{t.zona ? ` · ${ZONAS[t.zona]}` : ''}</small></td>
                     <td>{TRAMOS[tramoTarifa(t)]}</td>
                     <td>{t.cargos.map((c, i) => <small key={i}>{CONCEPTOS_TARIFA.find((k) => k.id === c.concepto)?.nombre}: {c.unidad === 'incluido' ? 'incluido' : c.unidad === 'pct_valor' ? `${c.monto}% del valor` : `${usd(c.monto)} ${UNIDAD_CORTA[c.unidad]}`}{c.minimo ? ` (mín. ${usd(c.minimo)})` : ''}</small>)}</td>
                     <td>{t.diasTransito != null ? `${t.diasTransito} d` : '—'}</td>
                     <td><span className={`sello ${v === 'vencida' ? 'no' : v === 'por_vencer' ? 'pend' : 'validada'}`}>{VIGENCIAS[v]}</span><small>{t.vigenteDesde} → {t.vigenteHasta}</small></td>
                     <td className="acciones-fila">
-                      <button type="button" className="link" onClick={() => { setEditando({ ...t }); setErrores([]) }}>{t.local ? 'Editar' : 'Copiar y editar'}</button>
-                      <button type="button" className="link" onClick={() => { setEditando({ ...t, id: `t-${Date.now()}`, vigenteDesde: hoy(), vigenteHasta: en(30), fuente: '', ejemplo: false }); setErrores([]) }}>Renovar</button>
-                      {t.local && <button type="button" className="link peligro" onClick={() => { if (window.confirm(`¿Eliminar la tarifa de ${t.proveedor}?`)) guardarLocales(locales.filter((x) => x.id !== t.id)) }}>Eliminar</button>}
+                      <button type="button" className="link" onClick={() => { setEditando({ ...t }); setErrores([]) }}>{enNube(t) ? 'Editar' : 'Copiar a la base de datos'}</button>
+                      <button type="button" className="link" onClick={() => { setEditando({ ...t, id: `t-${Date.now()}`, vigenteDesde: hoy(), vigenteHasta: en(30), fuente: '', ejemplo: false, publicada: false }); setErrores([]) }}>Renovar</button>
+                      {enNube(t) && <button type="button" className="link peligro" onClick={async () => { if (!window.confirm(`¿Eliminar la tarifa de ${t.proveedor}?`)) return; const err = await eliminarTarifaNube(t.id); if (err) setMsg(err); else cargar() }}>Eliminar</button>}
                     </td>
                   </tr>
                 )

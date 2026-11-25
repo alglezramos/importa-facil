@@ -1,18 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { guardarPerfil, leerPerfil, type Perfil as TPerfil } from '../lib/almacen'
+import { guardarPerfilNube, type Usuario } from '../lib/nube'
 
-interface Props { onGuardado?: (p: TPerfil) => void }
+interface Props { usuario: Usuario | null; onGuardado?: (p: TPerfil) => void }
 
-export function Perfil({ onGuardado }: Props) {
+export function Perfil({ usuario, onGuardado }: Props) {
   const [p, setP] = useState<TPerfil>(leerPerfil)
   const [ok, setOk] = useState(false)
+  const [error, setError] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  useEffect(() => { if (usuario) setP((x) => ({ ...leerPerfil(), email: usuario.email || x.email })) }, [usuario])
   const set = (c: Partial<TPerfil>) => { setP((x) => ({ ...x, ...c })); setOk(false) }
   const emailMalo = !!p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)
   const faltan = [!p.nombre.trim() && 'nombre', !(p.email.trim() || p.telefono.trim()) && 'correo o teléfono'].filter(Boolean)
 
-  const guardar = (e: React.FormEvent) => {
+  const guardar = async (e: React.FormEvent) => {
     e.preventDefault()
     if (emailMalo || faltan.length) return
+    setError('')
+    if (usuario) {
+      setGuardando(true)
+      const err = await guardarPerfilNube(usuario.id, p)
+      setGuardando(false)
+      if (err) { setError(`No se pudo guardar en tu cuenta: ${err}`); return }
+    }
     guardarPerfil(p)
     setOk(true)
     onGuardado?.(p)
@@ -21,7 +32,7 @@ export function Perfil({ onGuardado }: Props) {
   return (
     <section className="panel perfil">
       <h2>Mi perfil</h2>
-      <p className="intro">Guarda tus datos una vez y LANDEX los usa en cada cotización y solicitud. Se guardan solo en este navegador.</p>
+      <p className="intro">Guarda tus datos una vez y LANDEX los usa en cada cotización y solicitud. {usuario ? 'Se guardan en tu cuenta LANDEX.' : 'Sin iniciar sesión se guardan solo en este navegador.'}</p>
       <form onSubmit={guardar} className="perfil-form">
         <fieldset>
           <legend>Contacto</legend>
@@ -33,7 +44,7 @@ export function Perfil({ onGuardado }: Props) {
             <label>Nombre completo *<input value={p.nombre} autoComplete="name" onChange={(e) => set({ nombre: e.target.value })} /></label>
             {p.tipo === 'juridica' && <label>Empresa<input value={p.empresa} autoComplete="organization" onChange={(e) => set({ empresa: e.target.value })} /></label>}
             <label>{p.tipo === 'juridica' ? 'Cédula jurídica' : 'Cédula de identidad'}<input value={p.identificacion} inputMode="numeric" onChange={(e) => set({ identificacion: e.target.value })} /></label>
-            <label>Correo<input type="email" value={p.email} autoComplete="email" aria-invalid={emailMalo} onChange={(e) => set({ email: e.target.value.trim() })} /></label>
+            <label>Correo<input type="email" value={p.email} autoComplete="email" aria-invalid={emailMalo} readOnly={!!usuario} title={usuario ? 'Es el correo de tu cuenta' : undefined} onChange={(e) => set({ email: e.target.value.trim() })} /></label>
             <label>Teléfono / WhatsApp<input type="tel" value={p.telefono} autoComplete="tel" onChange={(e) => set({ telefono: e.target.value })} /></label>
             <label>¿Cuánta experiencia tienes importando?
               <select value={p.experiencia} onChange={(e) => set({ experiencia: e.target.value as TPerfil['experiencia'] })}>
@@ -66,8 +77,9 @@ export function Perfil({ onGuardado }: Props) {
 
         {faltan.length > 0 && <p className="nota">Para guardar falta: {faltan.join(' y ')}.</p>}
         <div className="acciones">
-          <button type="submit" className="btn primario" disabled={faltan.length > 0 || emailMalo}>Guardar perfil</button>
-          {ok && <span className="nota" role="status">Perfil guardado.</span>}
+          <button type="submit" className="btn primario" disabled={faltan.length > 0 || emailMalo || guardando}>{guardando ? 'Guardando…' : 'Guardar perfil'}</button>
+          {ok && <span className="nota" role="status">Perfil guardado{usuario ? ' en tu cuenta' : ''}.</span>}
+          {error && <span className="nota error" role="alert">{error}</span>}
         </div>
       </form>
     </section>

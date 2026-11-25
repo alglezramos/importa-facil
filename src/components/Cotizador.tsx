@@ -12,7 +12,8 @@ import {
   type Incoterm, type Producto,
 } from '../lib/landed'
 import { huella, modoAgencia, requisitosFormal, venceFormal, type Emision } from '../lib/formal'
-import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, leerTarifasLocales, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
+import { BLOQUEADA, cambiarEstadoNube, esStaff, ESTADOS_NUBE, guardarCotizacionNube, listarTarifasNube, type CotNube, type EstadoNube, type Usuario } from '../lib/nube'
+import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
 import { perfilCompleto } from '../lib/almacen'
 import { Documento } from './Documento'
 import { Ofertas } from './Ofertas'
@@ -22,7 +23,15 @@ import { Guiado } from './Guiado'
 import { ProductoEditor } from './ProductoEditor'
 import { Resultado } from './Resultado'
 
-export interface Apertura { cotizacion: CotizacionGuardada | null; copia?: boolean; vez: number }
+export interface Apertura {
+  cotizacion: CotizacionGuardada | null
+  copia?: boolean
+  vez: number
+  /** Cotización de la nube (con su id y estado). */
+  nube?: CotNube
+  /** Perfil del cliente dueño, cuando la abre la agencia. */
+  cliente?: Perfil
+}
 
 interface Props {
   clasificacionNueva?: Clasificacion | null
@@ -30,9 +39,11 @@ interface Props {
   apertura?: Apertura | null
   /** Cambia cuando se editan tarifas en este navegador. */
   versionTarifas?: number
+  usuario: Usuario | null
+  onIniciarSesion: () => void
 }
 
-export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas }: Props) {
+export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas, usuario, onIniciarSesion }: Props) {
   const inicial = useRef(leerBorrador())
   const [ef, setEf] = useState<EmbarqueForm>(inicial.current.embarque)
   const [productos, setProductos] = useState<Producto[]>(inicial.current.productos)
@@ -46,14 +57,22 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
   const resultadoRef = useRef<HTMLDivElement>(null)
 
   const [emision, setEmision] = useState<Emision | undefined>(inicial.current.emision)
-  const agencia = useMemo(modoAgencia, [])
+  const [nubeId, setNubeId] = useState<string | undefined>(inicial.current.nubeId)
+  const [nubeEstado, setNubeEstado] = useState<EstadoNube | undefined>(inicial.current.nubeEstado as EstadoNube | undefined)
+  const [cliente, setCliente] = useState<Perfil | undefined>(inicial.current.cliente)
+  const [ocupado, setOcupado] = useState(false)
+  const agencia = modoAgencia()
+  const staff = esStaff(usuario)
+  const clientePerfil = cliente ?? perfil
   const [publicadas, setPublicadas] = useState<Tarifa[]>([])
-  const [locales, setLocales] = useState<Tarifa[]>(leerTarifasLocales)
+  const [nubeTarifas, setNubeTarifas] = useState<Tarifa[]>([])
   useEffect(() => { cargarTarifasPublicadas().then(setPublicadas) }, [])
-  useEffect(() => { setLocales(leerTarifasLocales()) }, [versionTarifas])
-  const todas = useMemo(() => [...(agencia ? locales : []), ...publicadas.filter((p) => !(agencia && locales.some((l) => l.id === p.id)))], [agencia, locales, publicadas])
+  useEffect(() => { listarTarifasNube().then(setNubeTarifas).catch(() => setNubeTarifas([])) }, [versionTarifas, usuario?.id])
+  const todas = useMemo(() => [...nubeTarifas, ...publicadas.filter((p) => !nubeTarifas.some((n) => n.id === p.id))], [nubeTarifas, publicadas])
+  // Si se cierra la sesión, la cotización deja de estar ligada a la nube
+  useEffect(() => { if (!usuario && nubeId) { setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setNumero(undefined) } }, [usuario]) // eslint-disable-line
 
-  useEffect(() => { guardarBorrador({ embarque: ef, productos, numero, emision }) }, [ef, productos, numero, emision])
+  useEffect(() => { guardarBorrador({ embarque: ef, productos, numero, emision, nubeId, nubeEstado, cliente }) }, [ef, productos, numero, emision, nubeId, nubeEstado, cliente])
 
   useEffect(() => {
     if (!apertura) return
@@ -62,6 +81,9 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     setProductos(c ? c.productos.map((p) => ({ ...p })) : [])
     setNumero(c && !apertura.copia ? c.numero : undefined)
     setEmision(c && !apertura.copia ? c.emision : undefined)
+    setNubeId(apertura.nube && !apertura.copia ? apertura.nube.id : undefined)
+    setNubeEstado(apertura.nube && !apertura.copia ? apertura.nube.estado : undefined)
+    setCliente(apertura.nube && !apertura.copia && apertura.cliente && apertura.nube.cliente_id !== usuario?.id ? apertura.cliente : undefined)
     setEditando(null)
     setMensaje(c ? (apertura.copia ? `Copia de ${c.numero}: al guardar recibirá un número nuevo.` : `Editando ${c.numero}.`) : '')
     if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
@@ -81,9 +103,10 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     return { embarque: e2, r: calcularLanded(e2, productos), protegidos: conceptosProtegidos(base.conceptos) }
   }, [JSON.stringify(ef), JSON.stringify(productos), todas]) // eslint-disable-line
   const candidatas = todas.filter((t) => aplicaA(t, ef) && usable(t) && (agencia || !t.ejemplo))
-  const huellaActual = huella({ ef: { ...ef, documentos: undefined }, productos, cliente: [perfil.nombre, perfil.empresa, perfil.identificacion] })
+  const huellaActual = huella({ ef: { ...ef, documentos: undefined }, productos, cliente: [clientePerfil.nombre, clientePerfil.empresa, clientePerfil.identificacion] })
   const formalVigente = !!emision && emision.huella === huellaActual && emision.vence >= new Date().toISOString().slice(0, 10)
-  const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(perfil) && !!perfil.identificacion.trim()) : []
+  const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(clientePerfil) && !!clientePerfil.identificacion.trim()) : []
+  const bloqueada = !!nubeEstado && BLOQUEADA.includes(nubeEstado)
   const aplicarT = (t: Tarifa) => setEf((x) => ({
     ...x, ajustes: liberarConceptos(x.ajustes, t),
     tarifasAplicadas: [...(x.tarifasAplicadas ?? []).filter((id) => { const y = todas.find((z) => z.id === id); return y && tramoTarifa(y) !== tramoTarifa(t) }), t.id],
@@ -91,11 +114,31 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
   const quitarT = (t: Tarifa) => setEf((x) => ({ ...x, tarifasAplicadas: (x.tarifasAplicadas ?? []).filter((id) => id !== t.id) }))
   const validar = (ids: string[], agente: string) => setProductos((ps) => ps.map((p) => (ids.includes(p.id) && p.clasificacion
     ? { ...p, clasificacion: { ...p.clasificacion, estado: 'validada', fuente: `Validada por ${agente} el ${new Date().toISOString().slice(0, 10)}` } } : p)))
-  const emitir = (agente: string) => {
+  const emitir = async (agente: string) => {
     if (!r) return
     const em: Emision = { emitida: new Date().toISOString(), por: agente, huella: huellaActual, vence: venceFormal(new Date(), VIGENCIA_DIAS, aplicadas) }
-    setEmision(em)
-    guardarCot(em)
+    if (!usuario) { setEmision(em); guardarCot(em); return }
+    const cot = await guardarCot(null)
+    if (!cot) return
+    const err = await cambiarEstadoNube(cot.id, 'formal', em)
+    if (err) { setMensaje(`No se pudo emitir: ${err}`); return }
+    setEmision(em); setNubeEstado('formal')
+    setMensaje(`Cotización formal ${cot.numero} emitida. El cliente la ve en su cuenta y puede aceptarla.`)
+  }
+  const anular = async () => {
+    if (nubeId && r) {
+      const err = await cambiarEstadoNube(nubeId, r.estado, null)
+      if (err) { setMensaje(`No se pudo anular: ${err}`); return }
+      setNubeEstado(r.estado)
+    }
+    setEmision(undefined)
+  }
+  const aceptar = async () => {
+    if (!nubeId) return
+    const err = await cambiarEstadoNube(nubeId, 'aceptada')
+    if (err) { setMensaje(`No se pudo aceptar: ${err}`); return }
+    setNubeEstado('aceptada')
+    setMensaje('¡Cotización aceptada! LANDEX te contactará para coordinar tu importación. Sube tus documentos abajo.')
   }
   const set = (c: Partial<EmbarqueForm>) => setEf((x) => ({ ...x, ...c }))
   const esD = ['DAP', 'DPU', 'DDP'].includes(ef.incoterm)
@@ -134,13 +177,31 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     setMensaje(`${nuevos.length} producto(s) importado(s).${malas.length ? ` ${malas.length} fila(s) con errores: ${malas.map((m, i) => `fila ${i + 2} (${m.errores.join(', ')})`).join('; ')}` : ''}`)
   }
 
-  const guardarCot = (em: Emision | undefined = formalVigente ? emision : undefined) => {
-    if (!r) return
+  /**
+   * Guarda la cotización. Con sesión, en la nube (número oficial LDX); sin sesión, en este navegador.
+   * `em`: emisión a conservar (undefined = la vigente, null = sin emisión).
+   */
+  const guardarCot = async (em: Emision | null | undefined = formalVigente ? emision : undefined): Promise<CotNube | null> => {
+    if (!r) return null
+    const nombre = (productos.map((p) => p.nombre).filter(Boolean).slice(0, 2).join(', ') + (productos.length > 2 ? ` y ${productos.length - 2} más` : '')) || 'Cotización sin nombre'
+    if (usuario) {
+      if (bloqueada) { setMensaje(`Esta cotización está ${ESTADOS_NUBE[nubeEstado!].toLowerCase()}: no se modifica. Duplícala desde "Mis cotizaciones" para cambiarla.`); return null }
+      setOcupado(true)
+      const vigente = em === undefined ? formalVigente : !!em
+      const estado: EstadoNube = vigente && nubeEstado === 'formal' ? 'formal' : r.estado
+      const { cot, error } = await guardarCotizacionNube(nubeId, nombre, ef, productos, r, estado, staff ? (vigente ? emision ?? null : null) : undefined)
+      setOcupado(false)
+      if (error || !cot) { setMensaje(`No se pudo guardar en tu cuenta: ${error}`); return null }
+      setNubeId(cot.id); setNumero(cot.numero); setNubeEstado(cot.estado)
+      if (!cot.emision) setEmision(undefined)
+      setMensaje(`Cotización ${cot.numero} guardada en ${staff && cliente ? 'la cuenta del cliente' : 'tu cuenta'}.`)
+      return cot
+    }
     const num = numero ?? siguienteNumero()
-    const nombre = productos.map((p) => p.nombre).filter(Boolean).slice(0, 2).join(', ') + (productos.length > 2 ? ` y ${productos.length - 2} más` : '')
-    guardarCotizacion({ numero: num, fecha: new Date().toISOString(), vigenciaDias: VIGENCIA_DIAS, nombre: nombre || 'Cotización sin nombre', embarque: ef, productos, total: r.totales.total, estado: r.estado, emision: em })
+    guardarCotizacion({ numero: num, fecha: new Date().toISOString(), vigenciaDias: VIGENCIA_DIAS, nombre, embarque: ef, productos, total: r.totales.total, estado: r.estado, emision: em ?? undefined })
     setNumero(num)
-    setMensaje(`Cotización ${num} guardada. La encuentras en "Mis cotizaciones".`)
+    setMensaje(`Cotización ${num} guardada en este navegador. Inicia sesión para guardarla en tu cuenta y subir documentos.`)
+    return null
   }
 
   const abrirDoc = () => {
@@ -151,12 +212,12 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
   const cargarEjemplo = () => {
     setEf(EJEMPLO_NOVA.embarque)
     setProductos(EJEMPLO_NOVA.productos)
-    setNumero(undefined)
+    setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined)
     setModoVista('experto')
     setMensaje('Escenario de prueba NOVA HOME CR cargado (cliente ficticio). Clasifica el producto para calcular impuestos.')
   }
 
-  const presupuesto = perfil.presupuestoUSD
+  const presupuesto = clientePerfil.presupuestoUSD
 
   return (
     <>
@@ -165,7 +226,13 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
         <button type="button" role="tab" aria-selected={modoVista === 'guiado'} className={modoVista === 'guiado' ? 'activa' : ''} onClick={() => setModoVista('guiado')}>Mi primera importación</button>
         <button type="button" role="tab" aria-selected={modoVista === 'experto'} className={modoVista === 'experto' ? 'activa' : ''} onClick={() => setModoVista('experto')}>Tengo experiencia importando</button>
       </div>
-      {numero && <span className="nota">Cotización <b>{numero}</b></span>}
+      {numero && (
+        <span className="nota">
+          Cotización <b>{numero}</b>
+          {nubeEstado && <span className={`sello ${nubeEstado === 'formal' || nubeEstado === 'aceptada' ? 'validada' : ''}`}>{ESTADOS_NUBE[nubeEstado]}</span>}
+          {cliente && <> · cliente: <b>{cliente.empresa || cliente.nombre || cliente.email}</b></>}
+        </span>
+      )}
     </div>
     <div className="cotizador">
       {modoVista === 'guiado' ? (
@@ -256,7 +323,6 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
               <input ref={archivo} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) importar(f); e.target.value = '' }} />
             </div>
           )}
-          {mensaje && <p className="nota">{mensaje}</p>}
         </fieldset>
 
         <fieldset>
@@ -276,7 +342,7 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
         </fieldset>
         <div className="acciones">
           <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>
-          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setNumero(undefined) }}>Empezar de cero</button>}
+          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>Empezar de cero</button>}
         </div>
       </form>
       )}
@@ -285,10 +351,15 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
       {r ? (
         <>
           <div className="acciones arriba">
-            <button type="button" className="btn primario" onClick={() => guardarCot()}>{numero ? 'Guardar cambios' : 'Guardar cotización'}</button>
+            {!bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
             <button type="button" className="btn" onClick={abrirDoc}>Ver cotización en PDF</button>
+            {!staff && nubeEstado === 'formal' && formalVigente && (
+              <button type="button" className="btn primario" onClick={aceptar}>Aceptar cotización formal</button>
+            )}
           </div>
-          {mensaje && modoVista === 'guiado' && <p className="nota" role="status">{mensaje}</p>}
+          {!usuario && <p className="nota">¿Quieres guardarla en tu cuenta, subir documentos y recibir una cotización formal? <button type="button" className="link" onClick={onIniciarSesion}>Inicia sesión</button></p>}
+          {!staff && nubeEstado === 'formal' && formalVigente && <p className="aviso-formal">LANDEX te envió esta <b>cotización formal</b>, válida hasta el {emision!.vence}. Revísala en PDF y, si estás de acuerdo, acéptala para iniciar tu importación.</p>}
+          {mensaje && <p className="nota" role="status">{mensaje}</p>}
           {presupuesto ? (
             <p className={`presupuesto ${r.totales.desembolso <= presupuesto ? 'ok' : 'excede'}`}>
               Tu monto disponible: {usd(presupuesto)} · {r.totales.desembolso <= presupuesto ? `el desembolso estimado cabe (quedan ${usd(presupuesto - r.totales.desembolso)})` : `el desembolso estimado lo supera en ${usd(r.totales.desembolso - presupuesto)}`}{r.pendientes.length ? ', sin contar los pendientes' : ''}.
@@ -296,13 +367,14 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
           ) : null}
           {agencia && (
             <PanelAgencia productos={productos} requisitos={requisitos} emision={emision} vigente={formalVigente}
-              onValidar={validar} onEmitir={emitir} onAnular={() => setEmision(undefined)} />
+              onValidar={validar} onEmitir={emitir} onAnular={anular} />
           )}
           <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
             formal={formalVigente ? emision : undefined}
             ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
               aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />}
             expediente={<Expediente e={embarque} productos={productos} estados={ef.documentos ?? {}} agencia={agencia}
+              cotId={nubeId} usuario={usuario} onGuardarPrimero={() => guardarCot()} onIniciarSesion={onIniciarSesion}
               onEstado={(id, st) => setEf((x) => ({ ...x, documentos: { ...(x.documentos ?? {}), [id]: st } }))} />} />
         </>
       ) : (
@@ -316,12 +388,12 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     </div>
     {r && (
       <div className="resumen-movil" aria-hidden={doc}>
-        <div><small>{r.estado === 'incompleta' ? 'Estimada incompleta' : 'Estimada'}</small><b>{usd(r.totales.total)}</b></div>
+        <div><small>{formalVigente ? 'Cotización formal' : r.estado === 'incompleta' ? 'Estimada incompleta' : 'Estimada'}</small><b>{usd(r.totales.total)}</b></div>
         <button type="button" className="btn primario" onClick={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth' })}>Ver resumen</button>
       </div>
     )}
     {doc && r && (
-      <Documento numero={numero ?? 'Borrador'} fecha={formalVigente && emision ? new Date(emision.emitida) : new Date()} formal={formalVigente ? emision : undefined} tarifas={aplicadas} vigenciaDias={VIGENCIA_DIAS} perfil={perfil} e={embarque} productos={productos} r={r} onCerrar={() => setDoc(false)} />
+      <Documento numero={numero ?? 'Borrador'} fecha={formalVigente && emision ? new Date(emision.emitida) : new Date()} formal={formalVigente ? emision : undefined} tarifas={aplicadas} vigenciaDias={VIGENCIA_DIAS} perfil={clientePerfil} e={embarque} productos={productos} r={r} onCerrar={() => setDoc(false)} />
     )}
     </>
   )
