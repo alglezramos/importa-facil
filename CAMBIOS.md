@@ -1,3 +1,19 @@
+# Fase 2: experiencia del cliente (2026-11-24)
+
+Respaldo previo: etiqueta `respaldo-v3` y rama `respaldo-v3`. **Sin cambios en fórmulas, tarifas, aranceles ni impuestos.** La clave de guardado local se mantiene. Hay 30 pruebas y todas pasan.
+
+- **Dos modos de cotizar.** "Mi primera importación" es un asistente de 6 pasos: producto, proveedor, qué incluye el precio, tamaño de la carga, entrega y prioridad. "Tengo experiencia importando" es el formulario detallado. Los dos comparten los datos, así que se puede cambiar de modo sin perder nada. El modo inicial depende de la experiencia indicada en el perfil.
+  - "No sé" en el precio calcula todo desde la fábrica (EXW) y agrega el pendiente "Confirmar con el proveedor qué incluye su precio".
+  - Los tamaños aproximados de carga (cajas, tarimas, contenedor) quedan como **dato por confirmar** en los pendientes.
+  - "No sé cuál es" en la partida deja los impuestos pendientes. Nunca se muestran como cero.
+  - La recomendación de modalidad (menor costo o mayor rapidez) sale de la comparación de modalidades que ya existía.
+- **Mi perfil**: datos del cliente, entrega, capacidad de descarga y un presupuesto opcional. El perfil rellena la solicitud de cotización y el montacargas. El presupuesto solo se compara con el desembolso estimado.
+- **Mis cotizaciones**: se guardan con consecutivo `LDX-AAAA-0001`, una vigencia de 15 días y su estado. Se pueden abrir, duplicar y eliminar. Por ahora se guardan en este navegador; el respaldo en el servidor llega con la Fase 4.
+- **Cotización en PDF** con marca LANDEX. Incluye número, fechas, cliente, proveedor, embarque, totales, productos, desglose por etapa, servicios incluidos y excluidos según el estado de cada concepto, pendientes, documentos requeridos, línea de tiempo y condiciones.
+- **Comparar partidas** en Clasificación (hasta 3), con capítulo, partida y DAI de referencia.
+- **Móvil**: barra fija con el total y un acceso al resumen.
+- Corrección: si los impuestos están pendientes, los totales y el PDF dicen "Pendiente" en lugar de USD 0,00.
+
 # Rebranding a LANDEX (2026-11-24)
 
 Respaldo previo: rama `respaldo-v2`. **Sin cambios en fórmulas, tarifas, aranceles, impuestos ni identificadores internos** (la clave de guardado local se mantiene para no perder cotizaciones guardadas). Las 29 pruebas del motor siguen pasando.
