@@ -143,7 +143,7 @@ export function Solicitud({ entrada, r, productos }: Props) {
         <label>Correo<input type="email" value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} /></label>
         <label>Teléfono / WhatsApp<input type="tel" value={contacto.telefono} onChange={(e) => setContacto({ ...contacto, telefono: e.target.value })} /></label>
       </div>
-      <label>Notas (fecha deseada, proveedor, link de Alibaba…)
+      <label>Notas (fecha deseada, proveedor, enlace del producto…)
         <input value={contacto.notas} onChange={(e) => setContacto({ ...contacto, notas: e.target.value })} />
       </label>
 

@@ -12,7 +12,7 @@ import {
   type Incoterm, type Producto,
 } from '../lib/landed'
 import { huella, modoAgencia, requisitosFormal, venceFormal, type Emision } from '../lib/formal'
-import { BLOQUEADA, cambiarEstadoNube, esStaff, ESTADOS_NUBE, guardarCotizacionNube, listarTarifasNube, type CotNube, type EstadoNube, type Usuario } from '../lib/nube'
+import { BLOQUEADA, cambiarEstadoNube, esStaff, ESTADOS_NUBE, guardarCotizacionNube, listarTarifasNube, type CotNube, type EstadoNube, type Usuario, asignarCliente } from '../lib/nube'
 import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
 import { perfilCompleto } from '../lib/almacen'
 import { Documento } from './Documento'
@@ -407,7 +407,15 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
           ) : null}
           {agencia && (
             <PanelAgencia productos={productos} requisitos={requisitos} emision={emision} vigente={formalVigente}
-              onValidar={validar} onEmitir={emitir} onAnular={anular} />
+              onValidar={validar} onEmitir={emitir} onAnular={anular}
+              guardada={!!nubeId} clienteActual={cliente ? cliente.empresa || cliente.nombre || cliente.email : undefined}
+              onAsignar={async (correo) => {
+                if (!nubeId) return 'Guarda la cotización primero.'
+                const { perfil: p, error } = await asignarCliente(nubeId, correo)
+                if (error) return error
+                setCliente(p ?? undefined)
+                return null
+              }} />
           )}
           <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
             formal={formalVigente ? emision : undefined}

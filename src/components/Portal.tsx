@@ -53,12 +53,12 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
     productos.set(clave, { nombre: p.nombre, sku: p.sku })
   }
   return (
-    <section className="panel portal-shell">
+    <section className="panel">
       <div className="fila-estado"><h2>{staff ? 'LANDEX Business' : 'Mi LANDEX'}</h2>
         <button type="button" className="btn" onClick={() => setVersion((v) => v + 1)}>Actualizar</button></div>
       <p className="intro">{staff ? 'Resumen comercial y operativo según los registros accesibles.' : 'Consulta tus cotizaciones y operaciones contratadas desde un solo lugar.'}</p>
       {cargando ? <p role="status">Cargando…</p> : error ? <p className="error" role="alert">{error}</p> : <>
-        <div className="columnas portal-kpis">
+        <div className="columnas">
           <div><b>{cots.length}</b><p>Cotizaciones registradas</p></div>
           <div><b>{formales.length}</b><p>Cotizaciones en estado formal (incluye vencidas)</p></div>
           <div><b>{abiertas.length}</b><p>Operaciones activas</p></div>
@@ -85,7 +85,7 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
               <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfil) })}>Ver expediente</button> <button type="button" className="link" onClick={() => setSeleccion(c.id)}>Seguimiento{usuario.rol === 'operador' ? ' y finanzas' : ''}</button></td>
             </tr>)}</tbody>
           </table></div>}
-        {seleccionada && <><Track key={seleccionada.id} cot={seleccionada} usuario={usuario}/>{usuario.rol === 'operador' && <Finanzas key={seleccionada.id} cot={seleccionada}/>}</>}
+        {seleccionada && <><Track key={seleccionada.id} cot={seleccionada} usuario={usuario} onEstado={() => setVersion((v) => v + 1)}/>{usuario.rol === 'operador' && <Finanzas key={seleccionada.id} cot={seleccionada}/>}</>}
         {usuario.rol === 'operador' && verProveedores && <Proveedores onTarifas={onTarifas}/>}
         {staff ? <><h3>Resumen comercial</h3><p className="nota">El total cotizado incluye mercancía e impuestos: no equivale a ingresos, facturación ni margen de LANDEX.</p><p>Solicitudes de cotización: {cots.filter((c) => c.estado === 'solicitada').length} · Clientes con operaciones activas: {new Set(abiertas.map((c) => c.cliente_id)).size}</p></> :
           <><h3>Productos de tus cotizaciones</h3><p className="nota">Historial de productos registrados, no inventario disponible.</p>{productos.size ? <ul>{Array.from(productos.entries()).map(([k,p]) => <li key={k}>{p.sku ? p.sku + ' · ' : ''}{p.nombre}</li>)}</ul> : <p className="nota">Todavía no tienes productos registrados.</p>}</>}

@@ -61,7 +61,7 @@ export function Proforma({ onAplicar }: Props) {
       }} /></label>
       {error && <p className="nota error" role="alert">{error}</p>}
       {archivo && url && <p><a href={url} target="_blank" rel="noopener noreferrer">Abrir {archivo.name} en otra pestaña</a></p>}
-      <label>Texto de un solo producto (opcional)<textarea rows={6} maxLength={200000} value={texto} onChange={e=>{setTexto(e.target.value);setConfirmado(false);setAviso('')}} placeholder={'Supplier: Example\nSKU: ABC-01\nQuantity: 20\nUnit price (USD): 10'} /></label>
+      <label>Texto de un solo producto (opcional)<textarea rows={6} maxLength={200000} value={texto} onChange={e=>{setTexto(e.target.value);setConfirmado(false);setAviso('')}} placeholder={'Proveedor: Ejemplo S.A.\nSKU: ABC-01\nCantidad: 20\nPrecio unitario (USD): 10'} /></label>
       <button type="button" className="btn" disabled={!texto.trim()} onClick={sugerir}>Detectar campos</button>
       {aviso && <p className="nota" role="status">{aviso}</p>}
       {(archivo || texto.trim()) && <>

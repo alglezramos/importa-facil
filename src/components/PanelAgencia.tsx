@@ -10,12 +10,19 @@ interface Props {
   onValidar: (ids: string[], agente: string) => void
   onEmitir: (agente: string) => void
   onAnular: () => void
+  /** Cotización ya guardada: permite asignarla a la cuenta de un cliente. */
+  guardada?: boolean
+  clienteActual?: string
+  onAsignar?: (correo: string) => Promise<string | null>
 }
 
 const CLAVE = 'landex:agente'
 const leerAgente = () => { try { return localStorage.getItem(CLAVE) ?? '' } catch { return '' } }
 
-export function PanelAgencia({ productos, requisitos, emision, vigente, onValidar, onEmitir, onAnular }: Props) {
+export function PanelAgencia({ productos, requisitos, emision, vigente, onValidar, onEmitir, onAnular, guardada, clienteActual, onAsignar }: Props) {
+  const [correo, setCorreo] = useState('')
+  const [msgCliente, setMsgCliente] = useState('')
+  const [asignando, setAsignando] = useState(false)
   const [agente, setAgente] = useState(leerAgente)
   const guardarAgente = (v: string) => { setAgente(v); try { localStorage.setItem(CLAVE, v) } catch { /* sin almacenamiento */ } }
   const sinValidar = productos.filter((p) => p.clasificacion && p.clasificacion.estado !== 'validada')
@@ -24,6 +31,20 @@ export function PanelAgencia({ productos, requisitos, emision, vigente, onValida
   return (
     <div className="panel-agencia">
       <div className="pa-cab"><b>Panel de la agencia</b><small>Solo visible en modo agencia</small></div>
+
+      {onAsignar && (
+        <div className="pa-bloque">
+          <span>Cliente de la cotización: <b>{clienteActual || 'sin asignar (queda en tu cuenta)'}</b></span>
+          {guardada ? (
+            <div className="pa-fila">
+              <input type="email" value={correo} placeholder="correo@cliente.com" onChange={(e) => setCorreo(e.target.value)} />
+              <button type="button" className="btn" disabled={asignando || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())}
+                onClick={async () => { setAsignando(true); const e = await onAsignar(correo); setAsignando(false); setMsgCliente(e ?? 'Cotización asignada. El cliente ya la ve en su cuenta.') }}>Asignar</button>
+            </div>
+          ) : <small>Guárdala primero para poder asignarla a un cliente.</small>}
+          {msgCliente && <small role="status">{msgCliente}</small>}
+        </div>
+      )}
 
       <label>Agente aduanero que valida<input value={agente} placeholder="Nombre y código del agente" onChange={(e) => guardarAgente(e.target.value)} /></label>
 
