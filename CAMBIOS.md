@@ -1,0 +1,43 @@
+# Cambios – Fase 1: motor de Landed Cost multiproducto
+
+Fecha: 2026-11-24 · Respaldo de la versión anterior: rama `respaldo-v1` (GitHub) y etiqueta `respaldo-v1` (local).
+
+## Limitaciones de la versión anterior
+
+- Un solo producto y una sola partida por embarque, con una partida seleccionada por defecto.
+- Solo 4 Incoterms; aplicaba el TLC automáticamente con solo marcar "tengo certificado".
+- Sin etapas de descarga ni devolución de contenedor; sin cubicaje ni validación de capacidad.
+- Los costos desconocidos se trataban como cero.
+
+## Qué se implementó
+
+**Motor (`src/lib/landed.ts`)**, centralizado y probado:
+- 7 etapas: bodega del proveedor, logística en origen, transporte internacional, logística en destino, nacionalización, transporte nacional, descarga y cierre (incluye montacargas y devolución del contenedor vacío).
+- Cada concepto tiene estado: incluido en el precio, no aplica, estimado, confirmado, pendiente de cotizar o incluido en otro servicio. **Un pendiente nunca suma cero**: queda fuera del total, se lista y la cotización se marca "incompleta".
+- Incoterms 2020 completos (EXW, FCA, FAS, FOB, CFR, CIF, CPT, CIP, DAP, DPU, DDP), con explicación sencilla y punto de transferencia del riesgo. Lo que paga el proveedor queda "incluido" y no se duplica. Valida que FAS/FOB/CFR/CIF solo se usen en marítimo.
+- Multiproducto: impuestos por producto (DAI, Selectivo, Ley 6946, IVA y otros) sobre su propio valor aduanero.
+- Valor aduanero = mercancía + gastos hasta el puerto de importación (etapas 1 a 3), sea que los pague el proveedor o el cliente.
+- Distribución de costos compartidos por valor, peso, volumen, unidades o asignación directa, configurable por concepto. Cálculo en centavos con resto mayor: **la suma de los SKU es exactamente el total**.
+- Cubicaje: 20', 40', 40' High Cube y tráiler; valida volumen con factor de estiba, carga útil, medidas de bultos contra puerta y largo del equipo, bultos no apilables y cantidad de contenedores. Aéreo con peso volumétrico y aviso de carguero.
+- Comparación automática de modalidades (LCL, FCL 20/40/40HC, aéreo, terrestre) en costo y tiempo; no recomienda las incompatibles.
+- Tasas faltantes quedan **pendientes de validación**. La preferencia por TLC solo se aplica si la clasificación está validada por el agente; si no, se muestra como ahorro potencial.
+- Resultado: total, desembolso, IVA recuperable, costo neto sin IVA, Landed Cost total y unitario por SKU, rango referencial, supuestos, pendientes y línea de tiempo con actividades en paralelo.
+
+**Interfaz**
+- Lista de productos con agregar, editar, duplicar y eliminar; carga masiva por CSV (plantilla descargable; el Excel la abre).
+- Sin partida por defecto; buscador del arancel completo dentro del producto.
+- Desglose por etapa desplegable: cambiar estado, monto confirmado y criterio de reparto por concepto.
+- Tabla de Landed Cost por SKU y exportación a CSV/Excel.
+- Guardado automático de la cotización en el navegador.
+- Escenario de prueba NOVA HOME CR cargable con un clic.
+
+**Pruebas** (`npm test`, 29 en total): NOVA HOME (EXW Ningbo, 40', descarga y devolución), multiproducto de 5 SKU, reparto exacto, asignación directa, FOB, CIF sin duplicar, DDP, Incoterm incompatible, LCL, aéreo, terrestre desde Centroamérica, bultos que no caben, contenedores necesarios, tasas pendientes y TLC sin validar.
+
+## Pendiente y dependencias
+
+- **Tarifas reales**: todas las tarifas son referenciales (`src/data/logistica.ts` y `src/data/config.ts`). Sin tarifas de proveedores no hay cotización formal.
+- **Tasas de Costa Rica**: el DAI viene del Arancel Centroamericano (referencia regional). Faltan Selectivo, tasas nacionales y TLC desde TICA.
+- **Fase 2**: modo guiado "Mi primera importación", perfil del cliente, PDF con identidad de Ramos & Co.
+- **Fase 3**: tarifas por proveedor, comparación de ofertas, cotización formal con vigencia.
+- **Fase 4**: base de datos (Supabase), administración protegida con autenticación del lado del servidor, historial. Una contraseña en el navegador no es seguridad válida, por eso el panel administrativo queda para esta fase.
+- La marca "validada por el agente" hoy la puede activar cualquiera en su navegador; en la Fase 4 quedará restringida al agente.

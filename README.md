@@ -4,11 +4,13 @@ Plataforma web de la agencia de aduanas para que una pyme cotice **el costo tota
 
 > **Versión MVP.** Las tasas arancelarias, tarifas de flete y gastos locales son **de ejemplo**. Antes de usarla con clientes, el agente aduanero debe cargar datos reales (ver "Configuración").
 
+> Detalle de la Fase 1 (motor de Landed Cost multiproducto) en [CAMBIOS.md](CAMBIOS.md).
+
 ## Qué hace
 
 | Módulo | Qué resuelve |
 | --- | --- |
-| Cotizar importación | Valor, Incoterm, origen, modalidad, peso, volumen y zona de entrega → costo total en USD y colones, costo unitario, desglose, línea de tiempo y documentos |
+| Cotizar importación | Varios productos por embarque, Incoterms 2020, 7 etapas logísticas, cubicaje, comparación de modalidades → costo total puesto y descargado, Landed Cost por SKU, pendientes y línea de tiempo |
 | Clasificación e impuestos | Buscador de partidas con DAI, DAI preferencial por TLC, Selectivo de Consumo, IVA y permisos |
 | Cómo funciona | Guía paso a paso de Alibaba a la bodega |
 | Solicitud formal | Envía el resumen de la cotización por WhatsApp o correo a la agencia; también se puede imprimir o guardar como PDF |
@@ -25,12 +27,13 @@ Plataforma web de la agencia de aduanas para que una pyme cotice **el costo tota
 
 Flete: LCL por W/M (el mayor entre m³ y toneladas, mínimo 1); aéreo por kg cobrable (peso real vs. volumétrico a 167 kg/m³); FCL por contenedor.
 
-Toda la lógica está en `src/lib/calculo.ts` y tiene pruebas en `src/lib/calculo.test.ts`.
+Toda la lógica está en `src/lib/landed.ts` y tiene pruebas en `src/lib/landed.test.ts`.
 
 ## Configuración (lo que debe editar la agencia)
 
 | Archivo | Qué contiene |
 | --- | --- |
+| `src/data/logistica.ts` | Costos de referencia por etapa, medidas y carga útil de contenedores, días por etapa |
 | `src/data/config.ts` | Nombre de la agencia, WhatsApp, correo, tarifas de flete por origen, gastos en destino, transporte local, honorarios, seguro, días de tránsito y tipo de cambio |
 | `src/data/arancel.ts` | Partidas arancelarias, tasas y permisos. Cambia `verificado: true` cuando el agente confirme cada partida |
 
