@@ -1,3 +1,26 @@
+# Fase 4, parte 2: cuentas, nube y documentos (2026-11-24)
+
+Respaldo previo: etiqueta `respaldo-v6` y rama `respaldo-v6`. **Sin cambios en fórmulas, tarifas de referencia, aranceles ni impuestos.**
+
+- **Supabase conectado** (proyecto `landex`, plan gratuito, East US). Se aplicó el esquema y luego un endurecimiento recomendado por el asesor de seguridad de Supabase:
+  - las funciones internas ya no se pueden llamar por la API;
+  - el consecutivo `LDX-AAAA-0001` lo asigna la base de datos;
+  - las funciones tienen un `search_path` fijo.
+
+  Se verificó en el Supabase real que un cliente no puede subirse de rol ni ver datos de otros, y que un visitante sin sesión no ve nada.
+- **Inicio de sesión con enlace por correo** (sin contraseñas). El rol de la cuenta (cliente, agente u operador) decide qué herramientas se muestran. **El antiguo modo `#agencia` se eliminó**: ahora la seguridad la aplica la base de datos.
+- **Mi perfil** se guarda en la cuenta.
+- **Mis cotizaciones en la nube**: el cliente ve las suyas desde cualquier dispositivo, y la agencia ve las de todos los clientes, con buscador. Las guardadas en el navegador se pueden pasar a la cuenta.
+- **Cotización formal de punta a punta**:
+  - la agencia abre la cotización del cliente, valida, aplica tarifas y la emite;
+  - el cliente la ve en su cuenta y la **acepta**;
+  - una cotización aceptada ya no se modifica (se duplica).
+- **Carga de documentos**: el cliente sube PDF, imágenes, Excel o Word (hasta 10 MB) a cada documento del expediente. La agencia los abre con enlaces temporales y los marca como revisados o con observaciones. Los archivos son privados.
+- **Tarifas en la base de datos**: solo el operador las crea. Las *internas* solo las ve la agencia; las *publicadas* (reales y vigentes) las ven los clientes. Las tarifas que estaban en el navegador se pueden subir.
+- Sin sesión, LANDEX sigue funcionando como antes, guardando en el navegador.
+
+**Pendiente:** configurar un correo propio (Resend, gratis) para que los clientes reciban el enlace de acceso. Mientras tanto, Supabase solo envía correos a los miembros del equipo del proyecto.
+
 # Fase 4, parte 1: confiabilidad, expediente y base de datos (2026-11-24)
 
 Respaldo previo: etiqueta `respaldo-v5` y rama `respaldo-v5`. **Sin cambios en fórmulas, tarifas, aranceles ni impuestos.** Hay 46 pruebas y todas pasan, más 27 pruebas de permisos de la base de datos.

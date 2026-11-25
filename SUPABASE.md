@@ -1,4 +1,9 @@
-# Fase 4 · Configurar Supabase (gratis)
+# Fase 4 · Supabase
+
+> **Estado:** proyecto `landex` creado (`https://gltccicodzuveuxtarat.supabase.co`), esquema aplicado y conectado a la
+> página. Faltan los pasos 3 (direcciones de inicio de sesión), 4 (tu rol de operador) y el correo propio (Resend).
+
+# Configurar Supabase (gratis)
 
 ## 1. Crear el proyecto
 1. En **supabase.com**, entra con el correo de LANDEX y pulsa *New project*.
