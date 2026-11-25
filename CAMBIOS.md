@@ -1,3 +1,11 @@
+# Libro de Marca aplicado (2026-11-24)
+
+- Montserrat en toda la app, servida desde la propia página. Ya no se usan Sora, Inter ni Google Fonts.
+- Logotipo nuevo según el libro: la "A" sin travesaño, EX en azul eléctrico y el descriptor en itálica después de una línea. Está en el encabezado, el acceso, el PDF y la impresión.
+- Monograma LX como favicon e ícono de app. Se renovó la imagen para redes.
+- Botones en píldora y acción principal en mayúsculas, barra azul sobre los títulos, etiquetas "/ SECCIÓN", franjas diagonales en el encabezado, la presentación y la portada del PDF, y firma "| A Ramos & Co. Company".
+- Sin cambios en cálculos ni datos. Detalle en `MARCA.md`.
+
 # Fase 4, parte 2: cuentas, nube y documentos (2026-11-24)
 
 Respaldo previo: etiqueta `respaldo-v6` y rama `respaldo-v6`. **Sin cambios en fórmulas, tarifas de referencia, aranceles ni impuestos.**

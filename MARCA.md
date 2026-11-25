@@ -35,3 +35,16 @@ Los botones principales usan texto azul marino sobre azul eléctrico, porque el 
 | `og-image.png` | Imagen para redes sociales (1200×630) |
 
 Los SVG del logotipo usan texto con la fuente Sora. Para imprenta o señalética, conviene convertirlos a trazos con un diseñador.
+
+## Libro de Marca (aplicado el 2026-11-24)
+
+La interfaz sigue el *Libro de Marca LANDEX* (manual de identidad corporativa):
+
+- **Tipografía:** Montserrat en el logotipo, la interfaz y el PDF. Se sirve desde la propia página (`@fontsource/montserrat`), sin Google Fonts.
+- **Paleta:** azul marino `#101E30` (≈60%), azul eléctrico `#48A9FF` (≈20%, acentos y acciones), blanco y gris claro `#F5F7FA` (fondos), gris corporativo `#91A4BD` (texto secundario) y gris azulado `#B8C9DE` (soporte).
+- **Logotipo:** LAND en azul marino (o blanco sobre fondo oscuro), con la "A" sin travesaño, y EX en azul eléctrico. El descriptor *International Trade Intelligence* va en itálica, después de una línea azul. Está dibujado en vectores en `src/components/Marca.tsx` y `scripts/marca.py`.
+- **Monograma LX:** L blanca y X azul sobre azul marino. Se usa en el favicon, los íconos de la app y la imagen para redes.
+- **Estilo:** botones en píldora (la acción principal en azul eléctrico, con texto blanco en mayúsculas), barra azul corta sobre los títulos, etiquetas de sección "/ TÍTULO" en mayúsculas espaciadas, franjas diagonales azules como acento y firma "| A Ramos & Co. Company".
+- **Regenerar los recursos** (`public/brand`, `public/favicon.svg`): `python3 scripts/marca.py`, que requiere rsvg-convert y Montserrat instalada.
+
+Nota de accesibilidad: el texto blanco sobre azul eléctrico, como pide el libro para el botón principal, tiene un contraste de unos 2,5:1, por debajo del 4,5:1 que recomienda la WCAG. Por eso el botón usa letra gruesa y en mayúsculas. Si se quiere cumplir la norma, la alternativa es poner el texto en azul marino sobre el azul eléctrico, o usar un azul más oscuro como fondo.
