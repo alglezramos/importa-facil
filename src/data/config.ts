@@ -155,5 +155,5 @@ export const AGENCIA = {
   nombre: 'LANDEX',
   eslogan: 'Importa con inteligencia.',
   whatsapp: '50600000000',
-  email: 'cotizaciones@tuagencia.cr',
+  email: 'cotizaciones@landex.cr',
 }
