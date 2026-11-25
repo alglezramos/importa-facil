@@ -533,3 +533,100 @@ header { position: relative; }
 .archivo .revision { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1; }
 .archivo .revision input { margin: 0; flex: 1; min-width: 160px; padding: 5px 8px; font-size: 12.5px; }
 @media (max-width: 600px) { .doc-fila { flex-direction: column; align-items: flex-start; } }
+
+/* ===================================================================
+   LIBRO DE MARCA LANDEX
+   Montserrat en toda la interfaz · azul marino ≈60% · azul eléctrico ≈20%
+   · blanco y gris claro de fondo · botones en píldora · barra azul sobre
+   títulos · etiquetas "/ SECCIÓN" · franjas diagonales como acento.
+   =================================================================== */
+:root, button, input, select, textarea { font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+:root { font-size: 14.5px; }
+
+/* Logotipo */
+.logotipo { display: inline-flex; flex-direction: column; gap: 6px; line-height: 1; }
+.logotipo svg { display: block; }
+.logotipo-desc { display: flex; align-items: center; gap: 8px; font-style: italic; font-weight: 500; font-size: 12px; color: var(--gris); }
+.logotipo-desc::before { content: ''; width: 26px; height: 1.5px; background: var(--accent); }
+.logotipo.oscuro .logotipo-desc { color: var(--gris-azul); }
+.marca-h1 { margin: 0; }
+
+/* Encabezado con franjas diagonales */
+header { position: relative; overflow: hidden; }
+header::after {
+  content: ''; position: absolute; top: 0; right: -40px; width: 320px; height: 100%; pointer-events: none;
+  background: linear-gradient(115deg, transparent 0 38%, var(--accent) 38% 52%, transparent 52% 62%, rgba(72,169,255,.35) 62% 72%, transparent 72%);
+  opacity: .9;
+}
+header > * { position: relative; z-index: 1; }
+.cuenta { z-index: 2; }
+nav button { font-weight: 600; letter-spacing: .1px; }
+
+/* Títulos: barra azul corta arriba (como en el libro) */
+.barra-marca { display: block; width: 56px; height: 5px; border-radius: 2px; background: var(--accent); margin-bottom: 14px; }
+.panel h2, .resultado-titulo { font-weight: 800; letter-spacing: -.3px; color: var(--navy); }
+.panel > h2::before { content: ''; display: block; width: 48px; height: 4px; border-radius: 2px; background: var(--accent); margin-bottom: 12px; }
+
+/* Etiquetas de sección: "/ TÍTULO" en mayúsculas espaciadas */
+.resultado h3, .ofertas h3, .expediente h3, .solicitud h3 {
+  font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--navy);
+}
+.resultado h3::before, .ofertas h3::before, .expediente h3::before, .solicitud h3::before {
+  content: '/'; color: var(--accent); font-style: italic; font-weight: 800; margin-right: 10px; letter-spacing: 0;
+}
+legend { font-weight: 700; }
+
+/* Hero: "Importa con inteligencia." en itálica sobre azul marino con franjas */
+.hero { position: relative; overflow: hidden; border-radius: 16px; padding: 28px 30px; }
+.hero::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 46%; height: 100%; pointer-events: none;
+  background: linear-gradient(118deg, transparent 0 40%, var(--accent) 40% 50%, transparent 50% 58%, rgba(72,169,255,.3) 58% 66%, transparent 66%);
+}
+.hero > * { position: relative; z-index: 1; }
+.hero h2 { font-family: inherit; font-style: italic; font-weight: 800; letter-spacing: -.5px; font-size: clamp(26px, 3.6vw, 38px); }
+.pilares li { background: rgba(16,30,48,.55); }
+
+/* Botones en píldora; acción principal en azul eléctrico con texto blanco en mayúsculas */
+.btn { border-radius: 999px; padding: 10px 20px; font-weight: 600; }
+.btn.primario {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+  text-transform: uppercase; letter-spacing: .6px; font-weight: 700; font-size: 13px;
+}
+.btn.primario:hover { background: #2f97f5; border-color: #2f97f5; }
+.btn-cuenta { border-radius: 999px; }
+.seg { border-radius: 999px; }
+.seg button.activa { background: var(--navy); }
+
+/* Campos y tarjetas */
+input, select, textarea { border-radius: 10px; }
+.panel, .formulario fieldset, .resultado { border-radius: 16px; }
+.formulario fieldset { box-shadow: 0 1px 2px rgba(16,30,48,.04); }
+.total strong { font-weight: 800; letter-spacing: -.5px; }
+.kpis b { font-weight: 700; }
+
+/* Pie con la firma "| A Ramos & Co. Company" */
+footer .firma { display: flex; align-items: center; gap: 12px; letter-spacing: .6px; }
+footer .firma span { font-style: italic; font-weight: 500; color: var(--navy); padding-left: 10px; border-left: 3px solid var(--accent); }
+
+/* Ventana de acceso */
+.modal { border-radius: 18px; }
+.modal input { border-radius: 10px; }
+
+/* Documento PDF: portada tipo "Cotización internacional" */
+.doc-cab { position: relative; overflow: hidden; padding: 6px 0 16px; border-bottom: 0; }
+.doc-cab::after {
+  content: ''; position: absolute; top: -10px; right: -60px; width: 260px; height: calc(100% + 20px);
+  background: linear-gradient(118deg, transparent 0 42%, var(--accent) 42% 54%, transparent 54% 62%, rgba(72,169,255,.3) 62% 70%, transparent 70%);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; z-index: 0;
+}
+.doc-cab > * { position: relative; z-index: 1; }
+.doc-num { padding-right: 150px; }
+.doc-titulo { font-size: 20px; font-weight: 800; letter-spacing: -.3px !important; color: var(--navy); }
+.doc-sub { color: var(--gris); font-size: 11.5px; margin-bottom: 4px; }
+.doc-desc { margin-top: 8px; font-style: italic; letter-spacing: 0; text-transform: none; }
+.documento h4 { letter-spacing: 1.6px; font-weight: 600; }
+.documento h4::before { content: '/'; color: var(--accent); font-style: italic; font-weight: 800; margin-right: 8px; }
+.doc-total div:first-child { border-radius: 12px; }
+@media (max-width: 700px) { .doc-num { padding-right: 0; } .doc-cab::after { display: none; } header::after { width: 160px; } .hero::after { width: 70%; opacity: .5; } }
+@media print { header::after { display: none; } }
+nav button { white-space: nowrap; }

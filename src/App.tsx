@@ -11,6 +11,7 @@ import { Tarifas } from './components/Tarifas'
 import { fijarAgencia } from './lib/formal'
 import { alCambiarSesion, cargarUsuario, esStaff, ROLES, salir, type Usuario } from './lib/nube'
 import { MARCA } from './data/config'
+import { Logotipo } from './components/Marca'
 import type { Clasificacion as Cls } from './lib/landed'
 
 type Vista = 'cotizar' | 'cotizaciones' | 'clasificar' | 'guia' | 'aliados' | 'perfil' | 'tarifas'
@@ -56,8 +57,7 @@ export default function App() {
     <div className="app">
       <header>
         <div className="marca">
-          <h1 className="wordmark" aria-label={MARCA.nombre}><span className="land">LAND</span><span className="ex">EX</span></h1>
-          <p className="descriptor">{MARCA.descriptor}</p>
+          <h1 className="marca-h1"><Logotipo sobre="oscuro" alto={30} descriptor /></h1>
         </div>
         <div className="cuenta">
           {usuario ? (
@@ -80,7 +80,7 @@ export default function App() {
       </header>
 
       <div className="print-brand" aria-hidden>
-        <span className="wordmark"><span className="land">LAND</span><span className="ex">EX</span></span>
+        <Logotipo alto={22} />
         <span>{MARCA.descriptor} · {MARCA.firma} · {new Date().toLocaleDateString('es-CR')}</span>
       </div>
 
@@ -88,6 +88,7 @@ export default function App() {
         {vista === 'cotizar' && (
           <section className="hero">
             <div>
+              <span className="barra-marca" aria-hidden />
               <h2>{MARCA.eslogan}</h2>
               <p>Conoce el costo real de tu importación antes de tomar una decisión. {MARCA.propuesta}</p>
             </div>
@@ -118,7 +119,7 @@ export default function App() {
           Cotización referencial. La clasificación, los impuestos y las tarifas se confirman en la cotización formal del
           agente aduanero. Tarifas y tasas de esta versión son de ejemplo.
         </p>
-        <p className="firma">{MARCA.nombre} © {new Date().getFullYear()} · {MARCA.firma.toUpperCase()}</p>
+        <p className="firma"><span>A Ramos &amp; Co. Company</span> {MARCA.nombre} © {new Date().getFullYear()}</p>
       </footer>
     </div>
   )
