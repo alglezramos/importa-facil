@@ -887,3 +887,11 @@ nav button { white-space: nowrap; }
 .ai-legal { font-size: 12px; color: var(--gris); margin: 16px 0 0; }
 .ai-sep { margin-top: 4px; }
 @media (max-width: 640px) { .ai { padding: 18px; border-radius: 14px; } .ai-cand .tasa { margin-left: 0; } }
+.ai-cupo { font-size: 13px; color: var(--gris-azul); margin: 8px 0 0; }
+.ai-bloqueo { background: rgba(72,169,255,.12); border: 1px dashed var(--accent); border-radius: 14px; padding: 14px 16px; }
+.ai-bloqueo p { color: var(--gris-azul); margin: 6px 0 10px; }
+.ai-ejemplo small { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: 11px; }
+.ai-entrar .ai-ejemplo { margin-bottom: 14px; }
+.ai-admin { margin-top: 16px; background: rgba(255,255,255,.06); border-radius: 12px; padding: 10px 14px; color: var(--gris-azul); }
+.ai-admin summary { cursor: pointer; color: #fff; font-weight: 600; }
+.ai-admin input { flex: 1; min-width: 200px; color: var(--text); }

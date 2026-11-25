@@ -166,7 +166,7 @@ export default function App() {
             onIniciarSesion={() => setAcceso(true)} />
         )}
         {vista === 'perfil' && <Perfil usuario={usuario} onGuardado={setPerfil} />}
-        {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} conectado={!!usuario} onIngresar={() => setAcceso(true)} />}
+        {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} conectado={!!usuario} onIngresar={() => setAcceso(true)} onCotizar={() => setVista('cotizar')} equipo={esStaff(usuario)} />}
         {vista === 'guia' && <Guia onCotizar={() => setVista('cotizar')} onAgencia={() => irAgencia('desalmacenaje')} />}
         {vista === 'aliados' && <Aliados />}
         {vista === 'tarifas' && usuario?.rol === 'operador' && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
