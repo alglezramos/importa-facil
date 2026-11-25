@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AGENCIA, MODOS, ZONAS } from '../data/config'
 import { proveedoresInternacionales, TIPO_ETIQUETA, TRANSPORTISTAS, type Proveedor } from '../data/proveedores'
-import type { EntradaCotizacion, ResultadoCotizacion } from '../lib/calculo'
+import { INCOTERMS, type Embarque, type Producto, type ResultadoLanded } from '../lib/landed'
 import { crc, usd } from '../lib/formato'
 
 interface Props {
-  entrada: EntradaCotizacion
-  r: ResultadoCotizacion
-  producto: string
+  entrada: Embarque
+  r: ResultadoLanded
+  productos: Producto[]
 }
 
 interface Contacto {
@@ -28,7 +28,7 @@ function leerContacto(): Contacto {
   }
 }
 
-export function armarSolicitud(e: EntradaCotizacion, r: ResultadoCotizacion, producto: string, c: Contacto, internacionales: Proveedor[], terrestres: Proveedor[]) {
+export function armarSolicitud(e: Embarque, r: ResultadoLanded, productos: Producto[], c: Contacto, internacionales: Proveedor[], terrestres: Proveedor[]) {
   const lista = (ps: Proveedor[]) => (ps.length ? ps.map((p) => p.nombre).join(', ') : 'Que Ramos & Co recomiende')
   return [
     `SOLICITUD DE COTIZACIÓN – ${AGENCIA.nombre}`,
@@ -36,24 +36,23 @@ export function armarSolicitud(e: EntradaCotizacion, r: ResultadoCotizacion, pro
     `Cliente: ${c.nombre || '-'} | ${c.empresa || '-'}`,
     `Contacto: ${c.correo || '-'} | ${c.telefono || '-'}`,
     '',
-    `Producto: ${producto || e.partida.descripcion}`,
-    `Partida preliminar: ${e.partida.codigo}`,
-    `Valor ${e.incoterm}: ${usd(e.valorMercaderia)} – ${e.unidades} unidades`,
-    `Origen: ${e.origen.nombre}`,
-    `Modalidad: ${MODOS[e.modo]}`,
-    `Peso: ${e.pesoKg} kg – Volumen: ${e.volumenM3} m³`,
-    `Certificado de origen (TLC): ${e.aplicaTLC ? 'Sí' : 'No'}`,
-    `Entrega: ${ZONAS[e.zona]}`,
+    `Incoterm: ${e.incoterm} (${INCOTERMS[e.incoterm].nombre})${e.lugarConvenido ? ' – ' + e.lugarConvenido : ''}`,
+    `Origen: ${e.origen.nombre} – ${MODOS[e.modo]}`,
+    `Carga: ${r.carga.volumenM3.toFixed(2)} m³ – ${r.carga.pesoKg.toLocaleString('es-CR')} kg${r.carga.contenedores ? ` – ${r.carga.contenedores} unidad(es) de transporte` : ''}`,
+    `Entrega: ${ZONAS[e.zona]} – descarga ${e.requiereDescarga ? 'requerida' : 'no requerida'}${e.requiereDescarga ? (e.clienteTieneMontacargas ? ' (con montacargas propio)' : ' (sin montacargas)') : ''}`,
+    '',
+    'Productos:',
+    ...productos.map((p) => `• ${p.sku} – ${p.nombre}: ${p.cantidad} u × ${usd(p.valorUnitario)} – partida ${p.clasificacion?.codigo ?? 'por clasificar'} – origen ${p.paisFabricacion}${p.certificadoOrigen ? ' – con certificado de origen' : ''}`),
     '',
     `Cotizar flete con: ${lista(internacionales)}`,
     `Cotizar transporte local con: ${lista(terrestres)}`,
     '',
-    `Estimado de la plataforma: ${usd(r.totalUSD)} (${crc(r.totalCRC)}) – ${r.diasTotales} días`,
+    `Estimado de la plataforma: ${usd(r.totales.total)} (${crc(r.totales.total * e.tipoCambio)}) – ${r.tiempo.dias} días – ${r.estado === 'incompleta' ? `incompleta (${r.pendientes.length} pendientes)` : 'estimada'}`,
     c.notas ? `\nNotas del cliente: ${c.notas}` : '',
   ].join('\n').trim()
 }
 
-export function Solicitud({ entrada, r, producto }: Props) {
+export function Solicitud({ entrada, r, productos }: Props) {
   const opciones = useMemo(() => proveedoresInternacionales(entrada.origen.id, entrada.modo), [entrada.origen.id, entrada.modo])
   const [elegidos, setElegidos] = useState<string[]>([])
   const [terrestres, setTerrestres] = useState<string[]>([])
@@ -74,7 +73,7 @@ export function Solicitud({ entrada, r, producto }: Props) {
 
   const selInt = opciones.filter((o) => elegidos.includes(o.id))
   const selTerr = TRANSPORTISTAS.filter((t) => terrestres.includes(t.id))
-  const texto = armarSolicitud(entrada, r, producto, contacto, selInt, selTerr)
+  const texto = armarSolicitud(entrada, r, productos, contacto, selInt, selTerr)
   const completo = contacto.nombre.trim() && (contacto.correo.trim() || contacto.telefono.trim())
 
   const copiar = async () => {

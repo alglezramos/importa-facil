@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Partida } from '../data/arancel'
+import type { Clasificacion as Cls } from '../lib/landed'
 import {
-  ancestros, aPartida, buscar, capituloDe, cargarArancel, digitos, esInciso, etiqueta, nivel, type Indice,
+  ancestros, aClasificacion, buscar, capituloDe, cargarArancel, digitos, esInciso, etiqueta, nivel, type Indice,
 } from '../lib/arancel'
 
 const ROMANOS = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI']
 const dai = (v: string | null) => (v && /^\d/.test(v) ? `${v}%` : v === 'II' ? 'No armonizado' : '—')
 
-interface Props { onUsar: (p: Partida) => void }
+interface Props { onUsar: (c: Cls) => void }
 
 export function Clasificacion({ onUsar }: Props) {
   const [ind, setInd] = useState<Indice | null>(null)
@@ -110,7 +110,7 @@ export function Clasificacion({ onUsar }: Props) {
                 además de Selectivo de Consumo, IVA reducido o preferencias por TLC: el agente las confirma.
               </p>
               <div className="acciones">
-                <button className="btn primario" type="button" onClick={() => onUsar(aPartida(ind, detalle[0]))}>Usar en el cotizador</button>
+                <button className="btn primario" type="button" onClick={() => onUsar(aClasificacion(ind, detalle[0]))}>Agregar al cotizador</button>
                 <a className="btn" href="https://www.hacienda.go.cr/tica/web/hdbaranc.aspx" target="_blank" rel="noreferrer">Verificar en TICA</a>
               </div>
               {cap?.notes && (
