@@ -3,7 +3,7 @@ import { Aliados } from './components/Aliados'
 import { Clasificacion } from './components/Clasificacion'
 import { Cotizador } from './components/Cotizador'
 import { Guia } from './components/Guia'
-import { AGENCIA } from './data/config'
+import { MARCA } from './data/config'
 import type { Clasificacion as Cls } from './lib/landed'
 
 type Vista = 'cotizar' | 'clasificar' | 'guia' | 'aliados'
@@ -24,11 +24,8 @@ export default function App() {
     <div className="app">
       <header>
         <div className="marca">
-          <div className="logo" aria-hidden>R</div>
-          <div>
-            <h1>{AGENCIA.nombre}</h1>
-            <p>{AGENCIA.eslogan}</p>
-          </div>
+          <h1 className="wordmark" aria-label={MARCA.nombre}><span className="land">LAND</span><span className="ex">EX</span></h1>
+          <p className="descriptor">{MARCA.descriptor}</p>
         </div>
         <nav>
           {(Object.keys(VISTAS) as Vista[]).map((v) => (
@@ -39,7 +36,23 @@ export default function App() {
         </nav>
       </header>
 
+      <div className="print-brand" aria-hidden>
+        <span className="wordmark"><span className="land">LAND</span><span className="ex">EX</span></span>
+        <span>{MARCA.descriptor} · {MARCA.firma} · {new Date().toLocaleDateString('es-CR')}</span>
+      </div>
+
       <main>
+        {vista === 'cotizar' && (
+          <section className="hero">
+            <div>
+              <h2>{MARCA.eslogan}</h2>
+              <p>Conoce el costo real de tu importación antes de tomar una decisión. {MARCA.propuesta}</p>
+            </div>
+            <ul className="pilares" aria-label="Qué calcula LANDEX">
+              <li>Landed Cost</li><li>Global Trade</li><li>Cost Intelligence</li>
+            </ul>
+          </section>
+        )}
         {vista === 'cotizar' && <Cotizador clasificacionNueva={clasificacionNueva} />}
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} />}
         {vista === 'guia' && <Guia />}
@@ -47,8 +60,11 @@ export default function App() {
       </main>
 
       <footer>
-        Cotización referencial. La clasificación, los impuestos y las tarifas se confirman en la cotización formal del
-        agente aduanero. Tarifas y tasas de esta versión son de ejemplo.
+        <p>
+          Cotización referencial. La clasificación, los impuestos y las tarifas se confirman en la cotización formal del
+          agente aduanero. Tarifas y tasas de esta versión son de ejemplo.
+        </p>
+        <p className="firma">{MARCA.nombre} © {new Date().getFullYear()} · {MARCA.firma.toUpperCase()}</p>
       </footer>
     </div>
   )
