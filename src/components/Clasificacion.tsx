@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Clasificacion as Cls } from '../lib/landed'
+import { LandexAI } from './LandexAI'
 import {
   ancestros, aClasificacion, buscar, capituloDe, cargarArancel, digitos, esInciso, etiqueta, nivel, type Indice,
 } from '../lib/arancel'
@@ -7,9 +8,9 @@ import {
 const ROMANOS = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI']
 const dai = (v: string | null) => (v && /^\d/.test(v) ? `${v}%` : v === 'II' ? 'No armonizado' : '—')
 
-interface Props { onUsar: (c: Cls) => void }
+interface Props { onUsar: (c: Cls) => void; conectado?: boolean; onIngresar?: () => void }
 
-export function Clasificacion({ onUsar }: Props) {
+export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {} }: Props) {
   const [ind, setInd] = useState<Indice | null>(null)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
@@ -32,7 +33,9 @@ export function Clasificacion({ onUsar }: Props) {
 
   return (
     <section className="panel clasif">
-      <h2>Clasificación arancelaria</h2>
+      <LandexAI ind={ind} conectado={conectado} onIngresar={onIngresar} onUsar={onUsar} onVer={(c) => { setQ(''); setSel(c); document.querySelector('.clasif-grid')?.scrollIntoView({ behavior: 'smooth' }) }} />
+
+      <h3 className="ai-sep">O búscalo tú mismo en el arancel</h3>
       <p className="intro">
         Busca en el arancel completo: {totalIncisos.toLocaleString('es-CR')} incisos del Sistema Arancelario Centroamericano, con
         sus notas legales. La clasificación aquí es <b>preliminar</b>: el agente aduanero la confirma con la ficha técnica.
