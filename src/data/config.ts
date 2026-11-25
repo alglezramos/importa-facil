@@ -140,9 +140,20 @@ export const TIPO_CAMBIO_DEFAULT = 505
 /** Factor volumétrico aéreo (kg por m³). */
 export const FACTOR_VOLUMETRICO_AEREO = 167
 
+/** Identidad de marca. LANDEX es la primera unidad de negocio de Ramos & Co. */
+export const MARCA = {
+  nombre: 'LANDEX',
+  descriptor: 'International Trade Intelligence',
+  eslogan: 'Importa con inteligencia.',
+  propuesta: 'De la fábrica a tu bodega.',
+  firma: 'A Ramos & Co. Company',
+  empresa: 'Ramos & Co.',
+  dominio: 'landex.co.cr',
+}
+
 export const AGENCIA = {
-  nombre: 'Ramos & Co.',
-  eslogan: 'De tu proveedor a tu bodega, con el costo claro desde el inicio',
+  nombre: 'LANDEX',
+  eslogan: 'Importa con inteligencia.',
   whatsapp: '50600000000',
   email: 'cotizaciones@tuagencia.cr',
 }
