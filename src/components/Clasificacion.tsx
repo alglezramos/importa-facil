@@ -8,7 +8,7 @@ import {
 const ROMANOS = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI']
 const dai = (v: string | null) => (v && /^\d/.test(v) ? `${v}%` : v === 'II' ? 'No armonizado' : '—')
 
-interface Props { onUsar: (c: Cls) => void; conectado?: boolean; onIngresar?: () => void; onCotizar?: () => void; equipo?: boolean }
+interface Props { onUsar: (c: Cls, desc?: string) => void; conectado?: boolean; onIngresar?: () => void; onCotizar?: () => void; equipo?: boolean }
 
 export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}, onCotizar = () => {}, equipo = false }: Props) {
   const [ind, setInd] = useState<Indice | null>(null)

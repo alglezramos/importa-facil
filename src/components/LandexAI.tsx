@@ -10,7 +10,7 @@ interface Props {
   ind: Indice
   conectado: boolean
   onIngresar: () => void
-  onUsar: (c: Cls) => void
+  onUsar: (c: Cls, desc?: string) => void
   onVer: (codigo: string) => void
   onCotizar: () => void
   equipo?: boolean
@@ -168,7 +168,7 @@ export function LandexAI({ ind, conectado, onIngresar, onUsar, onVer, onCotizar,
                 <p className="ai-texto">{etiqueta(ind, c.codigo)}</p>
                 <p className="ai-por">{c.razon}</p>
                 <div className="acciones">
-                  <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c.codigo))}>Usar en mi cotización</button>
+                  <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c.codigo), desc.trim())}>Usar en mi cotización</button>
                   <button type="button" className="link" onClick={() => onVer(c.codigo)}>Ver notas legales</button>
                 </div>
               </div>

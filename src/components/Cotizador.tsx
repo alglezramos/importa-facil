@@ -41,6 +41,8 @@ export interface Apertura {
 
 interface Props {
   clasificacionNueva?: Clasificacion | null
+  /** Descripción que el cliente escribió en LANDEX AI, para precargar el producto. */
+  descripcionNueva?: string
   perfil: Perfil
   apertura?: Apertura | null
   /** Cambia cuando se editan tarifas en este navegador. */
@@ -50,7 +52,7 @@ interface Props {
   onPerfil?: (p: Perfil) => void
 }
 
-export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas, usuario, onIniciarSesion, onPerfil }: Props) {
+export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertura, versionTarifas, usuario, onIniciarSesion, onPerfil }: Props) {
   const inicial = useRef(leerBorrador())
   const [ef, setEf] = useState<EmbarqueForm>(inicial.current.embarque)
   const [productos, setProductos] = useState<Producto[]>(inicial.current.productos)
@@ -99,7 +101,16 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
     setContratar(null)
   }, [apertura]) // eslint-disable-line
 
-  useEffect(() => { if (clasificacionNueva) setEditando(nuevoProducto(clasificacionNueva)) }, [clasificacionNueva])
+  const editorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!clasificacionNueva) return
+    // La partida elegida entra de una vez a la cotización: el cliente solo completa lo que falta.
+    const corto = (clasificacionNueva.descripcion ?? '').split('›').pop()!.replace(/^[-\s]+/, '').trim().slice(0, 80)
+    setModoVista('experto')
+    setEditando({ ...nuevoProducto(clasificacionNueva), nombre: corto, descripcion: descripcionNueva ?? '' })
+    setMensaje(`Inciso ${clasificacionNueva.codigo} cargado en tu cotización. Completa cantidad, valor unitario y medidas, y pulsa "Guardar producto".`)
+    setTimeout(() => editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+  }, [clasificacionNueva]) // eslint-disable-line
 
   const origen = ORIGENES.find((o) => o.id === ef.origenId) ?? ORIGENES[0]
   const embarqueManual: Embarque = { ...ef, origen }
@@ -339,7 +350,8 @@ export function Cotizador({ clasificacionNueva, perfil, apertura, versionTarifas
             ))}
           </ul>
           {editando ? (
-            <ProductoEditor key={editando.id} inicial={editando} onGuardar={guardar} onCancelar={() => setEditando(null)} />
+            <div ref={editorRef}>{mensaje && editando.clasificacion && !editando.cantidad && <p className="aviso-carga" role="status">{mensaje}</p>}
+            <ProductoEditor key={editando.id} inicial={editando} onGuardar={guardar} onCancelar={() => setEditando(null)} /></div>
           ) : (
             <div className="acciones">
               <button type="button" className="btn primario" onClick={() => setEditando(nuevoProducto())}>+ Agregar producto</button>
