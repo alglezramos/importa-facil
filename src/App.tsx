@@ -69,7 +69,8 @@ export default function App() {
     window.scrollTo(0, 0)
   }
   const [clasificacionNueva, setClasificacionNueva] = useState<Cls | null>(null)
-  const usarPartida = (c: Cls) => { setClasificacionNueva(c); setVista('cotizar') }
+  const [descripcionNueva, setDescripcionNueva] = useState<string | undefined>()
+  const usarPartida = (c: Cls, desc?: string) => { setClasificacionNueva({ ...c }); setDescripcionNueva(desc); setVista('cotizar') }
   const [perfil, setPerfil] = useState<TPerfil>(leerPerfil)
   const [apertura, setApertura] = useState<Apertura | null>(null)
   const [usuario, setUsuario] = useState<Usuario | null>(null)
@@ -157,7 +158,7 @@ export default function App() {
           </section>
         )}
         {vista === 'cotizar' && (
-          <Cotizador clasificacionNueva={clasificacionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
+          <Cotizador clasificacionNueva={clasificacionNueva} descripcionNueva={descripcionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
             usuario={usuario} onIniciarSesion={() => setAcceso(true)} onPerfil={setPerfil} />
         )}
         {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} onTarifas={() => setVista('tarifas')} /> : <section className="panel"><h2>Mi LANDEX</h2><p>Ingresa para consultar tus operaciones y cotizaciones.</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>Ingresar</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>Ver cotizaciones locales</button></div></section>)}
