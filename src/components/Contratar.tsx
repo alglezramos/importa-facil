@@ -5,7 +5,7 @@ import { usd } from '../lib/formato'
 import type { Producto, ResultadoLanded } from '../lib/landed'
 import { enviarSolicitud, guardarPerfilNube, type Usuario } from '../lib/nube'
 
-export type Intencion = 'contratar' | 'cotizacion_formal'
+export type Intencion = 'contratar' | 'cotizacion_formal' | 'revision_arancelaria'
 
 interface Props {
   intencion: Intencion
@@ -22,6 +22,7 @@ interface Props {
 }
 
 export const TITULOS: Record<Intencion, string> = {
+  revision_arancelaria: 'Solicitar revisión arancelaria',
   contratar: 'Quiero importar con LANDEX',
   cotizacion_formal: 'Solicitar cotización formal',
 }
@@ -88,6 +89,7 @@ export function Contratar({ intencion, r, ef, productos, usuario, perfil, onEnvi
     <section className="contratar">
       <h3>{TITULOS[intencion]}</h3>
       <p className="nota">Enviaremos a LANDEX la estimación que acabas de hacer, con todos sus datos: no tienes que volver a escribirlos.</p>
+      {intencion === 'revision_arancelaria' && <><p>El agente revisará la clasificación y los impuestos. Si hace falta precisar el material o el uso, te pedirá una ficha técnica.</p><ul>{productos.filter((p) => r.productos.some((item) => item.id === p.id && item.impuestos.pendientes.length)).map((p) => <li key={p.id}><b>{p.nombre || p.sku}</b> · {p.cantidad} unidades · {p.paisFabricacion} · {p.descripcion}</li>)}</ul></>}
       <pre className="resumen-envio">{resumenTexto(r, ef, productos)}</pre>
       {r.estado === 'incompleta' && <p className="aviso">Tu estimación tiene costos pendientes. No pasa nada: LANDEX los completa al preparar la cotización formal.</p>}
 

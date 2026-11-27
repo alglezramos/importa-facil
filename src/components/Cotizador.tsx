@@ -140,6 +140,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
   useEffect(() => {
     if (tc && !ef.tipoCambioManual && !emision && !bloqueada && ef.tipoCambio !== tc.venta) setEf((x) => ({ ...x, tipoCambio: tc.venta }))
   }, [tc, emision, bloqueada]) // eslint-disable-line
+  const guiado = modoVista === 'guiado' && !staff
   const puedeSolicitar = !nubeEstado || nubeEstado === 'estimada' || nubeEstado === 'incompleta'
   const aplicarT = (t: Tarifa) => setEf((x) => ({
     ...x, ajustes: liberarConceptos(x.ajustes, t),
@@ -416,23 +417,13 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         </section>
       ) : r ? (
         <>
-          {!staff && puedeSolicitar && (
+          {!staff && !guiado && puedeSolicitar && (
             <div className="cta-contratar">
               <button type="button" className="btn primario grande" onClick={() => setContratar('contratar')}>Quiero importar con LANDEX</button>
               <span>Tu agencia aduanal se encarga de todo, de la fábrica a tu bodega.</span>
             </div>
           )}
           {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.</p>}
-          <div className={`acciones arriba${!staff ? ' secundarias' : ''}`}>
-            {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
-            {!staff && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>Solicitar cotización formal</button>}
-            {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>Hablar con un especialista</a>}
-            {!staff && !bloqueada && <button type="button" className="btn" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar estimación'}</button>}
-            <button type="button" className="btn" onClick={abrirDoc}>Descargar PDF</button>
-            {!staff && nubeEstado === 'formal' && formalVigente && (
-              <button type="button" className="btn primario" onClick={aceptar}>Aceptar cotización formal</button>
-            )}
-          </div>
           {contratar && (
             <Contratar intencion={contratar} r={r} ef={ef} productos={productos} usuario={usuario} perfil={perfil}
               onEnviarCuenta={async (i) => (await guardarCot(undefined, { estado: 'solicitada', intencion: i })) ? null : 'No se pudo enviar la solicitud. Intenta de nuevo.'}
@@ -458,7 +449,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
                 return null
               }} />
           )}
-          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar}
+          <Resultado guiado={guiado} onRevision={!staff && puedeSolicitar ? () => { setContratar('revision_arancelaria'); resultadoRef.current?.scrollIntoView({ behavior: 'smooth' }) } : undefined} e={embarque} productos={productos} r={r} onAjuste={ajustar}
             onSolicitar={!staff && puedeSolicitar ? () => { setContratar('cotizacion_formal'); resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } : undefined} onModo={(m) => set({ modo: m })} externos={ef.gestionCliente ?? []}
             formal={formalVigente ? emision : undefined}
             alcance={<Alcance r={r} externos={ef.gestionCliente ?? []} ajustes={ef.ajustes} soloLectura={bloqueada}
@@ -469,6 +460,16 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
             expediente={<Expediente e={embarque} productos={productos} estados={ef.documentos ?? {}} agencia={agencia}
               cotId={nubeId} usuario={usuario} onGuardarPrimero={() => guardarCot()} onIniciarSesion={onIniciarSesion}
               onEstado={(id, st) => setEf((x) => ({ ...x, documentos: { ...(x.documentos ?? {}), [id]: st } }))} />} />
+          <div className={`acciones arriba${!staff ? ' secundarias' : ''}`}>
+            {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
+            {!staff && !guiado && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>Solicitar cotización formal</button>}
+            {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>Hablar con un especialista</a>}
+            {!staff && !bloqueada && <button type="button" className="btn" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar estimación'}</button>}
+            <button type="button" className="btn" onClick={abrirDoc}>Descargar PDF</button>
+            {!staff && nubeEstado === 'formal' && formalVigente && (
+              <button type="button" className="btn primario" onClick={aceptar}>Aceptar cotización formal</button>
+            )}
+          </div>
         </>
       ) : (
         <section className="resultado vacio">

@@ -16,7 +16,7 @@ export type EmbarqueForm = Omit<Embarque, 'origen'> & {
   /** Servicios complementarios que el cliente ya contrató por su cuenta (no interviene en el cálculo). */
   gestionCliente?: string[]
   /** Qué pidió el cliente al enviar la cotización a LANDEX. */
-  intencion?: 'contratar' | 'cotizacion_formal'
+  intencion?: 'contratar' | 'cotizacion_formal' | 'revision_arancelaria'
 }
 
 export const EMBARQUE_INICIAL: EmbarqueForm = {

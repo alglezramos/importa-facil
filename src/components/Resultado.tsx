@@ -15,7 +15,13 @@ import { Solicitud } from './Solicitud'
 import { desglosar } from '../lib/servicios'
 import { Termino } from './Termino'
 
+function Grupo({ guiado, titulo, children }: { guiado: boolean; titulo: string; children: ReactNode }) {
+  return guiado ? <details className="grupo-resultado"><summary>{titulo}</summary>{children}</details> : <>{children}</>
+}
+
 interface Props {
+  guiado?: boolean
+  onRevision?: () => void
   e: Embarque
   productos: Producto[]
   r: ResultadoLanded
@@ -38,7 +44,7 @@ interface Props {
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance, externos = [], onSolicitar }: Props) {
+export function Resultado({ guiado = false, onRevision, e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance, externos = [], onSolicitar }: Props) {
   const d = desglosar(r, externos)
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
@@ -78,7 +84,8 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         {unidades > 0 && (
           <p className="explica-unitario">
             {r.productos.length === 1 ? 'Cada unidad te cuesta' : 'En promedio, cada unidad te cuesta'}{impPend || r.pendientes.length ? ' por ahora' : ''} <b>{usd(r.totales.total / unidades)}</b>.
-            {impPend ? ' Falta calcular los impuestos según la clasificación de tu producto.' : r.pendientes.length ? ' Faltan algunos montos por confirmar.' : ''}
+            {impPend ? ` Falta calcular los impuestos de ${sinImp.map((p) => p.nombre || p.sku).join(', ')}.` : r.pendientes.length ? ' Faltan algunos montos por confirmar.' : ''}
+            {impPend && onRevision && <button type="button" className="btn mini" onClick={onRevision}>Solicitar revisión arancelaria</button>}
           </p>
         )}
         <div className="kpis resumen">
@@ -86,6 +93,10 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
           <div><span>Costo por unidad {r.estado === 'incompleta' ? '(parcial)' : ''}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
           <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
         </div>
+        {guiado && onSolicitar && <button type="button" className="btn primario" onClick={onSolicitar}>Solicitar cotización formal</button>}
+      </div>
+      <Grupo guiado={guiado} titulo="Ver desglose">
+      <div className="total">
         <div className="a-quien">
           <b>¿A quién le pagas?</b>
           <ul>
@@ -151,8 +162,10 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         {segmentos.filter((s) => s.v > 0).map((s) => <span key={s.k}><i style={{ background: COLORES[s.k] }} />{s.nombre} {((s.v / r.totales.total) * 100).toFixed(1)}%</span>)}
       </div>
 
+      </Grupo>
+      <Grupo guiado={guiado} titulo="Comparar transportes">
       <h3>Carga y modalidades</h3>
-      <p className="nota">Comparación con tarifas de referencia, sin ajustes particulares de proveedores. Los subtotales incompletos no permiten identificar la opción más barata.</p>
+      <p className="nota">La modalidad seleccionada incluye tus ajustes. Las demás usan tarifas de referencia. Los subtotales incompletos no permiten identificar la opción más barata.</p>
       <p className="nota">
         {r.carga.volumenM3.toFixed(2)} m³ · {r.carga.pesoKg.toLocaleString('es-CR')} kg · {r.carga.bultos} bultos
         {r.carga.contenedores ? ` · ${r.carga.contenedores} unidad(es) · ocupación ${Math.round((r.carga.ocupacionVolumen ?? 0) * 100)}% del volumen y ${Math.round((r.carga.ocupacionPeso ?? 0) * 100)}% del peso` : ''}
@@ -166,16 +179,18 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
               <tr key={m.modo} className={m.modo === e.modo ? 'actual' : ''}>
                 <td>{MODOS[m.modo]}{recomendada?.modo === m.modo && <span className="sello validada">Menor costo de referencia</span>}</td>
                 <td>{m.contenedores || '—'}</td>
-                <td className="num">{m.fletePendiente ? 'Pendiente' : usd(m.logistica)}</td>
-                <td className="num">{m.fletePendiente ? 'Pendiente' : m.incompleta ? `${usd(m.total)} + pendientes` : usd(m.total)}</td>
+                <td className="num">{m.modo === e.modo ? usd(r.totales.logistica) : m.fletePendiente ? 'Pendiente' : usd(m.logistica)}</td>
+                <td className="num">{m.modo === e.modo ? <><b>Tu escenario: {usd(r.totales.total)}{r.pendientes.length ? ' + pendientes' : ''}</b>{m.total !== r.totales.total && <small className="referencia-modo">Referencia LANDEX: {usd(m.total)}{m.incompleta ? ' + pendientes' : ''}</small>}</> : m.fletePendiente ? 'Pendiente' : m.incompleta ? `${usd(m.total)} + pendientes` : usd(m.total)}</td>
                 <td className="num">{m.dias}</td>
-                <td>{!m.compatible ? <span className="sello no">No compatible</span> : m.modo === e.modo ? <span className="nota">Actual</span> : <button type="button" className="link" onClick={() => onModo(m.modo)}>Usar</button>}</td>
+                <td>{!m.compatible ? <span className="sello no">No compatible</span> : m.modo === e.modo ? <span className="nota">Seleccionado</span> : <button type="button" className="link" onClick={() => onModo(m.modo)}>Usar</button>}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
+      </Grupo>
+      <Grupo guiado={guiado} titulo="Ver detalle por etapa y producto">
       {ofertas}
 
       <h3>Desglose por etapa</h3>
@@ -278,9 +293,10 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         <button type="button" className="btn" onClick={() => descargar(`landed-cost-${new Date().toISOString().slice(0, 10)}.csv`, exportarSKU(r))}>Exportar por SKU (Excel/CSV)</button>
       </div>
 
-      {expediente}
+      </Grupo>
+      <Grupo guiado={guiado} titulo="Preparar documentos">{expediente}</Grupo>
 
-      <Solicitud entrada={e} r={r} productos={productos} />
+      <Grupo guiado={guiado} titulo="Otras opciones de contacto"><Solicitud entrada={e} r={r} productos={productos} /></Grupo>
     </section>
   )
 }
