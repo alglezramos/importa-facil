@@ -120,12 +120,12 @@ export const TRANSPORTE_LOCAL: Record<Zona, { cargaSuelta: { base: number; porM3
   FUERA_GAM: { cargaSuelta: { base: 110, porM3: 18 }, contenedor: 900 },
 }
 
-/** Honorarios de la agencia aduanal (USD). */
+/** Honorarios de la agencia aduanal (USD). El cálculo usa REF.nacionalizacion en data/logistica.ts (tarifario 26-11-2026). */
 export const HONORARIOS = {
   porcentajeCIF: 0.006,
-  minimo: 120,
+  minimo: 150,
   /** Coordinación logística integral (flete + transporte), cuando la agencia la gestiona. */
-  coordinacionLogistica: 60,
+  coordinacionLogistica: 75,
 }
 
 /** Seguro de carga: porcentaje sobre (valor FOB + flete). */
@@ -134,8 +134,8 @@ export const SEGURO = { porcentaje: 0.01, minimo: 35 }
 /** Días típicos de las etapas en Costa Rica. */
 export const DIAS_LOCALES = { despachoAduana: 3, entrega: 1, origenEXW: 3 }
 
-/** Tipo de cambio de referencia (colones por USD). Actualizar con el BCCR. */
-export const TIPO_CAMBIO_DEFAULT = 505
+/** Respaldo si no se puede consultar el BCCR (venta de referencia del 26-11-2026). El sitio usa el del día automáticamente. */
+export const TIPO_CAMBIO_DEFAULT = 446
 
 /** Factor volumétrico aéreo (kg por m³). */
 export const FACTOR_VOLUMETRICO_AEREO = 167
@@ -177,7 +177,7 @@ export const EMPRESA: {
 } = {
   razonSocial: '',
   cedulaJuridica: '',
-  direccion: '',
+  direccion: 'Edificio Mercedes, San José, Costa Rica',
   telefono: '',
   agente: { nombre: '', codigo: '' },
   experiencia: '',

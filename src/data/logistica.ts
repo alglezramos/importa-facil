@@ -54,11 +54,20 @@ export const REF = {
     movilizacionContenedor: 140,
     manejoAereoPorKg: 0.12,
   },
+  /** Tarifario LANDEX aprobado por Ale el 26-11-2026. */
   nacionalizacion: {
-    honorariosPctValorAduanero: 0.006,
-    honorariosMinimo: 120,
-    coordinacion: 60,
+    /** Agenciamiento: 0,6 % del valor aduanero hasta USD 25 000 y 0,45 % sobre el excedente, mínimo USD 150. */
+    honorariosPctTramo1: 0.006,
+    honorariosTopeTramo1: 25000,
+    honorariosPctTramo2: 0.0045,
+    honorariosMinimo: 150,
+    /** Coordinación logística por embarque, cuando LANDEX gestiona flete y transporte. */
+    coordinacion: 75,
+    /** Gestión de permisos y notas técnicas, por producto que lo requiere (las tasas oficiales se cotizan aparte). */
+    permisoPorTramite: 40,
   },
+  /** Margen de LANDEX sobre servicios de terceros que coordina (flete, transporte, seguro, descarga…). */
+  margenServiciosTerceros: 0.10,
   nacional: {
     contenedorGAM: 650,
     contenedorFueraGAM: 900,
@@ -84,3 +93,10 @@ export const DIAS = {
   transporteNacional: 1,
   descarga: 1,
 }
+
+/** Conceptos de servicios de terceros coordinados por LANDEX: llevan el margen de servicio.
+ *  No incluye honorarios propios, impuestos ni gastos de puerto y almacén fiscal (se trasladan al costo). */
+export const CONCEPTOS_CON_MARGEN = new Set([
+  'carga', 'embalaje', 'transporte_origen', 'consolidacion', 'despacho_export', 'documentacion', 'thc_origen', 'sellos',
+  'flete', 'recargos', 'inspeccion', 'seguro', 'transporte_nacional', 'peajes', 'custodia', 'descarga_personal', 'montacargas', 'espera', 'devolucion',
+])
