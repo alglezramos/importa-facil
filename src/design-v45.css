@@ -154,8 +154,8 @@ body { background:#f5f7fa; }
 }
 
 @media screen {
-  .inicio .historia-carga { min-height:335px; box-sizing:border-box; grid-template-columns:minmax(160px,25%) 1fr; }
-  .historia-carga img { width:auto; height:224px; max-width:100%; object-fit:contain; object-position:left center; }
+  .inicio .historia-carga { min-height:335px; box-sizing:border-box; padding:16px; grid-template-columns:minmax(0,318px) minmax(0,1fr); }
+  .historia-carga img { width:100%; max-width:318px; height:auto; aspect-ratio:318 / 310; object-fit:cover; object-position:center; }
   .inicio .contacto-inicio { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:32px; align-items:center; }
   .contacto-rutas { display:flex; flex-wrap:wrap; gap:12px 20px; margin-top:16px; }
   .inicio .contacto-rutas .link { padding:0; color:white; }
@@ -166,7 +166,7 @@ body { background:#f5f7fa; }
   @media(max-width:900px) { .app > footer { padding-inline:18px; } }
   @media(max-width:650px) {
     .inicio .historia-carga,.inicio .contacto-inicio { grid-template-columns:1fr; min-height:0; }
-    .historia-carga img { height:165px; }
+    .historia-carga img { justify-self:center; }
     .contacto-datos { border-left:0; padding-left:0; padding-top:20px; border-top:1px solid #8094a7; }
   }
 }

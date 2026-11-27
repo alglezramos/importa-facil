@@ -191,7 +191,7 @@ export default function App() {
 
 
         <div className="pie-identidad">
-          <div className="pie-marca"><Logotipo alto={23} /><span>Una iniciativa de Ramos &amp; Co.</span></div>
+          <div className="pie-marca"><img src="brand/landex-pie.png" width={138} height={42} alt="LANDEX · Landed Cost Intelligence" /><span>Una iniciativa de Ramos &amp; Co.</span></div>
         <nav className="pie-enlaces" aria-label="Enlaces del pie">
           {vista !== 'inicio' && <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>}
           {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>Términos y condiciones</a>}
