@@ -58,7 +58,7 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
         <div className="portada-texto">
           <span className="sobretitulo">Tu agencia de aduanas digital</span>
           <h2>Conoce el costo de tu importación <span>antes de comprar.</span></h2>
-          <p className="bajada">De la fábrica a tu bodega. Cotización, agencia aduanal y logística en una sola plataforma, con un solo punto de contacto.</p>
+          <p className="bajada">De la fábrica a tu bodega. Cotización, agencia de aduanas y logística en una sola plataforma, con un solo punto de contacto.</p>
           <ul className="sellos" aria-label="Condiciones del cotizador"><li>Sin registro</li><li>Sin compromiso</li><li>Gratis</li></ul>
           <div className="acciones">
             <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
@@ -109,10 +109,10 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
             <Icono n="calculadora" /><b>Soy importador</b><span>Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.</span><em>Ir al cotizador →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('desalmacenaje')}>
-            <Icono n="aduana" /><b>Necesito desalmacenar</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia aduanal →</em>
+            <Icono n="aduana" /><b>Necesito desalmacenar</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia de aduanas →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('empresarial')}>
-            <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia aduanal y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
+            <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia de aduanas y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
           </button>
         </div>
       </section>
@@ -132,10 +132,10 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
 
       <section className="bloque propuesta">
         <span className="etiqueta">Por qué LANDEX</span>
-        <h2>Una agencia aduanal con tecnología propia</h2>
+        <h2>Una agencia de aduanas con tecnología propia</h2>
         <div className="columnas">
           <div><Icono n="calculadora" /><b>Estima tu costo antes de comprar</b><p>Mercancía, flete, seguro, impuestos, honorarios, transporte y descarga, en un solo número y por producto.</p></div>
-          <div><Icono n="persona" /><b>Un solo punto de contacto</b><p>LANDEX es tu agencia aduanal y coordina a navieras, transportistas, aseguradoras e inspectores por ti.</p></div>
+          <div><Icono n="persona" /><b>Un solo punto de contacto</b><p>LANDEX es tu agencia de aduanas y coordina a navieras, transportistas, aseguradoras e inspectores por ti.</p></div>
           <div><Icono n="escudo" /><b>Trámite aduanero profesional</b><p>La clasificación arancelaria y la declaración las valida un agente aduanero autorizado.</p></div>
           <div><Icono n="documento" /><b>Todo en línea</b><p>Consulta tus cotizaciones y documentos desde tu cuenta.</p></div>
         </div>

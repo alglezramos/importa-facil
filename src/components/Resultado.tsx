@@ -101,7 +101,7 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
           <b>¿A quién le pagas?</b>
           <ul>
             <li><span>Tu proveedor <small>valor de la mercancía</small></span><b>{usd(d.mercancia)}</b></li>
-            <li className="landex"><span>LANDEX · honorarios <small>agencia aduanal y coordinación</small></span><b>{usd(d.honorariosLandex)}{d.honorariosPendiente ? ' + pend.' : ''}</b></li>
+            <li className="landex"><span>LANDEX · honorarios <small>agencia de aduanas y coordinación</small></span><b>{usd(d.honorariosLandex)}{d.honorariosPendiente ? ' + pend.' : ''}</b></li>
             {(d.serviciosLandex > 0 || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente)) && <li className="landex"><span>LANDEX · servicios de terceros que coordinamos <small>flete, seguro, transporte y descarga con socios</small></span><b>{usd(d.serviciosLandex)}{d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? ' + pend.' : ''}</b></li>}
             <li><span>El Estado <small>impuestos de importación</small></span><b>{impPend ? (d.impuestos ? `${usd(d.impuestos)} + pend.` : 'Pendiente') : usd(d.impuestos)}{impPend && onSolicitar ? <button type="button" className="link" onClick={onSolicitar}>Solicitar revisión</button> : null}</b></li>
             <li><span>Puerto y almacén fiscal <small>gastos de terceros en destino</small></span><b>{usd(d.gastosTerceros)}</b></li>

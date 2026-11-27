@@ -420,7 +420,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
           {!staff && !guiado && puedeSolicitar && (
             <div className="cta-contratar">
               <button type="button" className="btn primario grande" onClick={() => setContratar('contratar')}>Quiero importar con LANDEX</button>
-              <span>Tu agencia aduanal se encarga de todo, de la fábrica a tu bodega.</span>
+              <span>Tu agencia de aduanas se encarga de todo, de la fábrica a tu bodega.</span>
             </div>
           )}
           {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.</p>}

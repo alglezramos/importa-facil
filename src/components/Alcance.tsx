@@ -20,7 +20,7 @@ export function Alcance({ r, externos, onCambio, onMonto, ajustes, soloLectura }
     onCambio(cliente ? [...externos.filter((x) => x !== id), id] : externos.filter((x) => x !== id))
   const filas: { k: string; v: number; nota?: string; fuerte?: boolean }[] = [
     { k: 'Valor de la mercancía (lo pagas a tu proveedor)', v: d.mercancia },
-    { k: 'Honorarios de LANDEX: agencia aduanal y coordinación', v: d.honorariosLandex, nota: d.honorariosPendiente ? 'por confirmar' : undefined, fuerte: true },
+    { k: 'Honorarios de LANDEX: agencia de aduanas y coordinación', v: d.honorariosLandex, nota: d.honorariosPendiente ? 'por confirmar' : undefined, fuerte: true },
     { k: 'Servicios coordinados por LANDEX con sus socios', v: d.serviciosLandex },
     { k: 'Servicios que contrataste por tu cuenta', v: d.serviciosCliente },
     { k: 'Impuestos de importación', v: d.impuestos, nota: r.productos.some((x) => x.impuestos.pendientes.length > 0) ? 'pendiente' : undefined },

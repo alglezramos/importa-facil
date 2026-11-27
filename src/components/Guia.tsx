@@ -70,7 +70,7 @@ const ETAPAS: Etapa[] = [
     id: 'aduana', titulo: 'Despacho aduanero', corto: 'Aduana', icono: 'aduana', quien: ['LANDEX'], accion: 'agencia',
     texto: () => 'El agente aduanero revisa la documentación, transmite la declaración aduanera (DUA), se pagan los impuestos y se obtiene el levante de la mercancía.',
     documentos: () => ['Declaración aduanera (DUA)', 'Comprobante de pago de impuestos'],
-    consejo: '¿Tu carga ya viene en camino sin agencia aduanal? Escríbenos desde "Necesito desalmacenar".',
+    consejo: '¿Tu carga ya viene en camino sin agencia de aduanas? Escríbenos desde "Necesito desalmacenar".',
   },
   {
     id: 'entrega', titulo: 'Entrega en tu bodega y costo final', corto: 'Entrega', icono: 'bodega', quien: ['LANDEX'],

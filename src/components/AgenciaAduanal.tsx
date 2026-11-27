@@ -8,7 +8,7 @@ export type Seccion = 'desalmacenaje' | 'empresarial'
 const UBICACIONES = ['En tránsito', 'En puerto', 'En aeropuerto', 'En almacén fiscal', 'En frontera terrestre', 'Todavía en origen', 'No estoy seguro']
 const DOCUMENTOS = ['Factura comercial', 'Packing list', 'BL, guía aérea o carta de porte', 'Certificado de origen', 'Permisos o notas técnicas', 'Póliza de seguro']
 const COMPLEMENTARIOS = ['Transporte hasta mi bodega', 'Descarga', 'Almacenamiento', 'Custodia', 'Devolución de contenedor', 'Seguro de carga']
-const INTERESES = ['Agencia aduanal para operaciones recurrentes', 'Tarifas corporativas', 'Coordinación logística integral', 'Reunión con un especialista']
+const INTERESES = ['Agencia de aduanas para operaciones recurrentes', 'Tarifas corporativas', 'Coordinación logística integral', 'Reunión con un especialista']
 
 type Campos = Record<string, string | string[]>
 
@@ -130,7 +130,7 @@ export function AgenciaAduanal({ seccion, onSeccion, usuario, onCotizar }: { sec
       ) : (
         <Formulario tipo="empresarial" usuario={usuario} campos={m} obligatorios={['frecuencia']} onListo={() => setListo('empresarial')}
           titulo="Soluciones empresariales"
-          intro="Para empresas que importan con frecuencia y buscan una agencia aduanal y un socio logístico permanente. Cuéntanos cómo importas y coordinamos una reunión.">
+          intro="Para empresas que importan con frecuencia y buscan una agencia de aduanas y un socio logístico permanente. Cuéntanos cómo importas y coordinamos una reunión.">
           <fieldset>
             <legend>Tus importaciones</legend>
             <div className="campos">
