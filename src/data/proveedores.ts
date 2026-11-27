@@ -64,6 +64,9 @@ export function proveedoresInternacionales(origenId: string, modo: Modo): Provee
 
 export const TRANSPORTISTAS = PROVEEDORES.filter((p) => p.tipo === 'terrestre')
 
+/** Los nombres con "socio" son espacios reservados para socios aún no firmados: no se muestran al cliente. */
+export const esProveedorReal = (p: Proveedor) => !/socio/i.test(p.nombre)
+
 export const TIPO_ETIQUETA: Record<Proveedor['tipo'], string> = {
   naviera: 'Naviera',
   consolidador: 'Consolidador',

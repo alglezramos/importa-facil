@@ -6,7 +6,7 @@
  * con su fuente y vigencia antes de emitir cotizaciones formales.
  */
 
-export const VIGENCIA_TARIFAS = { fuente: 'Valores de referencia internos (no son ofertas)', actualizado: '2026-11-24' }
+export const VIGENCIA_TARIFAS = { fuente: 'valores de referencia internos de ejemplo, no ofertas vigentes de proveedores', actualizado: '2026-11-24' }
 
 export type Equipo = 'FCL20' | 'FCL40' | 'FCL40HC' | 'TRAILER'
 
