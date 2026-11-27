@@ -85,11 +85,11 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
   }, [JSON.stringify(ef), JSON.stringify(productos)]) // eslint-disable-line
   const completas = comp.filter((m) => !m.incompleta)
   const alternativas = completas.length ? completas : comp
-  const recomendada = alternativas.length
-    ? prioridad === 'rapidez'
-      ? alternativas.reduce((a, b) => (b.dias < a.dias || (b.dias === a.dias && b.total < a.total) ? b : a))
-      : alternativas.reduce((a, b) => (b.total < a.total ? b : a))
-    : null
+  const economica = [...alternativas].sort((a, b) => a.total - b.total || a.dias - b.dias)[0]
+  const rapida = [...alternativas].sort((a, b) => a.dias - b.dias || a.total - b.total)[0]
+  const recomendada = prioridad === 'rapidez' ? rapida : economica
+  const otra = prioridad === 'rapidez' ? economica : rapida
+  const unidades = productos.reduce((total, producto) => total + producto.cantidad, 0)
 
   const validos = [
     !!(p.nombre.trim() && p.cantidad > 0 && p.valorUnitario > 0),
@@ -273,6 +273,14 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
                 <b>Te recomendamos: {MODOS[recomendada.modo]}</b>
                 <span>{usd(recomendada.total)}{recomendada.incompleta ? ' + costos pendientes' : ' estimados'} · unos {recomendada.dias} días{recomendada.contenedores > 1 ? ` · ${recomendada.contenedores} unidades` : ''}</span>
                 <small>{recomendada.incompleta ? 'Alternativa preliminar: faltan costos por confirmar y no se puede asegurar cuál es más económica.' : `Es la opción ${prioridad === 'costo' ? 'más económica' : 'más rápida'} entre las alternativas completas con tarifas de referencia.`} Puedes compararlas en el resultado.</small>
+                {otra && otra.modo !== recomendada.modo && (
+                  <div className="alternativa-guia">
+                    <b>{MODOS[otra.modo]}</b>
+                    <p>{usd(otra.total)} · {otra.dias} días. Diferencia: {usd(Math.abs(otra.total - recomendada.total))} {otra.total >= recomendada.total ? 'más' : 'menos'} por pedido ({usd(Math.abs(otra.total - recomendada.total) / unidades)} por unidad), {Math.abs(otra.dias - recomendada.dias)} días {otra.dias <= recomendada.dias ? 'antes' : 'después'}.</p>
+                    {(otra.incompleta || recomendada.incompleta) && <p>Comparación parcial. Hay costos pendientes de confirmar.</p>}
+                    <button type="button" className="btn" onClick={() => setPrioridad(prioridad === 'rapidez' ? 'costo' : 'rapidez')}>Elegir {MODOS[otra.modo]}</button>
+                  </div>
+                )}
               </div>
             )}
             {prioridad && !recomendada && <p className="nota">No hay una modalidad con tarifa de referencia para esta ruta: te contactamos para cotizarla.</p>}

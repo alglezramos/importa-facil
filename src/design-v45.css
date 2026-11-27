@@ -124,3 +124,9 @@ body { background:#f5f7fa; }
  .app .document-center .archivos { margin-left:0; }
 }
 }
+
+.grupo-resultado { margin-block: 1rem; }
+.grupo-resultado > summary { cursor: pointer; padding: .85rem; font-weight: 700; }
+.referencia-modo { display: block; }
+.alternativa-guia { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid currentColor; }
+.explica-unitario .btn { margin: .4rem; }

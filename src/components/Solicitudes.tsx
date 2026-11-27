@@ -16,7 +16,7 @@ const ETIQUETAS: Record<string, string> = {
   cargo: 'Cargo', frecuencia: 'Importaciones al año', modalidades: 'Modalidades', origenes: 'Orígenes', productos: 'Productos',
   intereses: 'Le interesa', intencion: 'Pidió',
 }
-const VALORES: Record<string, string> = { contratar: 'Quiere importar con LANDEX', cotizacion_formal: 'Cotización formal' }
+const VALORES: Record<string, string> = { contratar: 'Quiere importar con LANDEX', revision_arancelaria: 'Revisión arancelaria', cotizacion_formal: 'Cotización formal' }
 const fecha = (s: string) => new Date(s).toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' })
 
 /** Detalle legible de lo que envió el prospecto. */
@@ -75,7 +75,7 @@ export function Solicitudes({ perfilBase, onAbrir }: { perfilBase: Perfil; onAbr
             <tr key={c.id}>
               <td>{c.numero}</td>
               <td>{c.perfiles?.nombre || c.perfiles?.email}<small>{c.perfiles?.empresa} {c.perfiles?.telefono}</small></td>
-              <td>{c.datos.embarque.intencion === 'contratar' ? 'Quiere importar' : 'Cotización formal'}</td>
+              <td>{VALORES[c.datos.embarque.intencion ?? 'cotizacion_formal']}</td>
               <td>{c.total != null ? usd(c.total) : '—'}</td>
               <td>{fecha(c.actualizada)}</td>
               <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfilBase) })}>Abrir y preparar formal</button></td>
