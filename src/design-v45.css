@@ -170,3 +170,16 @@ body { background:#f5f7fa; }
     .contacto-datos { border-left:0; padding-left:0; padding-top:20px; border-top:1px solid #8094a7; }
   }
 }
+
+.clasif .tarifa-titulo {margin:2rem 0 .5rem;font-size:clamp(1.55rem,3vw,2.35rem)}
+.tarifa-buscar,.tarifa-ejemplos {display:flex;align-items:center;gap:.65rem}
+.tarifa-buscar input {min-width:0;flex:1}
+.tarifa-ejemplos {flex-wrap:wrap;margin:.8rem 0 1.5rem}
+.tarifa-ejemplos button {border:0;border-radius:2rem;background:#e2f3ff;color:#143953;padding:.45rem .9rem;cursor:pointer}
+.clasif .arbol > details {border:1px solid #c7d5e1;border-radius:.6rem;margin:.4rem 0;padding:.45rem .7rem}
+.clasif .detalle.vacio {background:#edf7fe}
+.tarifa-guia dl {display:grid;grid-template-columns:auto 1fr;gap:.5rem 1rem}
+.tarifa-guia dt {font-weight:700}
+.tarifa-guia dd {margin:0}
+.tarifa-ayuda-movil {display:none}
+@media(max-width:760px){.tarifa-ayuda-movil {display:block;margin:1rem 0}.tarifa-guia {display:none}}

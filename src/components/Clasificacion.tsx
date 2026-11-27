@@ -13,6 +13,7 @@ interface Props { onUsar: (c: Cls, desc?: string) => void; conectado?: boolean; 
 export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}, onCotizar = () => {}, equipo = false }: Props) {
   const [ind, setInd] = useState<Indice | null>(null)
   const [error, setError] = useState('')
+  const [todas, setTodas] = useState(false)
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<string | null>(null)
   const [capAbierto, setCapAbierto] = useState<number | null>(null)
@@ -29,20 +30,23 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
   const detalle = sel ? ind.porCodigo.get(sel) : null
   const camino = sel ? ancestros(ind, sel) : []
   const { cap, sec } = sel ? capituloDe(ind, sel) : { cap: undefined, sec: undefined }
-  const totalIncisos = ind.incisos.length
+
 
   return (
     <section className="panel clasif">
       <LandexAI ind={ind} conectado={conectado} onIngresar={onIngresar} onCotizar={onCotizar} equipo={equipo} onUsar={onUsar} onVer={(c) => { setQ(''); setSel(c); document.querySelector('.clasif-grid')?.scrollIntoView({ behavior: 'smooth' }) }} />
 
-      <h3 className="ai-sep">O búscalo tú mismo en el arancel</h3>
-      <p className="intro">
-        Busca en el arancel completo: {totalIncisos.toLocaleString('es-CR')} incisos del Sistema Arancelario Centroamericano, con
-        sus notas legales. La clasificación aquí es <b>preliminar</b>: el agente aduanero la confirma con la ficha técnica.
-      </p>
-
-      <input type="search" placeholder="Describe el producto (material, uso, tipo) o escribe un código…" value={q}
-        onChange={(e) => { setQ(e.target.value); setSel(null) }} />
+      <h2 className="tarifa-titulo">Buscá tu producto en el arancel</h2>
+      <p>Ingresá una descripción o un código arancelario.</p>
+      <form className="tarifa-buscar" onSubmit={(e) => { e.preventDefault(); document.getElementById('tarifa-lista')?.focus() }}>
+        <input type="search" aria-label="Descripción del producto o código arancelario" placeholder="Ej. camiseta de algodón para adulto" value={q}
+          onChange={(e) => { setQ(e.target.value); setSel(null) }} />
+        <button className="btn primario" disabled={q.trim().length < 2}>Buscar</button>
+      </form>
+      <div className="tarifa-ejemplos">Ejemplos de búsqueda
+        {['Botella de acero', 'Bicicleta eléctrica'].map((texto) => <button type="button" key={texto} onClick={() => { setQ(texto); setSel(null) }}>{texto}</button>)}
+      </div>
+      <details className="tarifa-ayuda-movil"><summary>¿Cómo describo mi producto?</summary><p>Indicá el producto, el material y el uso. Por ejemplo, una camiseta de algodón para adulto.</p></details>
 
       {comparar.length > 0 && (
         <div className="comparacion">
@@ -75,7 +79,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
       )}
 
       <div className="clasif-grid">
-        <div className="col-lista">
+        <div className="col-lista" id="tarifa-lista" tabIndex={-1} aria-label="Explorador del arancel" role="region">
           {q.trim().length >= 2 ? (
             <>
               <p className="nota">{resultados.length ? `${resultados.length}${resultados.length === 40 ? '+' : ''} incisos encontrados` : 'Sin resultados: prueba con otras palabras (material, uso) o navega por capítulos.'}</p>
@@ -93,10 +97,11 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
             </>
           ) : (
             <div className="arbol">
-              <p className="nota">O navega por secciones y capítulos:</p>
-              {ind.data.secciones.map((s) => (
+              <h3>Explorá por sección</h3>
+              {ind.data.secciones.slice(0, todas ? undefined : 4).map((s) => (
                 <details key={s.n}>
-                  <summary><b>Sección {ROMANOS[s.n]}</b> · {s.title}</summary>
+                  <summary><b>{ROMANOS[s.n]}</b> · {['Animales y productos de origen animal', 'Productos vegetales', 'Grasas y aceites', 'Alimentos, bebidas y tabaco'][s.n - 1] ?? s.title}</summary>
+                  <p>{s.title}</p>
                   {ind.data.capitulos.filter((c) => c.s === s.n).map((c) => (
                     <div key={c.n} className="cap">
                       <button type="button" className="cap-btn" onClick={() => setCapAbierto(capAbierto === c.n ? null : c.n)}>
@@ -121,6 +126,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
                   ))}
                 </details>
               ))}
+              <button type="button" className="link" aria-expanded={todas} onClick={() => setTodas(!todas)}>{todas ? 'Ver menos secciones' : 'Ver todas las secciones'}</button>
             </div>
           )}
         </div>
@@ -170,13 +176,9 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
             </div>
           ) : (
             <div className="detalle vacio">
-              <h3>Cómo clasificar mejor</h3>
-              <ol>
-                <li>Describe <b>qué es</b>, <b>de qué material</b> está hecho y <b>para qué se usa</b>.</li>
-                <li>Abre el inciso y lee las <b>notas del capítulo</b>: dicen qué queda excluido.</li>
-                <li>Si dudas entre dos incisos, aplica las <b>reglas generales</b> (la descripción más específica gana).</li>
-                <li>Usa el inciso en el cotizador y pide la validación del agente.</li>
-              </ol>
+              <div className="tarifa-guia"><h3>¿Cómo describo mi producto?</h3>
+                <dl><dt>Producto</dt><dd>Camiseta</dd><dt>Material</dt><dd>Algodón</dd><dt>Uso</dt><dd>Vestir a un adulto</dd></dl>
+              </div>
               <details className="notas">
                 <summary>Reglas generales de interpretación</summary>
                 <pre>{ind.data.reglas}</pre>
@@ -185,6 +187,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
           )}
         </div>
       </div>
+      <p>La clasificación es preliminar. Tu agente aduanero la confirma con la ficha técnica.</p>
       <p className="nota">Fuente: {ind.data.fuente}. Versión preliminar: algunas descripciones largas pueden tener errores de extracción.</p>
     </section>
   )
