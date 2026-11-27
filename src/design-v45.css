@@ -183,3 +183,10 @@ body { background:#f5f7fa; }
 .tarifa-guia dd {margin:0}
 .tarifa-ayuda-movil {display:none}
 @media(max-width:760px){.tarifa-ayuda-movil {display:block;margin:1rem 0}.tarifa-guia {display:none}}
+
+.marca-h1 .logotipo img {
+  display: block;
+  width: clamp(210px, 20vw, 264px);
+  max-width: 100%;
+  height: auto;
+}
