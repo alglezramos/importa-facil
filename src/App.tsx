@@ -122,7 +122,7 @@ export default function App() {
           )}
         </div>
         <nav aria-label="Navegación principal">
-          {visibles.filter(v => !usuario || !privadas.includes(v) || v === 'portal').map((v) => (
+          {visibles.filter(v => !privadas.includes(v) || v === 'portal').map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
               {v === 'portal' && agencia ? 'LANDEX Business' : VISTAS[v]}
             </button>
@@ -166,7 +166,7 @@ export default function App() {
           <Cotizador clasificacionNueva={clasificacionNueva} descripcionNueva={descripcionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
             usuario={usuario} onIniciarSesion={() => setAcceso(true)} onPerfil={setPerfil} />
         )}
-        {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} onTarifas={() => setVista('tarifas')} /> : <section className="panel"><h2>Mi LANDEX</h2><p>Ingresa para consultar tus operaciones y cotizaciones.</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>Ingresar</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>Ver cotizaciones locales</button></div></section>)}
+        {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} onTarifas={() => setVista('tarifas')} onNueva={() => setVista('cotizar')} /> : <section className="panel"><h2>Mi LANDEX</h2><p>Ingresa para consultar tus operaciones y cotizaciones.</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>Ingresar</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>Ver cotizaciones locales</button></div></section>)}
         {vista === 'cotizaciones' && (
           <MisCotizaciones usuario={usuario} perfilBase={perfil} onAbrir={(a) => abrir(a)} onNueva={() => abrir({ cotizacion: null })}
             onIniciarSesion={() => setAcceso(true)} />

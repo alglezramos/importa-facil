@@ -921,3 +921,38 @@ nav button { white-space: nowrap; }
 .datos-empresa { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 8px 0 0; }
 .datos-empresa dt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 .datos-empresa dd { margin: 2px 0 0; font-weight: 600; }
+/* Resultado: resumen claro */
+.kpis.resumen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.a-quien { margin-top: 14px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--text); }
+.a-quien ul { list-style: none; padding: 0; margin: 8px 0; }
+.a-quien li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.a-quien li:last-child { border-bottom: 0; }
+.a-quien li small { display: block; color: var(--muted); font-size: 12px; }
+.a-quien li.landex b { color: var(--navy); }
+.a-quien li.landex { background: var(--accent-soft); margin: 0 -14px; padding: 6px 14px; }
+.a-quien > small { color: var(--muted); font-size: 12px; }
+.mas-indicadores { margin-top: 10px; }
+.mas-indicadores summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.sello-est { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+.sello-est.confirmado { background: #dff5e7; color: #17663a; }
+.sello-est.estimado { background: var(--accent-soft); color: var(--navy-2); }
+.sello-est.pendiente { background: var(--warn-bg); color: var(--warn); }
+.acciones.secundarias .btn { background: transparent; border-color: transparent; color: var(--navy-2); text-decoration: underline; padding-left: 4px; padding-right: 4px; box-shadow: none; }
+@media (max-width: 640px) { .kpis.resumen { grid-template-columns: 1fr; } }
+.dc-progress.revisados::-webkit-progress-value { background: #2e9e5b; } .dc-progress.revisados::-moz-progress-bar { background: #2e9e5b; }
+/* Mi LANDEX del cliente */
+.portal-cliente .vacio { text-align: center; padding: 32px 16px; border: 1px dashed var(--border); border-radius: 14px; }
+.op-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin: 8px 0 18px; }
+.op-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; background: #fff; display: grid; gap: 4px; }
+.op-card p { margin: 2px 0; font-weight: 600; }
+.op-card small { color: var(--muted); }
+.op-card .op-nota { color: var(--text); }
+.chip-estado { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--navy-2); margin-left: 6px; }
+.chip-estado.e-formal { background: #dff5e7; color: #17663a; }
+.chip-estado.e-solicitada { background: var(--warn-bg); color: var(--warn); }
+.chip-estado.e-cerrada { background: #eef1f5; color: var(--muted); }
+.termino { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-soft); color: var(--navy-2); font-size: 11px; font-weight: 700; cursor: help; margin-left: 4px; vertical-align: middle; }
+.termino-pop { display: none; position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); width: 260px; background: var(--navy); color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; padding: 10px 12px; border-radius: 10px; z-index: 30; text-align: left; box-shadow: 0 8px 24px rgba(16,30,48,.25); white-space: normal; }
+.termino:hover .termino-pop, .termino:focus .termino-pop { display: block; }
+@media (max-width: 640px) { .termino-pop { left: auto; right: -8px; transform: none; width: 220px; } }
+.autoguardado { color: #17663a; }
