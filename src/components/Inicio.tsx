@@ -8,6 +8,7 @@ interface Props {
   onAgencia: (s: Seccion) => void
   onSocios: () => void
   onGuia: () => void
+  onLandexAI: () => void
 }
 
 /** Íconos de línea, en el estilo del libro de marca. */
@@ -37,7 +38,7 @@ const PREGUNTAS: [string, string][] = [
   ['¿Quién puede ver mis documentos?', 'Los documentos se vinculan a tu cuenta y a cada cotización. El acceso debe limitarse a tu cuenta y al personal autorizado de LANDEX.'],
 ]
 
-export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
+export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: Props) {
   const [abierta, setAbierta] = useState<number | null>(null)
   const operadores = ALIADOS.filter((a) => a.publicado && a.categoria !== 'instituciones')
   const categorias = [...new Set(operadores.map((a) => a.categoria))]
@@ -56,13 +57,14 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
       <section className="portada">
         <div className="portada-texto">
           <span className="sobretitulo">Tu agencia aduanal digital</span>
-          <h2>Importa con <span>inteligencia.</span></h2>
-          <p className="bajada">De la fábrica a tu bodega. Conoce el costo de importar a Costa Rica y gestiona tu operación con LANDEX.</p>
-          <p className="nota portada-nota">Estimación gratuita, sin registro. Los costos definitivos se validan antes de contratar.</p>
+          <h2>Conoce el costo de tu importación <span>antes de comprar.</span></h2>
+          <p className="bajada">De la fábrica a tu bodega. Cotización, agencia aduanal y logística en una sola plataforma, con un solo punto de contacto.</p>
+          <ul className="sellos" aria-label="Condiciones del cotizador"><li>Sin registro</li><li>Sin compromiso</li><li>Gratis</li></ul>
           <div className="acciones">
             <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
-            <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Necesito una agencia aduanal</button>
+            <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Mi mercancía ya viene en camino</button>
           </div>
+          <p className="nota portada-nota">La estimación es referencial: los costos definitivos se validan antes de contratar.</p>
         </div>
         <div className="portada-visual">
           <div className="visual-top"><span>GLOBAL TRADE</span><span>ORIGEN → COSTA RICA</span></div>
@@ -79,7 +81,15 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
             {Array.from({length:10},(_,i)=><g key={i}><rect x={120+(i%5)*42} y={i<5?116:92} width="38" height="21" rx="2" fill={i%3===0?'#48a9ff':'#b8c9de'} opacity={i<5?'.9':'.7'}/><path d={`M${126+(i%5)*42} ${i<5?120:96} v13`} stroke="#101e30" strokeOpacity=".5"/></g>)}
             <path d="M20 189 Q60 181 100 189 T180 189 T260 189 T340 189 T420 189" fill="none" stroke="#48a9ff" strokeOpacity=".7"/>
           </svg>
-          <div className="visual-bottom"><div><span>Planificación</span><b>Landed Cost</b></div><div><span>Coordinación</span><b>Puerta a puerta</b></div></div>
+          <div className="visual-recibes">
+            <span>Lo que recibes al cotizar</span>
+            <ul>
+              <li>Costo total puesto en tu bodega</li>
+              <li>Costo por unidad de cada producto</li>
+              <li>Impuestos, flete y honorarios por separado</li>
+              <li>Tiempo estimado de la fábrica a tu bodega</li>
+            </ul>
+          </div>
         </div>
         <ol className="portada-ruta" aria-label="De la fábrica a tu bodega">
           {[['fabrica', 'Fábrica'], ['barco', 'Transporte'], ['aduana', 'Aduana'], ['camion', 'Entrega'], ['bodega', 'Tu bodega']].map(([i, t]) => (
@@ -104,6 +114,19 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia }: Props) {
           <button type="button" className="entrada" onClick={() => onAgencia('empresarial')}>
             <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia aduanal y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
           </button>
+        </div>
+      </section>
+
+      <section className="bloque ai-inicio">
+        <div>
+          <span className="etiqueta">LANDEX AI</span>
+          <h2>¿No sabes la partida arancelaria de tu producto?</h2>
+          <p>Descríbelo con tus palabras o sube una foto. LANDEX AI aplica las reglas del Sistema Armonizado y te propone los incisos más probables del arancel de Costa Rica, con su DAI. Lo usas gratis con tu cuenta; el agente aduanero confirma la clasificación antes de la cotización formal.</p>
+          <button type="button" className="btn primario" onClick={onLandexAI}>Clasificar mi producto con IA</button>
+        </div>
+        <div className="ai-inicio-demo" aria-hidden>
+          <p className="ai-inicio-q">"Sillas de oficina con base de metal, asiento acolchado y ruedas"</p>
+          <p className="ai-inicio-r"><span className="codigo">9401.39.00.00</span> Asientos giratorios de altura ajustable</p>
         </div>
       </section>
 

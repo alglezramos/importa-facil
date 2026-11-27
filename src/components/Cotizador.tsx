@@ -11,6 +11,7 @@ import {
   calcularLanded, INCOTERMS, incotermCompatible, volumenProducto, type Ajuste, type Clasificacion, type Embarque,
   type Incoterm, type Producto,
 } from '../lib/landed'
+import { cargarTipoCambio, type TipoCambio } from '../lib/tipoCambio'
 import { huella, modoAgencia, requisitosFormal, venceFormal, type Emision } from '../lib/formal'
 import { BLOQUEADA, cambiarEstadoNube, esStaff, ESTADOS_NUBE, guardarCotizacionNube, listarTarifasNube, type CotNube, type EstadoNube, type Usuario, asignarCliente } from '../lib/nube'
 import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
@@ -128,6 +129,12 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
   const formalVigente = !!emision && emision.huella === huellaActual && emision.vence >= new Date().toISOString().slice(0, 10)
   const requisitos = r ? requisitosFormal(r, productos, aplicadas, perfilCompleto(clientePerfil) && !!clientePerfil.identificacion.trim()) : []
   const bloqueada = !!nubeEstado && BLOQUEADA.includes(nubeEstado)
+  // Tipo de cambio del BCCR del día: se aplica solo si el cliente no lo cambió a mano y la cotización no está emitida ni cerrada.
+  const [tc, setTc] = useState<TipoCambio | null>(null)
+  useEffect(() => { cargarTipoCambio().then(setTc) }, [])
+  useEffect(() => {
+    if (tc && !ef.tipoCambioManual && !emision && !bloqueada && ef.tipoCambio !== tc.venta) setEf((x) => ({ ...x, tipoCambio: tc.venta }))
+  }, [tc, emision, bloqueada]) // eslint-disable-line
   const puedeSolicitar = !nubeEstado || nubeEstado === 'estimada' || nubeEstado === 'incompleta'
   const aplicarT = (t: Tarifa) => setEf((x) => ({
     ...x, ajustes: liberarConceptos(x.ajustes, t),
@@ -275,7 +282,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         <div className="formulario">
           <fieldset>
             <legend><span>✓</span> Cotización guiada</legend>
-            <Guiado ef={ef} setEf={setEf} productos={productos} setProductos={setProductos} perfil={perfil}
+            <Guiado ef={ef} setEf={setEf} productos={productos} setProductos={setProductos} perfil={perfil} conectado={!!usuario} onIngresar={onIniciarSesion}
               onTerminar={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
           </fieldset>
           {productos.length > 0 && <p className="nota">¿Tienes más de un producto? <button type="button" className="link" onClick={() => setModoVista('experto')}>Agrégalos en el modo detallado</button>: tus datos se conservan.</p>}
@@ -325,7 +332,9 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
           </label>
           <div className="fila2">
             <label>Días hasta que la mercancía esté lista<input type="number" min={0} value={ef.diasProduccion} onChange={(e) => set({ diasProduccion: Number(e.target.value) })} /></label>
-            <label>Tipo de cambio (₡/USD)<input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value) })} /></label>
+            <label>Tipo de cambio (₡/USD)<input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value), tipoCambioManual: true })} />
+              <small className="nota">{tc && !ef.tipoCambioManual && ef.tipoCambio === tc.venta ? `Referencia BCCR (venta) del ${tc.fecha}${tc.desactualizado ? ', último disponible' : ''}.` : tc ? <>Escrito a mano. <button type="button" className="link" onClick={() => set({ tipoCambio: tc.venta, tipoCambioManual: false })}>Usar el del BCCR (₡{tc.venta})</button></> : 'Referencia del BCCR no disponible en este momento.'}</small>
+            </label>
           </div>
         </fieldset>
 
@@ -378,7 +387,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
           <label className="check"><input type="checkbox" checked={!!ef.custodia} onChange={(e) => set({ custodia: e.target.checked })} />Custodia o transporte especializado</label>
         </fieldset>
         <div className="acciones">
-          <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>
+          {agencia && <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>}
           {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>Empezar de cero</button>}
         </div>
       </form>

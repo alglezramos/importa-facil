@@ -1,3 +1,4 @@
+import { guardarTasaValidada } from '../lib/tasas'
 import { modoAgencia } from '../lib/formal'
 import { useEffect, useMemo, useState } from 'react'
 import { aClasificacion, buscar, cargarArancel, etiqueta, type Indice } from '../lib/arancel'
@@ -107,7 +108,11 @@ export function ProductoEditor({ inicial, onGuardar, onCancelar }: Props) {
             </div>
             <small className="nota">Un campo vacío queda como <b>pendiente de validación</b> y no se calcula como cero. {cl.fuente ? `Fuente: ${cl.fuente}.` : ''}</small>
             {modoAgencia()
-              ? <label className="check"><input type="checkbox" checked={cl.estado === 'validada'} onChange={(e) => setCl({ estado: e.target.checked ? 'validada' : 'preliminar', fuente: e.target.checked ? cl.fuente : undefined })} />Clasificación y tasas validadas por el agente aduanero</label>
+              ? <label className="check"><input type="checkbox" checked={cl.estado === 'validada'} onChange={(e) => {
+                setCl({ estado: e.target.checked ? 'validada' : 'preliminar', fuente: e.target.checked ? cl.fuente : undefined })
+                // Guarda el Selectivo confirmado para reutilizarlo en próximas cotizaciones de este inciso
+                if (e.target.checked && cl.sc != null) guardarTasaValidada(cl.codigo, cl.sc, cl.otros ?? 0)
+              }} />Clasificación y tasas validadas por el agente aduanero</label>
               : cl.estado !== 'validada' && <small className="nota">El agente aduanero de LANDEX valida la clasificación y las tasas antes de la cotización formal.</small>}
           </div>
         ) : (

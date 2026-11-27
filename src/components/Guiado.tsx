@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
 import { nuevoProducto, type EmbarqueForm, type Perfil } from '../lib/almacen'
 import { aClasificacion, buscar, cargarArancel, etiqueta, type Indice } from '../lib/arancel'
 import { usd } from '../lib/formato'
 import { compararModalidades, volumenProducto, type Incoterm, type Producto } from '../lib/landed'
 import { PAISES } from './ProductoEditor'
+import { SugerenciaIA } from './SugerenciaIA'
 
 interface Props {
   ef: EmbarqueForm
@@ -13,6 +14,8 @@ interface Props {
   setProductos: (ps: Producto[]) => void
   perfil: Perfil
   onTerminar: () => void
+  conectado?: boolean
+  onIngresar?: () => void
 }
 
 /** Lo que el cliente sabe del precio, en palabras sencillas. */
@@ -37,8 +40,16 @@ const TAMANOS: { id: string; texto: string; m3: number; kg: number }[] = [
 
 const PASOS = ['Tu producto', 'Tu proveedor', 'El precio', 'Tamaño de la carga', 'Entrega', 'Transporte']
 
-export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar }: Props) {
+export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar, conectado = false, onIngresar = () => {} }: Props) {
   const [paso, setPaso] = useState(0)
+  const raiz = useRef<HTMLDivElement>(null)
+  const primera = useRef(true)
+  // Al cambiar de paso, la pantalla sube a la nueva pregunta.
+  useEffect(() => {
+    if (primera.current) { primera.current = false; return }
+    const el = raiz.current
+    if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [paso])
   const p = productos[0] ?? nuevoProducto()
   const setP = (c: Partial<Producto>) => setProductos([{ ...p, ...c }, ...productos.slice(1)])
   const [precioId, setPrecioId] = useState<string>(ef.incotermPorConfirmar ? 'nose' : PRECIO.find((x) => x.mar === ef.incoterm || x.otro === ef.incoterm)?.id ?? '')
@@ -109,7 +120,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
   }
 
   return (
-    <div className="guiado">
+    <div className="guiado" ref={raiz}>
       <p className="nota" aria-live="polite">Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}</p>
       <ol className="progreso" aria-label="Pasos">
         {PASOS.map((t, i) => (
@@ -148,7 +159,12 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
               {p.clasificacion ? (
                 <p><span className="codigo">{p.clasificacion.codigo}</span> {p.clasificacion.descripcion} <button type="button" className="link" onClick={() => setP({ clasificacion: null })}>Cambiar</button></p>
               ) : noSePartida ? (
-                <p className="nota">Sin problema: el agente aduanero la define. Los impuestos quedarán pendientes. <button type="button" className="link" onClick={() => setNoSePartida(false)}>Buscarla ahora</button></p>
+                <>
+                  {ind && <SugerenciaIA ind={ind} descripcion={[p.nombre, p.descripcion].filter(Boolean).join('. ')} conectado={conectado} onIngresar={onIngresar}
+                    onElegir={(c) => { setP({ clasificacion: c }); setNoSePartida(false) }}
+                    onBuscarPartida={(cod) => { setQ(cod); setNoSePartida(false) }} />}
+                  <p className="nota">Si prefieres, sigue sin partida: el agente aduanero la define y los impuestos quedan pendientes. <button type="button" className="link" onClick={() => setNoSePartida(false)}>Buscarla yo</button></p>
+                </>
               ) : (
                 <>
                   <input type="search" placeholder="Busca tu producto en el arancel…" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -161,7 +177,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar 
                       ))}
                     </ul>
                   )}
-                  <button type="button" className="link" onClick={() => setNoSePartida(true)}>No sé cuál es</button>
+                  <button type="button" className="link" onClick={() => setNoSePartida(true)}>No sé cuál es · que LANDEX AI la sugiera</button>
                 </>
               )}
             </div>

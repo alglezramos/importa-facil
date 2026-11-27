@@ -38,7 +38,7 @@ export function Acceso({ onCerrar }: Props) {
         ) : (
           <form onSubmit={enviar}>
             <h3>Entra a tu cuenta</h3>
-            <p className="nota">Te enviamos un enlace de acceso por correo, sin contraseñas. Si es tu primera vez, se crea tu cuenta.</p>
+            <p className="nota">Te enviamos un enlace de acceso por correo, sin contraseñas. Si es tu primera vez, se crea tu cuenta y te pediremos algunos datos para completar tu registro.</p>
             <label>Correo<input type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" /></label>
             {error && <p className="error" role="alert">{error}</p>}
             <button type="submit" className="btn primario" disabled={!valido || estado === 'enviando'}>{estado === 'enviando' ? 'Enviando…' : 'Enviarme el enlace'}</button>
