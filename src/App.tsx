@@ -3,6 +3,7 @@ import { Acceso } from './components/Acceso'
 import { Registro, registroCompleto } from './components/Registro'
 import { Nosotros } from './components/Nosotros'
 import { AgenciaAduanal, type Seccion } from './components/AgenciaAduanal'
+import { Servicios } from './components/Servicios'
 import { Inicio } from './components/Inicio'
 import { Solicitudes } from './components/Solicitudes'
 import { Aliados } from './components/Aliados'
@@ -21,13 +22,14 @@ import { Logotipo } from './components/Marca'
 import { cargarTasasValidadas } from './lib/tasas'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'nosotros' | 'portal' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
+type Vista = 'servicios' | 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'nosotros' | 'portal' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
 
 const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
   cotizar: 'Cotizar',
   clasificar: 'LANDEX AI',
-  agencia: 'Servicios',
+  servicios: 'Servicios',
+  agencia: 'Desalmacenaje',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
   nosotros: 'Nosotros',
@@ -40,12 +42,12 @@ const VISTAS: Record<Vista, string> = {
 
 /** Rutas con # para enlazar secciones (compatible con GitHub Pages y con el regreso del enlace de acceso). */
 const RUTAS: Record<string, Vista> = {
-  '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
+  servicios: 'servicios', '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
   clasificacion: 'clasificar', 'landex-ai': 'clasificar', 'como-funciona': 'guia', socios: 'aliados', nosotros: 'nosotros', 'quienes-somos': 'nosotros', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
   solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const HASH: Record<Vista, string> = {
-  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'landex-ai', guia: 'como-funciona', aliados: 'socios', nosotros: 'nosotros',
+  servicios: 'servicios', inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'landex-ai', guia: 'como-funciona', aliados: 'socios', nosotros: 'nosotros',
   portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
@@ -122,7 +124,7 @@ export default function App() {
           )}
         </div>
         <nav aria-label="Navegación principal">
-          {visibles.filter(v => !privadas.includes(v) || v === 'portal').map((v) => (
+          {visibles.filter(v => (v !== 'agencia' && !privadas.includes(v)) || v === 'portal').map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
               {v === 'portal' && agencia ? 'LANDEX Business' : VISTAS[v]}
             </button>
@@ -145,21 +147,18 @@ export default function App() {
           </aside>}
           <div className="workspace-content">
         {vista === 'inicio' && (
-          <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia} onLandexAI={() => setVista('clasificar')}
+          <Inicio onHistoria={() => setVista('nosotros')} onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia} onLandexAI={() => setVista('clasificar')}
             onSocios={() => setVista('aliados')} onGuia={() => setVista('guia')} />
         )}
+        {vista === 'servicios' && <Servicios onAgencia={irAgencia} onCotizar={() => abrir({ cotizacion: null, modo: 'guiado' })} />}
         {vista === 'agencia' && <AgenciaAduanal seccion={seccion} onSeccion={irAgencia} usuario={usuario} onCotizar={() => setVista('cotizar')} />}
         {vista === 'solicitudes' && agencia && <Solicitudes perfilBase={perfil} onAbrir={(a) => abrir(a)} />}
         {vista === 'cotizar' && (
           <section className="hero">
             <div>
-              <span className="barra-marca" aria-hidden />
-              <h2>{MARCA.eslogan}</h2>
-              <p>Estima el costo de tu importación antes de tomar una decisión. {MARCA.propuesta}</p>
+              <h2>Cotizá tu importación</h2>
+              <p>Elegí cómo ingresar los datos de tu embarque.</p>
             </div>
-            <ul className="pilares" aria-label="Qué calcula LANDEX">
-              <li>Landed Cost</li><li>Global Trade</li><li>Cost Intelligence</li>
-            </ul>
           </section>
         )}
         {vista === 'cotizar' && (
@@ -190,9 +189,6 @@ export default function App() {
 
       <footer>
         <nav className="pie-enlaces" aria-label="Enlaces del pie">
-          <button type="button" className="link" onClick={() => setVista('cotizar')}>Cotizar</button>
-          <button type="button" className="link" onClick={() => irAgencia('desalmacenaje')}>Necesito desalmacenar</button>
-          <button type="button" className="link" onClick={() => irAgencia('empresarial')}>Empresas</button>
           <button type="button" className="link" onClick={() => setVista('aliados')}>Socios comerciales</button>
           <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>
           {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>Términos y condiciones</a>}

@@ -1,11 +1,15 @@
+import { calcularLanded, type Producto } from '../lib/landed'
+import { EMBARQUE_INICIAL } from '../lib/almacen'
+import { usd } from '../lib/formato'
 import { useState } from 'react'
-import { AGENCIA, EMPRESA, MARCA } from '../data/config'
+import { AGENCIA, EMPRESA, ORIGENES } from '../data/config'
 import { ALIADOS } from '../data/aliados'
 import type { Seccion } from './AgenciaAduanal'
 
 interface Props {
   onCotizar: (modo?: 'guiado' | 'experto') => void
   onAgencia: (s: Seccion) => void
+  onHistoria: () => void
   onSocios: () => void
   onGuia: () => void
   onLandexAI: () => void
@@ -38,12 +42,23 @@ const PREGUNTAS: [string, string][] = [
   ['¿Quién puede ver mis documentos?', 'Los documentos se vinculan a tu cuenta y a cada cotización. El acceso debe limitarse a tu cuenta y al personal autorizado de LANDEX.'],
 ]
 
-export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: Props) {
+// Escenario público de solo lectura, independiente del borrador del visitante.
+const camiseta: Producto = {
+  id: 'demo-camiseta', sku: 'CAM-01', nombre: 'Camisetas de algodón', cantidad: 100, valorUnitario: 8,
+  paisFabricacion: 'CN', pesoBrutoKg: 25, volumenM3: 0.2, clasificacion: null, certificadoOrigen: false,
+}
+const origen = ORIGENES.find((o) => o.id === 'cn-este')!
+const ejemplo = calcularLanded({ ...EMBARQUE_INICIAL, origen, modo: 'LCL' }, [camiseta])
+const funciones = [
+  ['navieras', 'Transporte', 'Coordinamos el traslado internacional.'],
+  ['terminales', 'Terminal', 'Coordinamos la atención en puerto.'],
+  ['seguros', 'Seguro', 'Gestionamos la cobertura de la carga.'],
+  ['inspeccion', 'Inspección', 'Coordinamos la revisión en origen.'],
+]
+
+export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onLandexAI }: Props) {
   const [abierta, setAbierta] = useState<number | null>(null)
   const operadores = ALIADOS.filter((a) => a.publicado && a.categoria !== 'instituciones')
-  const categorias = [...new Set(operadores.map((a) => a.categoria))]
-  const destacados = categorias.map((categoria) => operadores.find((a) => a.categoria === categoria)!)
-  const logos = [...destacados, ...operadores.filter((a) => !destacados.includes(a))].slice(0, 8)
   const corporativos = [
     EMPRESA.razonSocial && ['Razón social', EMPRESA.razonSocial],
     EMPRESA.cedulaJuridica && ['Cédula jurídica', EMPRESA.cedulaJuridica],
@@ -61,41 +76,22 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
           <p className="bajada">De la fábrica a tu bodega. Cotización, agencia de aduanas y logística en una sola plataforma, con un solo punto de contacto.</p>
           <ul className="sellos" aria-label="Condiciones del cotizador"><li>Sin registro</li><li>Sin compromiso</li><li>Gratis</li></ul>
           <div className="acciones">
-            <button type="button" className="btn primario grande" onClick={() => onCotizar()}>Cotizar mi importación gratis</button>
+            <button type="button" className="btn primario grande" onClick={() => onCotizar('guiado')}>Cotizar mi importación gratis</button>
             <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Mi mercancía ya viene en camino</button>
           </div>
           <p className="nota portada-nota">La estimación es referencial: los costos definitivos se validan antes de contratar.</p>
         </div>
-        <div className="portada-visual">
-          <div className="visual-top"><span>GLOBAL TRADE</span><span>ORIGEN → COSTA RICA</span></div>
-          <svg viewBox="0 0 400 210" role="img" aria-label="Ilustración de un buque de carga en ruta">
-            <defs><linearGradient id="ldx-ocean" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#24405f"/><stop offset="1" stopColor="#101e30"/></linearGradient></defs>
-            <rect width="400" height="210" rx="18" fill="url(#ldx-ocean)"/>
-            {[35,75,115,155,195].map(y=><path key={y} d={`M0 ${y} H400`} stroke="#91a4bd" strokeOpacity=".12"/>)}
-            {[40,100,160,220,280,340].map(x=><path key={x} d={`M${x} 0 V210`} stroke="#91a4bd" strokeOpacity=".12"/>)}
-            <path d="M24 48 C130 8 220 95 372 40" fill="none" stroke="#48a9ff" strokeWidth="2" strokeDasharray="5 7"/>
-            <circle cx="24" cy="48" r="5" fill="#48a9ff"/><circle cx="372" cy="40" r="5" fill="#48a9ff"/>
-            <path d="M49 151 H358 L325 179 H84 Z" fill="#91a4bd"/>
-            <path d="M49 151 H358 L344 164 H65 Z" fill="#48a9ff"/>
-            <path d="M69 146 V100 H110 V146 M80 100 V85 H96 V100" fill="#f5f7fa"/>
-            {Array.from({length:10},(_,i)=><g key={i}><rect x={120+(i%5)*42} y={i<5?116:92} width="38" height="21" rx="2" fill={i%3===0?'#48a9ff':'#b8c9de'} opacity={i<5?'.9':'.7'}/><path d={`M${126+(i%5)*42} ${i<5?120:96} v13`} stroke="#101e30" strokeOpacity=".5"/></g>)}
-            <path d="M20 189 Q60 181 100 189 T180 189 T260 189 T340 189 T420 189" fill="none" stroke="#48a9ff" strokeOpacity=".7"/>
-          </svg>
-          <div className="visual-recibes">
-            <span>Lo que recibes al cotizar</span>
-            <ul>
-              <li>Costo total puesto en tu bodega</li>
-              <li>Costo por unidad de cada producto</li>
-              <li>Impuestos, flete y honorarios por separado</li>
-              <li>Tiempo estimado de la fábrica a tu bodega</li>
-            </ul>
-          </div>
-        </div>
-        <ol className="portada-ruta" aria-label="De la fábrica a tu bodega">
-          {[['fabrica', 'Fábrica'], ['barco', 'Transporte'], ['aduana', 'Aduana'], ['camion', 'Entrega'], ['bodega', 'Tu bodega']].map(([i, t]) => (
-            <li key={i}><Icono n={i} /><span>{t}</span></li>
-          ))}
-        </ol>
+        <article className="demo-carga">
+          <small>Cotización de ejemplo · China → Costa Rica</small>
+          <h3>100 camisetas de algodón</h3>
+          <p className="demo-precio">{usd(ejemplo.totales.total / camiseta.cantidad)} <small>por camiseta</small></p>
+          <dl><div><dt>Compra al proveedor</dt><dd>{usd(ejemplo.totales.mercancia)}</dd></div>
+          <div><dt>Subtotal en tu bodega</dt><dd>{usd(ejemplo.totales.total)}</dd></div>
+          <div><dt>Plazo estimado</dt><dd>{ejemplo.tiempo.dias} días</dd></div></dl>
+          <p>Estimación parcial con impuestos pendientes.</p>
+          <details><summary>Ver cómo se calcula</summary><p>100 unidades a {usd(camiseta.valorUnitario)}. Retiro en fábrica, 25 kg y 0,2 m³ por marítimo consolidado, con seguro y descarga en la GAM.</p>
+          <p>Mercancía {usd(ejemplo.totales.mercancia)} + logística {usd(ejemplo.totales.logistica)}. El subtotal se divide entre las 100 unidades. La clasificación del producto permitirá estimar los impuestos.</p></details>
+        </article>
       </section>
 
       <section className="bloque">
@@ -103,82 +99,43 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
         <h2>Tu importación empieza aquí.</h2>
         <div className="entradas">
           <button type="button" className="entrada" onClick={() => onCotizar('guiado')}>
-            <Icono n="ruta" /><b>Mi primera importación</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.</span><em>Cotizar paso a paso →</em>
+            <Icono n="ruta" /><b>Cotizar por primera vez</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.</span><em>Cotizar paso a paso →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onCotizar('experto')}>
-            <Icono n="calculadora" /><b>Soy importador</b><span>Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.</span><em>Ir al cotizador →</em>
+            <Icono n="calculadora" /><b>Cotizar con mis datos</b><span>Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.</span><em>Ir al cotizador →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('desalmacenaje')}>
-            <Icono n="aduana" /><b>Necesito desalmacenar</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia de aduanas →</em>
+            <Icono n="aduana" /><b>Desalmacenar una carga</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia de aduanas →</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('empresarial')}>
-            <Icono n="edificio" /><b>Soluciones empresariales</b><span>Importas con frecuencia y buscas una agencia de aduanas y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
+            <Icono n="edificio" /><b>Coordinar importaciones recurrentes</b><span>Importas con frecuencia y buscas una agencia de aduanas y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
           </button>
         </div>
       </section>
 
-      <section className="bloque ai-inicio">
-        <div>
-          <span className="etiqueta">LANDEX AI</span>
-          <h2>¿No sabes la partida arancelaria de tu producto?</h2>
-          <p>Descríbelo con tus palabras o sube una foto. LANDEX AI aplica las reglas del Sistema Armonizado y te propone los incisos más probables del arancel de Costa Rica, con su DAI. Lo usas gratis con tu cuenta; el agente aduanero confirma la clasificación antes de la cotización formal.</p>
-          <button type="button" className="btn primario" onClick={onLandexAI}>Clasificar mi producto con IA</button>
-        </div>
-        <div className="ai-inicio-demo" aria-hidden>
-          <p className="ai-inicio-q">"Sillas de oficina con base de metal, asiento acolchado y ruedas"</p>
-          <p className="ai-inicio-r"><span className="codigo">9401.39.00.00</span> Asientos giratorios de altura ajustable</p>
-        </div>
-      </section>
-
-      <section className="bloque propuesta">
-        <span className="etiqueta">Por qué LANDEX</span>
-        <h2>Una agencia de aduanas con tecnología propia</h2>
-        <div className="columnas">
-          <div><Icono n="calculadora" /><b>Estima tu costo antes de comprar</b><p>Mercancía, flete, seguro, impuestos, honorarios, transporte y descarga, en un solo número y por producto.</p></div>
-          <div><Icono n="persona" /><b>Un solo punto de contacto</b><p>LANDEX es tu agencia de aduanas y coordina a navieras, transportistas, aseguradoras e inspectores por ti.</p></div>
-          <div><Icono n="escudo" /><b>Trámite aduanero profesional</b><p>La clasificación arancelaria y la declaración las valida un agente aduanero autorizado.</p></div>
-          <div><Icono n="documento" /><b>Todo en línea</b><p>Consulta tus cotizaciones y documentos desde tu cuenta.</p></div>
-        </div>
-      </section>
-
       <section className="bloque">
-        <span className="etiqueta">Servicios</span>
-        <h2>Lo que hacemos por ti</h2>
-        <ul className="servicios-inicio">
-          <li className="principal"><b>Agenciamiento aduanero</b><span>Clasificación arancelaria, declaración y trámite ante Aduanas hasta el levante de tu mercancía.</span></li>
-          <li><b>Transporte internacional</b><span>Marítimo, aéreo y terrestre, desde la fábrica de tu proveedor.</span></li>
-          <li><b>Transporte nacional y descarga</b><span>Hasta tu bodega, con personal y equipo de descarga.</span></li>
-          <li><b>Seguro e inspección</b><span>Póliza de carga e inspección de calidad en origen.</span></li>
-          <li><b>Permisos y documentos</b><span>Notas técnicas, permisos y revisión de tu expediente.</span></li>
-          <li><b>Almacenamiento y custodia</b><span>Coordinados con nuestros socios cuando los necesites.</span></li>
-        </ul>
-      </section>
-
-      <section className="bloque">
-        <span className="etiqueta">Cómo funciona</span>
-        <h2>De la cotización a tu bodega</h2>
+        <h2>Cómo funciona</h2>
         <ol className="pasos-inicio">
-          <li><b>Cotiza gratis</b><span>Conoce el costo estimado puesto en tu bodega.</span></li>
-          <li><b>Envíala a LANDEX</b><span>Con un clic, sin volver a escribir tus datos.</span></li>
-          <li><b>Recibe tu cotización formal</b><span>Validamos la clasificación y confirmamos las tarifas.</span></li>
-          <li><b>Acepta y sube tus documentos</b><span>Factura, lista de empaque y documento de transporte.</span></li>
-          <li><b>Coordinamos y entregamos</b><span>Nos encargamos de la aduana y la entrega en tu bodega.</span></li>
-        </ol>
-        <div className="acciones"><button type="button" className="btn primario" onClick={() => onCotizar()}>Calcular mi importación gratis</button><button type="button" className="btn" onClick={onGuia}>Ver la guía completa</button></div>
+          <li><b>Estimá el costo</b><span>Revisá el costo por unidad hasta tu bodega.</span></li>
+          <li><b>Confirmá la cotización</b><span>LANDEX valida la clasificación, los documentos y las tarifas.</span></li>
+          <li><b>Recibí en tu bodega</b><span>Coordinamos el transporte, la aduana y la entrega.</span></li>
+        </ol><button className="link" onClick={onGuia}>Explorar la guía por modalidad →</button>
       </section>
-
-      <section className="bloque socios-inicio">
-        <span className="etiqueta">Red de socios comerciales</span>
-        <h2>Navieras, forwarders, líneas aéreas y aseguradoras</h2>
-        <ul className="tira-logos">{logos.map((a) => <li key={a.logo}><img src={a.logo} alt={a.nombre} loading="lazy" width={600} height={320} onError={(e) => { e.currentTarget.hidden = true }} /><span>{a.nombre}</span></li>)}</ul>
-        <p className="centro"><button type="button" className="link" onClick={onSocios}>Ver todos los socios</button></p>
+      <section className="bloque ai-inicio"><div><h2>Identificá tu producto con LANDEX AI</h2>
+        <p>Describí el material y el uso. Un agente revisa la sugerencia antes de confirmar los impuestos.</p>
+        <button className="btn" onClick={onLandexAI}>Identificar mi producto</button><small> Requiere cuenta.</small></div>
+        <div className="ai-inicio-demo"><p>Camiseta de algodón para adulto</p><b>Posible clasificación · requiere validación</b></div>
       </section>
-
-      <section className="bloque respaldo">
-        <span className="etiqueta">Respaldo profesional</span>
-        <h2>{MARCA.nombre}, {MARCA.firma}</h2>
-        <p>{EMPRESA.experiencia || `${MARCA.nombre} es una iniciativa de Ramos & Co. enfocada en simplificar las importaciones a Costa Rica.`}</p>
-        <p>La prestación de servicios aduaneros está sujeta a la validación de las autorizaciones aplicables y de las condiciones de cada operación.</p>
+      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Quién responde por tu carga</h2>
+        <p>La historia de LANDEX tiene sus raíces en la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. reúne esa experiencia familiar y la coordinación logística en un solo punto de contacto.</p>
+        <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
+      </section>
+      <section className="bloque socios-inicio"><h2>Quién participa en cada tramo</h2><ul className="tira-logos">
+        {funciones.map(([categoria, nombre, texto]) => {
+          const socio = operadores.find((a) => a.categoria === categoria)
+          return <li key={categoria}><b>{nombre}</b>{socio && <img src={socio.logo} alt={socio.nombre} loading="lazy" width={600} height={320} />}<span>{texto}</span></li>
+        })}
+        </ul><button className="link" onClick={onSocios}>Ver todos los socios →</button>
       </section>
 
       <section className="bloque">
@@ -196,13 +153,15 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
 
       <section className="bloque contacto-inicio">
         <span className="etiqueta">Contacto comercial</span>
-        <h2>Hablemos de tu importación</h2>
+        <h2>¿Qué necesitás resolver?</h2>
+        <div className="acciones"><button className="btn primario" onClick={() => onCotizar('guiado')}>Cotizar</button>
+        <button className="btn claro" onClick={() => onAgencia('desalmacenaje')}>Desalmacenar una carga</button>
+        <button className="btn claro" onClick={() => onAgencia('empresarial')}>Hablar sobre operaciones recurrentes</button></div>
         <div className="columnas">
           <div><b>Cotizaciones</b><a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></div>
           <div><b>Información general</b><a href={`mailto:${AGENCIA.emailInfo}`}>{AGENCIA.emailInfo}</a></div>
           {AGENCIA.whatsapp && <div><b>WhatsApp</b><a href={`https://wa.me/${AGENCIA.whatsapp}`} target="_blank" rel="noreferrer">Escríbenos</a></div>}
           {EMPRESA.telefono && <div><b>Teléfono</b><a href={`tel:${EMPRESA.telefono}`}>{EMPRESA.telefono}</a></div>}
-          <div><b>Empresas</b><button type="button" className="link" onClick={() => onAgencia('empresarial')}>Solicitar una reunión</button></div>
         </div>
       </section>
 

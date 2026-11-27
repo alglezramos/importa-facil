@@ -11,6 +11,8 @@ interface Etapa {
   quien: Quien[]
   texto: (m: Modo) => string
   documentos: (m: Modo) => string[]
+  cliente: string
+  landex: string
   consejo: string
   accion?: 'cotizar' | 'agencia'
 }
@@ -37,42 +39,49 @@ const ICONOS: Record<string, string> = {
 
 const ETAPAS: Etapa[] = [
   {
+    cliente: 'Ingresá producto, precio y destino.', landex: 'Estima el costo por unidad en bodega.',
     id: 'cotiza', titulo: 'Calcula el costo total antes de comprar', corto: 'Cotiza', icono: 'calculadora', quien: ['Tú'], accion: 'cotizar',
     texto: () => 'Con el cotizador clasificas tu producto y calculas cuánto te cuesta puesto en tu bodega: mercancía, flete, seguro, impuestos, honorarios, transporte y descarga. Así decides con números reales antes de pagarle al proveedor.',
     documentos: () => ['Ficha técnica o descripción del producto', 'Factura proforma, si ya la tienes'],
     consejo: 'Si no conoces algún dato, marca "No lo sé": la estimación te dice qué queda pendiente en lugar de inventarlo.',
   },
   {
+    cliente: 'Acordá el precio y la entrega con tu proveedor.', landex: 'Usa esas condiciones para definir los costos a cotizar.',
     id: 'negocia', titulo: 'Negocia con tu proveedor', corto: 'Negocia', icono: 'apreton', quien: ['Tú', 'Tu proveedor'],
     texto: () => 'Puedes importar desde cualquier país y cualquier proveedor. Pide el precio con su Incoterm (qué incluye y dónde entrega), el peso y el volumen por caja, y la lista de empaque. Si tu producto es de un país con tratado comercial, pide también el certificado de origen.',
     documentos: () => ['Factura proforma con Incoterm', 'Peso y volumen por caja', 'Certificado de origen, si aplica'],
     consejo: 'Con precios EXW, FCA o FOB, LANDEX coordina el flete por ti y evitas cargos sorpresa en destino.',
   },
   {
+    cliente: 'Revisá el alcance y aprobá la cotización formal.', landex: 'Confirma tarifas y revisa el expediente.',
     id: 'confirma', titulo: 'Confirma con LANDEX y paga de forma segura', corto: 'Confirma', icono: 'escudo', quien: ['Tú', 'LANDEX'], accion: 'cotizar',
     texto: () => 'Envías tu estimación a LANDEX con un clic. El agente aduanero valida la clasificación arancelaria y confirmamos las tarifas con nuestros socios. Recibes una cotización formal con vigencia y, al aceptarla, arrancamos la operación.',
     documentos: () => ['Cotización formal de LANDEX', 'Comprobante de pago al proveedor'],
     consejo: 'No pagues el 100 % por adelantado sin fotos de producción o una inspección de calidad.',
   },
   {
+    cliente: 'Confirmá cuándo está lista la carga.', landex: 'Coordina el retiro y el transporte contratado.',
     id: 'transporte', titulo: 'Recolección y transporte internacional', corto: 'Transporte', icono: 'barco', quien: ['LANDEX'],
     texto: (m) => `Coordinamos con nuestros socios la recolección en la fábrica y el viaje ${VIAJE[m]}, junto con la póliza de seguro de la carga.`,
     documentos: (m) => [DOC_TRANSPORTE[m], 'Póliza de seguro'],
     consejo: 'Si ya tienes tu propio transportista, márcalo en "Alcance del servicio": LANDEX se encarga de la aduana igual.',
   },
   {
+    cliente: 'Compartí la documentación pendiente.', landex: 'Da seguimiento al embarque y revisa los documentos.',
     id: 'seguimiento', titulo: 'Seguimiento y documentos', corto: 'Seguimiento', icono: 'documento', quien: ['LANDEX', 'Tú'],
     texto: () => 'Te avisamos la salida y la llegada estimada en Mi LANDEX. Mientras la carga viaja, subes tus documentos al expediente y preparamos la declaración aduanera.',
     documentos: (m) => ['Factura comercial', 'Lista de empaque (packing list)', DOC_TRANSPORTE[m], 'Permisos o notas técnicas, si aplican'],
     consejo: 'Revisa que la factura y la lista de empaque coincidan en cantidades y pesos: es la causa más común de atrasos.',
   },
   {
+    cliente: 'Atendé las consultas sobre tu producto.', landex: 'Coordina la declaración y el levante.',
     id: 'aduana', titulo: 'Despacho aduanero', corto: 'Aduana', icono: 'aduana', quien: ['LANDEX'], accion: 'agencia',
     texto: () => 'El agente aduanero revisa la documentación, transmite la declaración aduanera (DUA), se pagan los impuestos y se obtiene el levante de la mercancía.',
     documentos: () => ['Declaración aduanera (DUA)', 'Comprobante de pago de impuestos'],
     consejo: '¿Tu carga ya viene en camino sin agencia de aduanas? Escríbenos desde "Necesito desalmacenar".',
   },
   {
+    cliente: 'Revisá las unidades recibidas y su estado.', landex: 'Coordina la entrega según el alcance acordado.',
     id: 'entrega', titulo: 'Entrega en tu bodega y costo final', corto: 'Entrega', icono: 'bodega', quien: ['LANDEX'],
     texto: (m) => `Retiramos la carga del ${m === 'aereo' ? 'almacén del aeropuerto' : 'almacén fiscal'}, la transportamos y la descargamos en tu bodega${m === 'maritimo' ? ', y devolvemos el contenedor vacío' : ''}. Al cerrar, te enviamos el costo final real para tu costeo de inventario.`,
     documentos: () => ['Comprobante de entrega', 'Liquidación final de costos'],
@@ -142,8 +151,10 @@ export function Guia({ onCotizar, onAgencia }: Props) {
         <h3>{e.titulo}</h3>
         <p>{e.texto(modo)}</p>
         <div className="guia-columnas">
+          <div><b>Qué hacés vos</b><p>{e.cliente}</p></div>
+          <div><b>Qué hace LANDEX</b><p>{e.landex}</p></div>
           <div>
-            <b>Documentos</b>
+            <b>Qué documento necesitás</b>
             <ul>{e.documentos(modo).map((d) => <li key={d}>{d}</li>)}</ul>
           </div>
           <div className="guia-consejo">
