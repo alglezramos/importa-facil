@@ -49,7 +49,6 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
   const tuyos = docs.filter((d) => d.responsable !== 'landex' && d.obligatorio)
   const listos = tuyos.filter((d) => estadoDe(d.id) !== 'pendiente').length
   const revisados = tuyos.filter(d => estadoDe(d.id) === 'revisado').length
-  const porcentaje = tuyos.length ? Math.round(listos / tuyos.length * 100) : 0
 
   const subir = async (tipo: string, f: File) => {
     if (!cotId) return
@@ -65,13 +64,16 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
       <div className="dc-header">
         <span className="dc-kicker">LANDEX · DOCUMENT CENTER</span>
         <h3>Documentos de tu importación</h3>
-        <div className="dc-progress-label"><span>{enNube ? 'Documentos obligatorios subidos' : 'Documentos obligatorios disponibles'}</span><strong>{porcentaje}%</strong></div>
-        <progress className="dc-progress" value={listos} max={tuyos.length || 1} aria-label="Progreso documental a cargo del importador" />
-        <small>{listos} de {tuyos.length} · A tu cargo{enNube ? ` · ${revisados} revisados` : ' · Disponibilidad declarada, no validación'}</small>
+        <div className="dc-progress-label"><span>{enNube ? 'Documentos subidos' : 'Documentos que ya tienes'}</span><strong>{listos} de {tuyos.length}</strong></div>
+        <progress className="dc-progress" value={listos} max={tuyos.length || 1} aria-label="Documentos obligatorios subidos" />
+        {enNube && <>
+          <div className="dc-progress-label"><span>Revisados por el agente aduanero</span><strong>{revisados} de {tuyos.length}</strong></div>
+          <progress className="dc-progress revisados" value={revisados} max={tuyos.length || 1} aria-label="Documentos revisados por el agente" />
+        </>}
+        <small>{enNube ? 'Subido no significa aprobado: el agente revisa cada documento antes de nacionalizar.' : 'Marca los que ya tienes; podrás subirlos cuando guardes la cotización en tu cuenta.'}</small>
       </div>
       <p className="nota">
-        {listos} de {tuyos.length} documentos obligatorios {enNube ? 'subidos' : 'listos'}. Sin factura, lista de empaque y documento de
-        transporte no se puede nacionalizar.{' '}
+        Sin factura, lista de empaque y documento de transporte no se puede nacionalizar.{' '}
         {!usuario && <>Para subirlos, <button type="button" className="link" onClick={onIniciarSesion}>inicia sesión</button>.</>}
         {usuario && !cotId && <>Para subirlos, <button type="button" className="link" onClick={onGuardarPrimero}>guarda la cotización</button> en tu cuenta.</>}
         {enNube && 'Formatos: PDF, imagen, Excel o Word, hasta 10 MB.'}

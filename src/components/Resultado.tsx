@@ -12,6 +12,8 @@ import {
   type Producto, type ResultadoLanded,
 } from '../lib/landed'
 import { Solicitud } from './Solicitud'
+import { desglosar } from '../lib/servicios'
+import { Termino } from './Termino'
 
 interface Props {
   e: Embarque
@@ -27,12 +29,15 @@ interface Props {
   expediente?: ReactNode
   /** Alcance del servicio (LANDEX / cliente), después de la confiabilidad. */
   alcance?: ReactNode
+  /** Servicios que el cliente ya contrató por su cuenta (para separar a quién le paga). */
+  externos?: string[]
 }
 
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance }: Props) {
+export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance, externos = [] }: Props) {
+  const d = desglosar(r, externos)
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
   const comp = compararModalidades(e, productos)
@@ -59,18 +64,31 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         </div>
         <strong>{usd(r.totales.total)}</strong>
         <span className="crc">{crc(r.totales.total * e.tipoCambio)} · rango referencial {usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? ' + pendientes' : ''}</span>
-        <div className="kpis">
-          <div><span>Mercancía</span><b>{usd(r.totales.mercancia)}</b></div>
-          <div><span>Logística y otros gastos</span><b>{usd(otrosServicios)}</b></div>
-          <div><span>Honorarios y coordinación LANDEX</span><b>{usd(honorarios)}{propios.some((k) => k.estado === 'pendiente') ? ' + pendientes' : ''}</b></div>
-          <div><span>Costos adicionales a la mercancía</span><b>{usd(adicional)}{r.estado === 'incompleta' ? ' + pendientes' : ''}</b></div>
-          <div><span>Impuestos</span><b>{impPend ? (r.totales.impuestos ? `${usd(r.totales.impuestos)} + pendientes` : 'Pendiente') : usd(r.totales.impuestos)}</b></div>
+        <div className="kpis resumen">
+          <div><span>Sobre el valor de tu mercancía</span><b>{r.totales.mercancia ? `+${((adicional / r.totales.mercancia) * 100).toFixed(1)} %` : '—'}{r.estado === 'incompleta' ? ' + pend.' : ''}</b></div>
+          <div><span>Costo por unidad {r.estado === 'incompleta' ? '(parcial)' : ''}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
           <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
-          <div><span>Desembolso {r.estado === "incompleta" ? "parcial" : "estimado"}</span><b>{usd(r.totales.desembolso)}</b></div>
-          <div><span>IVA recuperable*</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
-          <div><span>Costo sin IVA potencialmente recuperable</span><b>{usd(r.totales.totalSinIVA)}</b></div>
-          <div><span>Landed Cost unitario promedio {r.estado === "incompleta" ? "(parcial)" : ""}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
         </div>
+        <div className="a-quien">
+          <b>¿A quién le pagas?</b>
+          <ul>
+            <li><span>Tu proveedor <small>valor de la mercancía</small></span><b>{usd(d.mercancia)}</b></li>
+            <li className="landex"><span>LANDEX <small>honorarios, coordinación y servicios que coordinamos</small></span><b>{usd(d.honorariosLandex + d.serviciosLandex)}{d.honorariosPendiente || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? ' + pend.' : ''}</b></li>
+            <li><span>El Estado <small>impuestos de importación</small></span><b>{impPend ? (d.impuestos ? `${usd(d.impuestos)} + pend.` : 'Pendiente') : usd(d.impuestos)}</b></li>
+            <li><span>Puerto y almacén fiscal <small>gastos de terceros en destino</small></span><b>{usd(d.gastosTerceros)}</b></li>
+            {d.serviciosCliente > 0 && <li><span>Tus propios proveedores <small>servicios que ya contrataste</small></span><b>{usd(d.serviciosCliente)}</b></li>}
+          </ul>
+          <small>Solo la fila de LANDEX la factura LANDEX. La mercancía, los impuestos y los gastos de puerto no son ingresos de LANDEX.</small>
+        </div>
+        <details className="mas-indicadores">
+          <summary>Más indicadores</summary>
+          <div className="kpis">
+            <div><span>Desembolso {r.estado === "incompleta" ? "parcial" : "estimado"}</span><b>{usd(r.totales.desembolso)}</b></div>
+            <div><span>IVA recuperable*</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
+            <div><span>Costo sin IVA recuperable</span><b>{usd(r.totales.totalSinIVA)}</b></div>
+            <div><span>Logística y otros gastos</span><b>{usd(otrosServicios)}</b></div>
+          </div>
+        </details>
       </div>
 
       {!formal && <Confiabilidad c={confiabilidad(e, productos, r)} />}
@@ -120,7 +138,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
       {ofertas}
 
       <h3>Desglose por etapa</h3>
-      <p className="nota">Toca una etapa para ver y ajustar cada concepto. Cambia el estado a "Confirmado" cuando tengas la tarifa real del proveedor.</p>
+      <p className="nota">Toca una etapa para ver cada concepto. <span className="sello-est confirmado">Confirmado</span> = tarifa real del proveedor · <span className="sello-est estimado">Estimado</span> = valor de referencia · <span className="sello-est pendiente">Pendiente</span> = aún sin monto, no se suma al total.</p>
       <div className="etapas">
         {([1, 2, 3, 4, 5, 6, 7] as Etapa[]).map((et) => {
           const conceptos = r.conceptos.filter((k) => k.etapa === et)
@@ -140,7 +158,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
                       <tbody>
                         {r.productos.map((p) => (
                           <tr key={p.id}>
-                            <td>Impuestos {p.sku} <small>VA {usd(p.valorAduanero)} · DAI {p.impuestos.tasaDAIAplicada == null ? 'pendiente' : `${(p.impuestos.tasaDAIAplicada * 100).toFixed(1)}%`}{p.impuestos.ahorroTLC ? ` · ahorro potencial TLC ${usd(p.impuestos.ahorroTLC)}` : ''}</small></td>
+                            <td>Impuestos {p.sku} <Termino id="dai" /> <small>Valor aduanero {usd(p.valorAduanero)} · DAI {p.impuestos.tasaDAIAplicada == null ? 'pendiente' : `${(p.impuestos.tasaDAIAplicada * 100).toFixed(1)}%`}{p.impuestos.ahorroTLC ? ` · ahorro potencial TLC ${usd(p.impuestos.ahorroTLC)}` : ''}</small></td>
                             <td className="num">{p.impuestos.pendientes.length ? <span className="sello pend">Pendiente: {p.impuestos.pendientes.join(', ')}</span> : usd(p.impuestosTotal)}</td>
                           </tr>
                         ))}
@@ -151,7 +169,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
                     const aj = e.ajustes?.[k.id]
                     return (
                       <div key={k.id} className={`concepto est-${k.estado}`}>
-                        <div className="c-nombre">{k.nombre}{k.nota && <small>{k.nota}</small>}</div>
+                        <div className="c-nombre">{k.nombre}{(k.estado === 'confirmado' || k.estado === 'estimado' || k.estado === 'pendiente') && <span className={`sello-est ${k.estado}`}>{k.estado === 'confirmado' ? 'Confirmado' : k.estado === 'estimado' ? 'Estimado' : 'Pendiente'}</span>}{k.nota && <small>{k.nota}</small>}</div>
                         <select value={k.estado} onChange={(ev) => onAjuste(k.id, { ...aj, estado: ev.target.value as EstadoConcepto, monto: ev.target.value === 'confirmado' || ev.target.value === 'estimado' ? (k.monto ?? 0) : aj?.monto })}>
                           {(Object.keys(ESTADOS) as EstadoConcepto[]).map((s) => <option key={s} value={s}>{ESTADOS[s]}</option>)}
                         </select>
@@ -180,7 +198,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
       </div>
       <p className="nota">Tarifas: {VIGENCIA_TARIFAS.fuente}, actualizadas al {VIGENCIA_TARIFAS.actualizado}. *El IVA de importación es crédito fiscal si tu empresa está inscrita en IVA.</p>
 
-      <h3>Landed Cost por producto</h3>
+      <h3>Landed Cost por producto <Termino id="landed" /></h3>
       <div className="scroll">
         <table className="tabla sku">
           <thead><tr><th>SKU</th><th>Producto</th><th className="num">Cant.</th><th className="num">Precio unit.</th><th className="num">Logística asignada</th><th className="num">Impuestos</th><th className="num">Landed unit.</th><th className="num">Landed total</th></tr></thead>

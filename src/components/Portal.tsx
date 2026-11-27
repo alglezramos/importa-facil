@@ -16,11 +16,12 @@ interface Props {
   onCotizaciones: () => void
   onSolicitudes: () => void
   onTarifas: () => void
+  onNueva?: () => void
 }
 
 const activos = (c: CotNube) => c.estado === 'aceptada' || c.estado === 'en_proceso'
 
-export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes, onTarifas }: Props) {
+export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes, onTarifas, onNueva = onCotizaciones }: Props) {
   const staff = esStaff(usuario)
   const [seleccion, setSeleccion] = useState<string | null>(null)
   const [verProveedores, setVerProveedores] = useState(false)
@@ -51,6 +52,59 @@ export function Portal({ usuario, perfil, onAbrir, onCotizaciones, onSolicitudes
   if (!staff) for (const c of cots) for (const p of c.datos.productos) {
     const clave = JSON.stringify([p.sku, p.nombre, p.paisFabricacion])
     productos.set(clave, { nombre: p.nombre, sku: p.sku })
+  }
+  const abrir = (c: CotNube) => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfil) })
+  const ruta = (c: CotNube) => `${ORIGENES.find((o) => o.id === c.datos.embarque.origenId)?.nombre ?? 'Origen por confirmar'} → Costa Rica · ${MODOS[c.datos.embarque.modo]}`
+  if (!staff) {
+    const enRevision = cots.filter((c) => c.estado === 'solicitada')
+    const porAceptar = formales.filter((c) => !c.emision?.vence || c.emision.vence >= new Date().toISOString().slice(0, 10))
+    const enCurso = abiertas
+    const listas = cots.filter((c) => c.estado === 'cerrada')
+    const borradores = cots.filter((c) => c.estado === 'estimada' || c.estado === 'incompleta')
+    const tarjeta = (c: CotNube, accion: string, nota: string) => (
+      <li key={c.id} className="op-card">
+        <div><b>{c.numero}</b> <span className={`chip-estado e-${c.estado}`}>{ESTADOS_NUBE[c.estado]}</span></div>
+        <p>{c.nombre}</p>
+        <small>{ruta(c)}{c.total == null ? '' : ` · ${usd(Number(c.total))}`}</small>
+        <small className="op-nota">{nota}</small>
+        <div className="acciones">
+          <button type="button" className="btn primario" onClick={() => abrir(c)}>{accion}</button>
+          {(activos(c) || c.estado === 'cerrada') && <button type="button" className="link" onClick={() => setSeleccion(c.id)}>Ver avance</button>}
+        </div>
+      </li>
+    )
+    return (
+      <section className="panel portal-shell portal-cliente">
+        <div className="fila-estado"><h2>Hola{perfil.nombre ? `, ${perfil.nombre.split(' ')[0]}` : ''}</h2>
+          <button type="button" className="btn" onClick={() => setVersion((v) => v + 1)}>Actualizar</button></div>
+        <p className="intro">Aquí ves en qué va cada importación y qué necesitamos de ti.</p>
+        {cargando ? <p role="status">Cargando…</p> : error ? <p className="error" role="alert">{error}</p> : !cots.length ? (
+          <div className="vacio">
+            <h3>Todavía no tienes cotizaciones</h3>
+            <p>Calcula gratis cuánto te cuesta tu importación puesta en tu bodega. Si te sirve, se la envías a LANDEX con un clic.</p>
+            <button type="button" className="btn primario" onClick={onNueva}>Hacer mi primera cotización</button>
+          </div>
+        ) : <>
+          <div className="columnas portal-kpis">
+            <div><b>{enRevision.length}</b><p>En revisión por LANDEX</p></div>
+            <div><b>{porAceptar.length}</b><p>Listas para que las aceptes</p></div>
+            <div><b>{enCurso.length}</b><p>Importaciones en curso</p></div>
+            <div><b>{listas.length}</b><p>Completadas</p></div>
+          </div>
+          {(porAceptar.length > 0 || enCurso.length > 0) && <h3>Lo que necesita tu atención</h3>}
+          <ul className="op-cards">
+            {porAceptar.map((c) => tarjeta(c, 'Revisar y aceptar', `Tu cotización formal está lista${c.emision?.vence ? `; vence el ${c.emision.vence}` : ''}.`))}
+            {enCurso.map((c) => tarjeta(c, 'Ver y subir documentos', 'Sube la factura, la lista de empaque y el documento de transporte para avanzar.'))}
+          </ul>
+          {enRevision.length > 0 && <><h3>En revisión</h3><ul className="op-cards">{enRevision.map((c) => tarjeta(c, 'Ver cotización', 'Un especialista la está revisando y te avisará cuando la cotización formal esté lista.'))}</ul></>}
+          {seleccionada && <Track key={seleccionada.id} cot={seleccionada} usuario={usuario} onEstado={() => setVersion((v) => v + 1)}/>}
+          {listas.length > 0 && <><h3>Completadas</h3><ul className="op-cards">{listas.map((c) => tarjeta(c, 'Ver expediente', 'Operación cerrada.'))}</ul></>}
+          {borradores.length > 0 && <p className="nota">Tienes {borradores.length} estimación(es) guardada(s). <button type="button" className="link" onClick={onCotizaciones}>Ver mis cotizaciones</button></p>}
+          <div className="acciones"><button type="button" className="btn" onClick={onNueva}>Nueva cotización</button></div>
+          {productos.size > 0 && <details className="notas"><summary>Productos que has cotizado ({productos.size})</summary><ul>{Array.from(productos.entries()).map(([k,p]) => <li key={k}>{p.sku ? p.sku + ' · ' : ''}{p.nombre}</li>)}</ul></details>}
+        </>}
+      </section>
+    )
   }
   return (
     <section className="panel portal-shell">

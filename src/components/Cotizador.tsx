@@ -17,6 +17,7 @@ import { BLOQUEADA, cambiarEstadoNube, esStaff, ESTADOS_NUBE, guardarCotizacionN
 import { ajustesEfectivos, aplicaA, conceptosProtegidos, cargarTarifasPublicadas, liberarConceptos, tramoTarifa, usable, type Tarifa } from '../lib/tarifas'
 import { perfilCompleto } from '../lib/almacen'
 import { Documento } from './Documento'
+import { Termino } from './Termino'
 import { Ofertas } from './Ofertas'
 import { PanelAgencia } from './PanelAgencia'
 import { Expediente } from './Expediente'
@@ -257,6 +258,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         <button type="button" role="tab" aria-selected={modoVista === 'guiado'} className={modoVista === 'guiado' ? 'activa' : ''} onClick={() => setModoVista('guiado')}>Mi primera importación</button>
         <button type="button" role="tab" aria-selected={modoVista === 'experto'} className={modoVista === 'experto' ? 'activa' : ''} onClick={() => setModoVista('experto')}>Tengo experiencia importando</button>
       </div>
+      {!numero && <span className="nota autoguardado">✓ Tu avance se guarda solo en este navegador. {usuario ? 'Guárdalo en tu cuenta para verlo desde otro equipo.' : 'Ingresa para guardarlo en tu cuenta.'}</span>}
       {numero && (
         <span className="nota">
           Cotización <b>{numero}</b>
@@ -291,7 +293,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
       <form className="formulario" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
           <legend><span>1</span> El embarque</legend>
-          <label>Origen
+          <label>Puerto o ciudad de embarque <Termino id="embarque" />
             <select value={ef.origenId} onChange={(e) => set({ origenId: e.target.value })}>
               {ORIGENES.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
             </select>
@@ -307,7 +309,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
             </div>
             {emailInvalido && <small className="nota error">Revisa el formato del email.</small>}
           </details>
-          <label>¿Qué incluye el precio de tu proveedor? (Incoterm 2020)
+          <label>¿Qué incluye el precio de tu proveedor? (Incoterm 2020) <Termino id="incoterm" />
             <select value={ef.incoterm} onChange={(e) => set({ incoterm: e.target.value as Incoterm })}>
               {(Object.keys(INCOTERMS) as Incoterm[]).map((k) => <option key={k} value={k}>{k} – {INCOTERMS[k].sencillo}</option>)}
             </select>
@@ -325,14 +327,14 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
               </label>
             )}
           </div>
-          <label>Modalidad de transporte
+          <label>Modalidad de transporte <Termino id="modalidad" />
             <select value={ef.modo} onChange={(e) => set({ modo: e.target.value as Modo })}>
               {(Object.keys(MODOS) as Modo[]).filter((m) => m !== 'TERRESTRE' || origen.flete.terrestre !== null).map((m) => <option key={m} value={m}>{MODOS[m]}</option>)}
             </select>
           </label>
           <div className="fila2">
             <label>Días hasta que la mercancía esté lista<input type="number" min={0} value={ef.diasProduccion} onChange={(e) => set({ diasProduccion: Number(e.target.value) })} /></label>
-            <label>Tipo de cambio (₡/USD)<input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value), tipoCambioManual: true })} />
+            <label>Tipo de cambio (₡/USD) <Termino id="cambio" /><input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value), tipoCambioManual: true })} />
               <small className="nota">{tc && !ef.tipoCambioManual && ef.tipoCambio === tc.venta ? `Referencia BCCR (venta) del ${tc.fecha}${tc.desactualizado ? ', último disponible' : ''}.` : tc ? <>Escrito a mano. <button type="button" className="link" onClick={() => set({ tipoCambio: tc.venta, tipoCambioManual: false })}>Usar el del BCCR (₡{tc.venta})</button></> : 'Referencia del BCCR no disponible en este momento.'}</small>
             </label>
           </div>
@@ -403,7 +405,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
             </div>
           )}
           {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.</p>}
-          <div className="acciones arriba">
+          <div className={`acciones arriba${!staff ? ' secundarias' : ''}`}>
             {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
             {!staff && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>Solicitar cotización formal</button>}
             {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>Hablar con un especialista</a>}
@@ -438,7 +440,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
                 return null
               }} />
           )}
-          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })}
+          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })} externos={ef.gestionCliente ?? []}
             formal={formalVigente ? emision : undefined}
             alcance={<Alcance r={r} externos={ef.gestionCliente ?? []} soloLectura={bloqueada} onCambio={(x) => set({ gestionCliente: x })} />}
             ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
