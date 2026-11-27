@@ -52,7 +52,7 @@ describe('indicador de confiabilidad', () => {
     const ps = [p({ clasificacion: { ...p().clasificacion!, estado: 'validada' } })]
     const r = calcularLanded(e, ps)
     const c = confiabilidad(e, ps, r)
-    expect(c.confirmado).toBeCloseTo(3000 + r.totales.impuestos, 2)
+    expect(c.confirmado).toBeCloseTo(3000 * 1.1 + r.totales.impuestos, 2) // flete confirmado + 10 % de margen
     expect(c.pct).toBeGreaterThan(50)
     expect(c.pct).toBeLessThan(100)
   })

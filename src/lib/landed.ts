@@ -14,7 +14,7 @@
  *  - Ninguna tasa se inventa: si falta, el impuesto queda pendiente de validación.
  */
 import { MODOS, type Modo, type Origen, type Zona } from '../data/config'
-import { ALTO_MAX_AEREO_PASAJEROS_CM, DIAS, EQUIPOS, FACTOR_AEREO, FACTOR_ESTIBA, REF, type Equipo } from '../data/logistica'
+import { ALTO_MAX_AEREO_PASAJEROS_CM, CONCEPTOS_CON_MARGEN, DIAS, EQUIPOS, FACTOR_AEREO, FACTOR_ESTIBA, REF, type Equipo } from '../data/logistica'
 
 // ---------------------------------------------------------------- Tipos
 
@@ -408,7 +408,9 @@ function construirConceptos(e: Embarque, productos: Producto[], carga: Carga): C
   add({ id: 'honorarios', etapa: 5, nombre: 'Honorarios de agencia aduanal', ...est(null), base: 'valor', enValorAduanero: false })
   add({ id: 'coordinacion', etapa: 5, nombre: 'Servicios de coordinación logística', ...est(R.nacionalizacion.coordinacion), base: 'valor', enValorAduanero: false })
   const conPermiso = productos.some((p) => p.requierePermiso)
-  add({ id: 'permisos', etapa: 5, nombre: 'Permisos y notas técnicas', ...(conPermiso ? est(null) : { estado: 'no_aplica' as const, monto: 0 }), base: 'directo', enValorAduanero: false })
+  const nPermisos = productos.filter((p) => p.requierePermiso).length
+  add({ id: 'permisos', etapa: 5, nombre: 'Gestión de permisos y notas técnicas', ...(conPermiso ? est(R.nacionalizacion.permisoPorTramite * nPermisos) : { estado: 'no_aplica' as const, monto: 0 }), base: 'directo', enValorAduanero: false, nota: conPermiso ? `USD ${R.nacionalizacion.permisoPorTramite} por producto que requiere permiso` : undefined })
+  add({ id: 'tasas_permisos', etapa: 5, nombre: 'Tasas oficiales de permisos (Salud, MAG, SFE…)', ...(conPermiso ? est(null) : { estado: 'no_aplica' as const, monto: 0 }), base: 'directo', enValorAduanero: false })
 
   // Etapa 6 – Transporte nacional
   const gam = e.zona === 'GAM'
@@ -441,6 +443,8 @@ function construirConceptos(e: Embarque, productos: Producto[], carga: Carga): C
     if (k.estado === 'pendiente') k.monto = null
     if (k.estado === 'no_aplica' || k.estado === 'incluido' || k.estado === 'incluido_en_otro') k.monto = 0
   }
+  // Margen de LANDEX sobre servicios de terceros que coordina (se cobra dentro del precio del servicio)
+  for (const k of L) if (CONCEPTOS_CON_MARGEN.has(k.id) && k.monto) k.monto = Math.round(k.monto * (1 + R.margenServiciosTerceros) * 100) / 100
   return L
 }
 
@@ -456,6 +460,13 @@ function pesosPara(base: Base, productos: Producto[], aereo: boolean, directo?: 
       case 'directo': return directo ? (p.id === directo ? 1 : 0) : (p.requierePermiso ? 1 : 0)
     }
   })
+}
+
+/** Agenciamiento LANDEX: 0,6 % hasta USD 25 000 + 0,45 % del excedente, con mínimo USD 150. */
+export function honorariosAgencia(valorAduanero: number): number {
+  const N = REF.nacionalizacion
+  const tramos = N.honorariosPctTramo1 * Math.min(valorAduanero, N.honorariosTopeTramo1) + N.honorariosPctTramo2 * Math.max(0, valorAduanero - N.honorariosTopeTramo1)
+  return Math.round(Math.max(N.honorariosMinimo, tramos) * 100) / 100
 }
 
 // ---------------------------------------------------------------- Motor
@@ -524,7 +535,7 @@ export function calcularLanded(e: Embarque, productos: Producto[]): ResultadoLan
   if (hon.estado === 'pendiente' && !e.ajustes?.honorarios) {
     const vaTotal = productosRes.reduce((s, p) => s + p.valorAduanero, 0)
     hon.estado = 'estimado'
-    hon.monto = Math.max(REF.nacionalizacion.honorariosMinimo, vaTotal * REF.nacionalizacion.honorariosPctValorAduanero)
+    hon.monto = honorariosAgencia(vaTotal)
   }
   if (cuenta(hon)) {
     const partes = hon.base === 'valor' ? repartir(c(hon.monto!), productosRes.map((p) => p.valorAduanero)) : repartir(c(hon.monto!), pesosPara(hon.base, productos, aereo, hon.productoDirecto))

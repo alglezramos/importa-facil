@@ -29,3 +29,13 @@ describe('arancel completo', () => {
     expect(etiqueta(ind, '9403.60.00.00')).toMatch(/muebles de madera/i)
   })
 })
+
+describe('orden de búsqueda', () => {
+  it('auriculares lleva al 8518.30, no a Auricularia (hongo)', () => {
+    expect(buscar(ind, 'auriculares', 5)[0].item[0]).toBe('8518.30.00.00')
+  })
+  it('audífonos muestra auriculares (8518.30) entre los primeros, junto a los audífonos médicos (9021.40)', () => {
+    const top = buscar(ind, 'audifonos', 3).map((r) => r.item[0])
+    expect(top).toContain('8518.30.00.00')
+  })
+})

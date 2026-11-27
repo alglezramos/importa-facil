@@ -39,7 +39,7 @@ export const SERVICIOS: Servicio[] = [
 /** Conceptos que forman los honorarios propios de LANDEX. */
 export const HONORARIOS_LANDEX = ['honorarios', 'coordinacion']
 /** Cargos de terceros en destino que se pagan por cuenta del cliente (aduana, puerto, almacén). */
-export const GASTOS_TERCEROS = ['thc_destino', 'doc_llegada', 'desconsolidacion', 'almacen_fiscal', 'movilizacion', 'inspecciones']
+export const GASTOS_TERCEROS = ['thc_destino', 'doc_llegada', 'desconsolidacion', 'almacen_fiscal', 'movilizacion', 'inspecciones', 'tasas_permisos']
 
 export type Proveedor = 'landex' | 'cliente'
 

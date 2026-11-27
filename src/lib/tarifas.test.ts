@@ -34,7 +34,8 @@ describe('tarifas', () => {
   it('aplicada, reemplaza el flete de referencia sin tocar el resto', () => {
     const aj = ajustesEfectivos([t()], ['t1'], {}, r0.carga, 55000, conceptosProtegidos(r0.conceptos))
     const r = calcularLanded({ ...base, ajustes: aj }, [prod(true)])
-    expect(r.conceptos.find((k) => k.id === 'flete')).toMatchObject({ estado: 'confirmado', monto: 3000 })
+    // tarifa del proveedor USD 3000 + 10 % de margen de LANDEX
+    expect(r.conceptos.find((k) => k.id === 'flete')).toMatchObject({ estado: 'confirmado', monto: 3300 })
     expect(r.conceptos.find((k) => k.id === 'thc_destino')?.monto).toBe(r0.conceptos.find((k) => k.id === 'thc_destino')?.monto)
   })
   it('no cobra lo que cubre el Incoterm ni lo que no aplica', () => {

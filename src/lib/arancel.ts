@@ -132,6 +132,10 @@ const SINONIMOS: Record<string, string[]> = {
   solar: ['fotovoltaicas'],
   cable: ['cables', 'conductores'],
   impresora: ['impresoras', 'maquinas para imprimir'],
+  audifonos: ['auriculares'],
+  audifono: ['auriculares'],
+  parlante: ['altavoces'],
+  parlantes: ['altavoces'],
 }
 
 const VACIAS = new Set(['de', 'la', 'el', 'los', 'las', 'del', 'para', 'con', 'y', 'en', 'a', 'o', 'un', 'una', 'por', 'al', 'sin'])
@@ -165,6 +169,11 @@ export function buscar(ind: Indice, consulta: string, limite = 40): Resultado[] 
     let aciertos = 0
     for (const t of tokens) {
       let mejor = 0
+      // La palabra exacta que escribió el cliente vale más que una variante o un pedazo de otra palabra
+      // (así "auriculares" no se confunde con "Auricularia", un hongo).
+      const exacta = new RegExp(`(^|[^a-z0-9])${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`)
+      if (exacta.test(x.propio)) mejor = 4
+      else if (exacta.test(x.contexto)) mejor = 2
       for (const v of variantes(t)) {
         if (x.propio.includes(v)) mejor = Math.max(mejor, 3)
         else if (x.contexto.includes(v)) mejor = Math.max(mejor, 1.5)
@@ -194,18 +203,29 @@ export function etiqueta(ind: Indice, codigo: string): string {
   return ultima ? `${partida} › ${ultima}` : partida
 }
 
+/** Selectivo y otros impuestos que el equipo de LANDEX ya validó en TICA, por inciso. */
+export interface TasaValidada { sc: number; otros: number; fecha: string }
+let tasasValidadas = new Map<string, TasaValidada>()
+export const fijarTasasValidadas = (m: Map<string, TasaValidada>) => { tasasValidadas = m }
+/** Una validación de más de un año se vuelve a pedir (los decretos cambian las tasas). */
+const VIGENCIA_TASA_DIAS = 365
+
 export function aClasificacion(ind: Indice, codigo: string): Clasificacion {
   const it = ind.porCodigo.get(codigo)
   const dai = it?.[2] && /^\d+(\.\d+)?$/.test(it[2]) ? Number(it[2]) / 100 : null
+  const v = tasasValidadas.get(codigo)
+  const vigente = v && (Date.now() - new Date(v.fecha).getTime()) / 86400000 <= VIGENCIA_TASA_DIAS
   return {
     codigo,
     descripcion: etiqueta(ind, codigo),
     dai,
-    sc: null,
+    sc: vigente ? v.sc : null,
     iva: 0.13,
-    otros: 0,
+    otros: vigente ? v.otros : 0,
     estado: 'preliminar',
-    fuente: 'DAI del Arancel Centroamericano (referencia regional); Selectivo por confirmar',
+    fuente: vigente
+      ? `DAI del Arancel Centroamericano; Selectivo validado por LANDEX en TICA el ${v.fecha.slice(0, 10)}`
+      : 'DAI del Arancel Centroamericano (referencia regional); Selectivo por confirmar',
   }
 }
 

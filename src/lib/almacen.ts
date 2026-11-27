@@ -9,6 +9,8 @@ import type { Clasificacion, Embarque, Producto, ResultadoLanded } from './lande
 
 export type EmbarqueForm = Omit<Embarque, 'origen'> & {
   origenId: string
+  /** true si el cliente escribió el tipo de cambio a mano (no se actualiza con el BCCR). */
+  tipoCambioManual?: boolean
   /** Estado de cada documento del expediente (no interviene en el cálculo). */
   documentos?: Record<string, EstadoDoc>
   /** Servicios complementarios que el cliente ya contrató por su cuenta (no interviene en el cálculo). */

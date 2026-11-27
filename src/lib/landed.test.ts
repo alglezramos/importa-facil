@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ORIGENES } from '../data/config'
-import { calcularLanded, compararModalidades, cubicar, repartir, type Embarque, type Producto } from './landed'
+import { calcularLanded, compararModalidades, cubicar, repartir, type Embarque, type Producto, honorariosAgencia } from './landed'
 
 const ningbo = ORIGENES.find((o) => o.id === 'cn-este')!
 const miami = ORIGENES.find((o) => o.id === 'us-mia')!
@@ -88,11 +88,24 @@ describe('multiproducto (5 SKU)', () => {
     expect(seguro.base).toBe('valor')
     expect(flete.base).toBe('volumen')
   })
-  it('un permiso pendiente marca la cotización como incompleta, sin contarlo como cero', () => {
-    const permiso = r.conceptos.find((k) => k.id === 'permisos')!
-    expect(permiso.estado).toBe('pendiente')
-    expect(permiso.monto).toBeNull()
+  it('un permiso cobra la gestión (USD 40) y deja pendientes las tasas oficiales, sin contarlas como cero', () => {
+    const gestion = r.conceptos.find((k) => k.id === 'permisos')!
+    expect(gestion.estado).toBe('estimado')
+    expect(gestion.monto).toBe(40)
+    const tasas = r.conceptos.find((k) => k.id === 'tasas_permisos')!
+    expect(tasas.estado).toBe('pendiente')
+    expect(tasas.monto).toBeNull()
     expect(r.estado).toBe('incompleta')
+  })
+  it('honorarios por tramos: mínimo USD 150, 0,6 % hasta 25 000 y 0,45 % del excedente', () => {
+    expect(honorariosAgencia(8000)).toBe(150)
+    expect(honorariosAgencia(25000)).toBe(150)
+    expect(honorariosAgencia(70000)).toBe(352.5)
+  })
+  it('los servicios de terceros llevan 10 % de margen; los gastos de puerto y los impuestos no', () => {
+    const sin = calcularLanded({ ...base, ajustes: { flete: { estado: 'confirmado', monto: 1000 }, thc_destino: { estado: 'confirmado', monto: 200 } } }, multi)
+    expect(sin.conceptos.find((k) => k.id === 'flete')!.monto).toBe(1100)
+    expect(sin.conceptos.find((k) => k.id === 'thc_destino')!.monto).toBe(200)
   })
   it('una asignación directa va completa a un producto', () => {
     const r2 = calcularLanded({ ...base, ajustes: { permisos: { estado: 'confirmado', monto: 300, base: 'directo', productoDirecto: 'd' } } }, multi)
