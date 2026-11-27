@@ -31,12 +31,14 @@ interface Props {
   alcance?: ReactNode
   /** Servicios que el cliente ya contrató por su cuenta (para separar a quién le paga). */
   externos?: string[]
+  /** Pide a LANDEX que confirme lo pendiente (abre la solicitud de cotización formal). */
+  onSolicitar?: () => void
 }
 
 // Paleta LANDEX: azul marino para la mercancía, azul eléctrico para impuestos y grises azulados para la logística
 const COLORES: Record<Etapa | 0, string> = { 0: '#101E30', 1: '#B8C9DE', 2: '#91A4BD', 3: '#3a5577', 4: '#6f86a3', 5: '#48A9FF', 6: '#24405f', 7: '#d5e0ee' }
 
-export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance, externos = [] }: Props) {
+export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, expediente, alcance, externos = [], onSolicitar }: Props) {
   const d = desglosar(r, externos)
   const impPend = r.productos.some((x) => x.impuestos.pendientes.length > 0)
   const [abierta, setAbierta] = useState<Etapa | null>(null)
@@ -48,6 +50,15 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
   const honorarios = propios.filter((k) => k.estado === 'estimado' || k.estado === 'confirmado').reduce((s, k) => s + (k.monto ?? 0), 0)
   const otrosServicios = Math.round((r.totales.logistica - honorarios) * 100) / 100
   const adicional = r.totales.total - r.totales.mercancia
+  const landexPend = d.honorariosPendiente || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente)
+  const sinImp = r.productos.filter((x) => x.impuestos.pendientes.length > 0)
+  const otrosPend = r.pendientes.filter((x) => !x.startsWith('Impuestos de '))
+  const ayudaPend = (x: string) =>
+    x.startsWith('Dato por confirmar') ? 'Pídele a tu proveedor la lista de empaque (packing list) con medidas y peso, y actualiza tu cotización.'
+      : x.includes('Incoterm') && x.startsWith('Confirmar') ? 'Pregúntale a tu proveedor qué incluye su precio: solo la mercancía, el transporte o también el seguro.'
+        : x.includes('solo para transporte marítimo') ? 'Cambia el Incoterm o la modalidad de transporte.'
+          : x.includes('no cabe') ? 'Elige otra modalidad o más unidades de transporte en la comparación.'
+            : 'LANDEX lo confirma al preparar tu cotización formal.'
 
   const segmentos: { k: Etapa | 0; nombre: string; v: number }[] = [
     { k: 0, nombre: 'Mercancía', v: r.totales.mercancia },
@@ -64,6 +75,12 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
         </div>
         <strong>{usd(r.totales.total)}</strong>
         <span className="crc">{crc(r.totales.total * e.tipoCambio)} · rango referencial {usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? ' + pendientes' : ''}</span>
+        {unidades > 0 && (
+          <p className="explica-unitario">
+            {r.productos.length === 1 ? 'Cada unidad te cuesta' : 'En promedio, cada unidad te cuesta'}{impPend || r.pendientes.length ? ' por ahora' : ''} <b>{usd(r.totales.total / unidades)}</b>.
+            {impPend ? ' Falta calcular los impuestos según la clasificación de tu producto.' : r.pendientes.length ? ' Faltan algunos montos por confirmar.' : ''}
+          </p>
+        )}
         <div className="kpis resumen">
           <div><span>Sobre el valor de tu mercancía</span><b>{r.totales.mercancia ? `+${((adicional / r.totales.mercancia) * 100).toFixed(1)} %` : '—'}{r.estado === 'incompleta' ? ' + pend.' : ''}</b></div>
           <div><span>Costo por unidad {r.estado === 'incompleta' ? '(parcial)' : ''}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
@@ -73,12 +90,18 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
           <b>¿A quién le pagas?</b>
           <ul>
             <li><span>Tu proveedor <small>valor de la mercancía</small></span><b>{usd(d.mercancia)}</b></li>
-            <li className="landex"><span>LANDEX <small>honorarios, coordinación y servicios que coordinamos</small></span><b>{usd(d.honorariosLandex + d.serviciosLandex)}{d.honorariosPendiente || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? ' + pend.' : ''}</b></li>
-            <li><span>El Estado <small>impuestos de importación</small></span><b>{impPend ? (d.impuestos ? `${usd(d.impuestos)} + pend.` : 'Pendiente') : usd(d.impuestos)}</b></li>
+            <li className="landex"><span>LANDEX · honorarios <small>agencia aduanal y coordinación</small></span><b>{usd(d.honorariosLandex)}{d.honorariosPendiente ? ' + pend.' : ''}</b></li>
+            {(d.serviciosLandex > 0 || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente)) && <li className="landex"><span>LANDEX · servicios de terceros que coordinamos <small>flete, seguro, transporte y descarga con socios</small></span><b>{usd(d.serviciosLandex)}{d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? ' + pend.' : ''}</b></li>}
+            <li><span>El Estado <small>impuestos de importación</small></span><b>{impPend ? (d.impuestos ? `${usd(d.impuestos)} + pend.` : 'Pendiente') : usd(d.impuestos)}{impPend && onSolicitar ? <button type="button" className="link" onClick={onSolicitar}>Solicitar revisión</button> : null}</b></li>
             <li><span>Puerto y almacén fiscal <small>gastos de terceros en destino</small></span><b>{usd(d.gastosTerceros)}</b></li>
             {d.serviciosCliente > 0 && <li><span>Tus propios proveedores <small>servicios que ya contrataste</small></span><b>{usd(d.serviciosCliente)}</b></li>}
           </ul>
-          <small>Solo la fila de LANDEX la factura LANDEX. La mercancía, los impuestos y los gastos de puerto no son ingresos de LANDEX.</small>
+          <p className="comparacion-comercial">
+            <span>Contratarías con LANDEX <b>{usd(d.honorariosLandex + d.serviciosLandex)}{landexPend ? ' + pend.' : ''}</b></span>
+            {d.serviciosCliente > 0 && <span>Ya contrataste por tu cuenta <b>{usd(d.serviciosCliente)}</b></span>}
+            <span>Falta confirmar <b>{r.pendientes.length ? `${r.pendientes.length} ${r.pendientes.length === 1 ? 'monto' : 'montos'}` : 'nada'}</b></span>
+          </p>
+          <small>Solo las filas de LANDEX las factura LANDEX. La mercancía, los impuestos y los gastos de puerto no son ingresos de LANDEX.</small>
         </div>
         <details className="mas-indicadores">
           <summary>Más indicadores</summary>
@@ -96,8 +119,26 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
 
       {r.pendientes.length > 0 && (
         <div className="pendientes">
-          <b>Pendiente de confirmar (no está sumado al total):</b>
-          <ul>{r.pendientes.map((x) => <li key={x}>{x}</li>)}</ul>
+          <b>Pendiente de confirmar (no está sumado al total) y cómo resolverlo:</b>
+          <ul>
+            {sinImp.map((p) => {
+              const prod = productos.find((x) => x.id === p.id)
+              return (
+                <li key={p.id} className="pend-accion">
+                  <span><b>Impuestos de {p.nombre || p.sku}</b> · faltan {p.impuestos.pendientes.join(', ')}
+                    <small>Ya tenemos: {[prod?.descripcion || p.nombre, prod?.paisFabricacion ? `fabricado en ${prod.paisFabricacion}` : '', prod?.clasificacion ? `partida ${prod.clasificacion.codigo}` : 'sin partida todavía'].filter(Boolean).join(' · ')}</small>
+                  </span>
+                  {onSolicitar && <button type="button" className="btn mini" onClick={onSolicitar}>Solicitar revisión de {p.nombre || 'mi producto'}</button>}
+                </li>
+              )
+            })}
+            {otrosPend.map((x) => (
+              <li key={x} className="pend-accion">
+                <span>{x}<small>{ayudaPend(x)}</small></span>
+                {onSolicitar && ayudaPend(x).startsWith('LANDEX') && <button type="button" className="btn mini" onClick={onSolicitar}>Que LANDEX lo confirme</button>}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
       {r.carga.alertas.length > 0 && <ul className="avisos">{r.carga.alertas.map((a) => <li key={a}>{a}</li>)}</ul>}
@@ -196,7 +237,7 @@ export function Resultado({ e, productos, r, onAjuste, onModo, formal, ofertas, 
           )
         })}
       </div>
-      <p className="nota">Tarifas: {VIGENCIA_TARIFAS.fuente}, actualizadas al {VIGENCIA_TARIFAS.actualizado}. *El IVA de importación es crédito fiscal si tu empresa está inscrita en IVA.</p>
+      <p className="nota">Tarifas: {VIGENCIA_TARIFAS.fuente}, actualizadas al {VIGENCIA_TARIFAS.actualizado}. Se confirman en la cotización formal. *El IVA de importación es crédito fiscal si tu empresa está inscrita en IVA.</p>
 
       <h3>Landed Cost por producto <Termino id="landed" /></h3>
       <div className="scroll">

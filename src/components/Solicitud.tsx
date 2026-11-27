@@ -1,7 +1,7 @@
 import { leerPerfil } from '../lib/almacen'
 import { useEffect, useMemo, useState } from 'react'
 import { AGENCIA, MODOS, ZONAS } from '../data/config'
-import { proveedoresInternacionales, TIPO_ETIQUETA, TRANSPORTISTAS, type Proveedor } from '../data/proveedores'
+import { esProveedorReal, proveedoresInternacionales, TIPO_ETIQUETA, TRANSPORTISTAS, type Proveedor } from '../data/proveedores'
 import { INCOTERMS, type Embarque, type Producto, type ResultadoLanded } from '../lib/landed'
 import { crc, usd } from '../lib/formato'
 
@@ -62,7 +62,8 @@ export function armarSolicitud(e: Embarque, r: ResultadoLanded, productos: Produ
 }
 
 export function Solicitud({ entrada, r, productos }: Props) {
-  const opciones = useMemo(() => proveedoresInternacionales(entrada.origen.id, entrada.modo), [entrada.origen.id, entrada.modo])
+  const opciones = useMemo(() => proveedoresInternacionales(entrada.origen.id, entrada.modo).filter(esProveedorReal), [entrada.origen.id, entrada.modo])
+  const transportistas = TRANSPORTISTAS.filter(esProveedorReal)
   const [elegidos, setElegidos] = useState<string[]>([])
   const [terrestres, setTerrestres] = useState<string[]>([])
   const [contacto, setContacto] = useState<Contacto>(leerContacto)
@@ -81,7 +82,7 @@ export function Solicitud({ entrada, r, productos }: Props) {
     set(lista.includes(id) ? lista.filter((x) => x !== id) : [...lista, id])
 
   const selInt = opciones.filter((o) => elegidos.includes(o.id))
-  const selTerr = TRANSPORTISTAS.filter((t) => terrestres.includes(t.id))
+  const selTerr = transportistas.filter((t) => terrestres.includes(t.id))
   const texto = armarSolicitud(entrada, r, productos, contacto, selInt, selTerr)
   const completo = contacto.nombre.trim() && (contacto.correo.trim() || contacto.telefono.trim())
 
@@ -106,6 +107,7 @@ export function Solicitud({ entrada, r, productos }: Props) {
       </p>
 
       <h4>Flete internacional · {entrada.origen.nombre} · {MODOS[entrada.modo]}</h4>
+      {!grupos.length && <p className="nota">{AGENCIA.nombre} seleccionará el agente de carga según tu carga, el origen y la modalidad.</p>}
       {grupos.map((g) => (
         <div key={g.tipo} className="grupo-prov">
           <span className="tipo">{TIPO_ETIQUETA[g.tipo]}{g.tipo === 'naviera' && entrada.modo === 'LCL' ? ' (carga consolidada)' : ''}</span>
@@ -125,8 +127,9 @@ export function Solicitud({ entrada, r, productos }: Props) {
       )}
 
       <h4>Transporte terrestre en Costa Rica</h4>
+      {!transportistas.length && <p className="nota">{AGENCIA.nombre} seleccionará un transportista según tu carga y destino.</p>}
       <div className="chips">
-        {TRANSPORTISTAS.map((t) => (
+        {transportistas.map((t) => (
           <label key={t.id} className={`chip ${terrestres.includes(t.id) ? 'on' : ''}`}>
             <input type="checkbox" checked={terrestres.includes(t.id)} onChange={() => alternar(terrestres, setTerrestres, t.id)} />
             {t.nombre}
@@ -134,7 +137,7 @@ export function Solicitud({ entrada, r, productos }: Props) {
           </label>
         ))}
       </div>
-      <p className="nota">Si no eliges ninguno, te recomendamos las mejores opciones.</p>
+      {transportistas.length > 0 && <p className="nota">Si no eliges ninguno, te recomendamos las mejores opciones.</p>}
 
       <h4>Tus datos</h4>
       <div className="fila2">

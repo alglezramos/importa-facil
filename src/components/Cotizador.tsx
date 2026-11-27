@@ -7,6 +7,7 @@ import {
 import { aClasificacion, cargarArancel } from '../lib/arancel'
 import { descargar, importarCSV, plantillaCSV } from '../lib/csv'
 import { usd } from '../lib/formato'
+import { conceptosDeServicios, fijarMontoNegociado } from '../lib/servicios'
 import {
   calcularLanded, INCOTERMS, incotermCompatible, volumenProducto, type Ajuste, type Clasificacion, type Embarque,
   type Incoterm, type Producto,
@@ -66,6 +67,8 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
   const [doc, setDoc] = useState(false)
   const [contratar, setContratar] = useState<Intencion | null>(null)
   const archivo = useRef<HTMLInputElement>(null)
+  // En "Mi primera importación" el costo se muestra cuando ya se conocen la carga y el transporte.
+  const [guiaLista, setGuiaLista] = useState(inicial.current.productos.length > 0)
   const resultadoRef = useRef<HTMLDivElement>(null)
 
   const [emision, setEmision] = useState<Emision | undefined>(inicial.current.emision)
@@ -100,6 +103,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
     setMensaje(c ? (apertura.copia ? `Copia de ${c.numero}: al guardar recibirá un número nuevo.` : `Editando ${c.numero}.`) : '')
     if (apertura.modo) setModoVista(apertura.modo)
     else if (!c) setModoVista(perfil.experiencia === 'ninguna' ? 'guiado' : 'experto')
+    setGuiaLista(!!c)
     setContratar(null)
   }, [apertura]) // eslint-disable-line
 
@@ -115,7 +119,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
   }, [clasificacionNueva]) // eslint-disable-line
 
   const origen = ORIGENES.find((o) => o.id === ef.origenId) ?? ORIGENES[0]
-  const embarqueManual: Embarque = { ...ef, origen }
+  const embarqueManual: Embarque = { ...ef, origen, conceptosCliente: conceptosDeServicios(ef.gestionCliente ?? []) }
   // Tarifas aplicadas que siguen sirviendo para esta ruta y modalidad
   const aplicadas = (ef.tarifasAplicadas ?? []).map((id) => todas.find((t) => t.id === id)).filter((t): t is Tarifa => !!t && aplicaA(t, ef))
   const { embarque, r, protegidos } = useMemo(() => {
@@ -285,7 +289,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
           <fieldset>
             <legend><span>✓</span> Cotización guiada</legend>
             <Guiado ef={ef} setEf={setEf} productos={productos} setProductos={setProductos} perfil={perfil} conectado={!!usuario} onIngresar={onIniciarSesion}
-              onTerminar={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} />
+              onTerminar={() => { setGuiaLista(true); setTimeout(() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} />
           </fieldset>
           {productos.length > 0 && <p className="nota">¿Tienes más de un producto? <button type="button" className="link" onClick={() => setModoVista('experto')}>Agrégalos en el modo detallado</button>: tus datos se conservan.</p>}
         </div>
@@ -390,13 +394,27 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         </fieldset>
         <div className="acciones">
           {agencia && <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>}
-          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>Empezar de cero</button>}
+          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setGuiaLista(false); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>Empezar de cero</button>}
         </div>
       </form>
       )}
 
       <div ref={resultadoRef} className="col-resultado">
-      {r ? (
+      {modoVista === 'guiado' && !guiaLista && !nubeEstado ? (
+        <section className="resultado vacio guia-espera">
+          {r && r.totales.mercancia > 0 ? (
+            <>
+              <h3>Tu mercancía cuesta {usd(r.totales.mercancia)}</h3>
+              <p>Ahora vamos a calcular cuánto cuesta traerla hasta tu bodega. Te mostramos el costo total cuando sepamos el tamaño de tu carga, dónde la recibes y qué transporte prefieres.</p>
+            </>
+          ) : (
+            <>
+              <h3>Tu cotización aparecerá aquí</h3>
+              <p>Responde las preguntas de la izquierda. Al final verás el costo de tu importación puesto en tu bodega y el costo por unidad.</p>
+            </>
+          )}
+        </section>
+      ) : r ? (
         <>
           {!staff && puedeSolicitar && (
             <div className="cta-contratar">
@@ -440,9 +458,12 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
                 return null
               }} />
           )}
-          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar} onModo={(m) => set({ modo: m })} externos={ef.gestionCliente ?? []}
+          <Resultado e={embarque} productos={productos} r={r} onAjuste={ajustar}
+            onSolicitar={!staff && puedeSolicitar ? () => { setContratar('cotizacion_formal'); resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } : undefined} onModo={(m) => set({ modo: m })} externos={ef.gestionCliente ?? []}
             formal={formalVigente ? emision : undefined}
-            alcance={<Alcance r={r} externos={ef.gestionCliente ?? []} soloLectura={bloqueada} onCambio={(x) => set({ gestionCliente: x })} />}
+            alcance={<Alcance r={r} externos={ef.gestionCliente ?? []} ajustes={ef.ajustes} soloLectura={bloqueada}
+              onCambio={(x) => setEf((f) => ({ ...f, gestionCliente: x, ajustes: (f.gestionCliente ?? []).filter((id) => !x.includes(id)).reduce((a, id) => fijarMontoNegociado(r, a, id, null), f.ajustes ?? {}) }))}
+              onMonto={(id, m) => setEf((f) => ({ ...f, ajustes: fijarMontoNegociado(r, f.ajustes, id, m) }))} />}
             ofertas={<Ofertas e={embarqueManual} productos={productos} r={r} candidatas={candidatas} todas={todas}
               aplicadas={aplicadas.map((t) => t.id)} protegidos={protegidos} onAplicar={aplicarT} onQuitar={quitarT} />}
             expediente={<Expediente e={embarque} productos={productos} estados={ef.documentos ?? {}} agencia={agencia}
@@ -458,7 +479,7 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
       )}
       </div>
     </div>
-    {r && (
+    {r && (modoVista !== 'guiado' || guiaLista || !!nubeEstado) && (
       <div className="resumen-movil" aria-hidden={doc}>
         <div><small>{formalVigente ? 'Cotización formal' : r.estado === 'incompleta' ? 'Estimada incompleta' : 'Estimada'}</small><b>{usd(r.totales.total)}</b></div>
         <button type="button" className="btn primario" onClick={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth' })}>Ver resumen</button>
