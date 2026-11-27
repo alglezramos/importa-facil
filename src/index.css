@@ -916,8 +916,15 @@ nav button { white-space: nowrap; }
 .ai-inicio-demo .ai-inicio-r { color: var(--text); margin: 0; font-weight: 600; }
 @media (max-width: 760px) { .ai-inicio { grid-template-columns: 1fr; } }
 .nosotros-portada { grid-template-columns: 1fr; }
-.nosotros-texto { max-width: 760px; }
-.nosotros-texto p { font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
+.nosotros-historia { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; gap: clamp(24px, 4vw, 64px); margin-block: 20px; }
+.nosotros-retrato { margin: 0; }
+.nosotros-retrato img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.nosotros-retrato figcaption { margin-top: 10px; font-size: .85rem; }
+@media (max-width: 800px) {
+  .nosotros-historia { grid-template-columns: 1fr; }
+  .nosotros-retrato { grid-row: 1; width: min(100%, 320px); justify-self: center; }
+}
+.nosotros-relato p { font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
 .nosotros-cierre { margin-top: 22px !important; font-size: 18px !important; }
 .nosotros-firma { color: var(--accent); font-weight: 700; letter-spacing: .04em; }
 .datos-empresa { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 8px 0 0; }
