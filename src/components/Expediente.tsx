@@ -20,6 +20,10 @@ interface Props {
 }
 
 const ORDEN: Responsable[] = ['proveedor', 'cliente', 'landex']
+const TITULOS: Record<Responsable, string> = { proveedor: 'Documentos del proveedor', cliente: 'Documentos del importador', landex: 'Gestionados por LANDEX' }
+function IconoDoc({ listo = false }: { listo?: boolean }) {
+  return <svg className="dc-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z M14 3v5h4"/>{listo ? <path d="m9 14 2 2 4-4"/> : <path d="M9 12h6 M9 16h6"/>}</svg>
+}
 const ESTADOS_ARCHIVO: Record<EstadoArchivo, string> = { recibido: 'Recibido', revisado: 'Revisado por el agente', observado: 'Con observaciones' }
 
 export function Expediente({ e, productos, estados, agencia, onEstado, cotId, usuario, onGuardarPrimero, onIniciarSesion }: Props) {
@@ -44,6 +48,8 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
   }
   const tuyos = docs.filter((d) => d.responsable !== 'landex' && d.obligatorio)
   const listos = tuyos.filter((d) => estadoDe(d.id) !== 'pendiente').length
+  const revisados = tuyos.filter(d => estadoDe(d.id) === 'revisado').length
+  const porcentaje = tuyos.length ? Math.round(listos / tuyos.length * 100) : 0
 
   const subir = async (tipo: string, f: File) => {
     if (!cotId) return
@@ -55,8 +61,14 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
   }
 
   return (
-    <div className="expediente">
-      <h3>Documentos de tu importación</h3>
+    <div className="expediente document-center">
+      <div className="dc-header">
+        <span className="dc-kicker">LANDEX · DOCUMENT CENTER</span>
+        <h3>Documentos de tu importación</h3>
+        <div className="dc-progress-label"><span>{enNube ? 'Documentos obligatorios subidos' : 'Documentos obligatorios disponibles'}</span><strong>{porcentaje}%</strong></div>
+        <progress className="dc-progress" value={listos} max={tuyos.length || 1} aria-label="Progreso documental a cargo del importador" />
+        <small>{listos} de {tuyos.length} · A tu cargo{enNube ? ` · ${revisados} revisados` : ' · Disponibilidad declarada, no validación'}</small>
+      </div>
       <p className="nota">
         {listos} de {tuyos.length} documentos obligatorios {enNube ? 'subidos' : 'listos'}. Sin factura, lista de empaque y documento de
         transporte no se puede nacionalizar.{' '}
@@ -70,18 +82,20 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
         if (!grupo.length) return null
         return (
           <div key={resp} className="exp-grupo">
-            <span className="tipo">{RESPONSABLES[resp]}</span>
+            <div className="dc-group-heading"><span className="dc-group-icon"><IconoDoc /></span><div><b>{TITULOS[resp]}</b><small>{RESPONSABLES[resp]}{resp !== 'landex' ? ` · ${grupo.filter(d => d.obligatorio && estadoDe(d.id) !== 'pendiente').length}/${grupo.filter(d => d.obligatorio).length} obligatorios` : ''}</small></div></div>
             <ul>
               {grupo.map((d) => {
                 const s = estadoDe(d.id)
                 return (
                   <li key={d.id} className={`doc ${s}`}>
                     <div className="doc-fila">
-                      <div>
+                      <IconoDoc listo={s === 'recibido' || s === 'revisado'} />
+                      <div className="dc-copy">
                         <span><b>{d.nombre}</b>{!d.obligatorio && <small className="opc"> · recomendado</small>}</span>
                         <small>{d.detalle}</small>
+                        {enNube && <small className={`dc-status ${s}`}>{ESTADOS_DOC[s]}</small>}
                       </div>
-                      {enNube ? (
+                      <div className="dc-action">{enNube ? (
                         resp === 'landex' && !staff ? <span className="sello">LANDEX</span> : (
                           <Subir tipo={d.id} ocupado={subiendo === d.id} onArchivo={(f) => subir(d.id, f)} />
                         )
@@ -92,8 +106,8 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
                           {Object.entries(ESTADOS_DOC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
                       ) : (
-                        <label className="check"><input type="checkbox" checked={s === 'recibido'} onChange={(ev) => onEstado(d.id, ev.target.checked ? 'recibido' : 'pendiente')} />Ya lo tengo</label>
-                      )}
+                        <label className="check"><input type="checkbox" aria-label={`Ya tengo ${d.nombre}`} checked={s !== 'pendiente'} onChange={(ev) => onEstado(d.id, ev.target.checked ? 'recibido' : 'pendiente')} />Ya lo tengo</label>
+                      )}</div>
                     </div>
                     {enNube && deTipo(d.id).length > 0 && (
                       <ul className="archivos">
@@ -113,8 +127,8 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
           <ul>
             <li className="doc">
               <div className="doc-fila">
-                <div><b>Otro documento</b><small>Cualquier otro archivo que el agente aduanero te pida.</small></div>
-                <Subir tipo="otro" ocupado={subiendo === 'otro'} onArchivo={(f) => subir('otro', f)} />
+                <IconoDoc /><div className="dc-copy"><b>Otro documento</b><small>Cualquier otro archivo que el agente aduanero te pida.</small></div>
+                <div className="dc-action"><Subir tipo="otro" ocupado={subiendo === 'otro'} onArchivo={(f) => subir('otro', f)} /></div>
               </div>
               {deTipo('otro').length > 0 && (
                 <ul className="archivos">{deTipo('otro').map((a) => <Archivo key={a.id} a={a} staff={staff} onCambio={cargar} onError={setError} />)}</ul>
