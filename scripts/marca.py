@@ -33,7 +33,7 @@ def wordmark(land: str, x0=0, y0=0, escala=1.0) -> str:
 def tagline(x, y, color, tam=30) -> str:
     return (f'<line x1="{x}" y1="{y - tam * 0.33}" x2="{x + tam * 2.2}" y2="{y - tam * 0.33}" stroke="{AZUL}" stroke-width="{tam / 12:.1f}"/>'
             f'<text x="{x + tam * 2.8}" y="{y}" font-family="Montserrat, Arial, sans-serif" font-style="italic" font-weight="500" '
-            f'font-size="{tam}" fill="{color}">International Trade Intelligence</text>')
+            f'font-size="{tam}" fill="{color}">Landed Cost Intelligence</text>')
 
 def monograma(tam=512, fondo=True) -> str:
     # Monograma LX: L blanca en cursiva y X azul, sobre azul marino.
