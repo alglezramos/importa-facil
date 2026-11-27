@@ -84,8 +84,10 @@ Deno.serve(async (req) => {
   if (perfil?.rol === 'agente' || perfil?.rol === 'operador') nivel = 'equipo'
   else {
     const { count: ops } = await admin.from('cotizaciones').select('id', { count: 'exact', head: true }).eq('cliente_id', u.user.id).in('estado', ['aceptada', 'en_proceso', 'cerrada'])
-    const { data: acceso } = await admin.from('ai_accesos').select('usuario').eq('usuario', u.user.id).maybeSingle()
-    if ((ops ?? 0) > 0 || acceso) nivel = 'cliente'
+    const { data: acceso } = await admin.from('ai_accesos').select('nivel').eq('usuario', u.user.id).maybeSingle()
+    // "prueba": cuentas de prueba del equipo, mismo cupo que el equipo.
+    if (acceso?.nivel === 'prueba') nivel = 'equipo'
+    else if ((ops ?? 0) > 0 || acceso) nivel = 'cliente'
   }
   if (fase === 'incisos' && nivel === 'gratis') return json({ error: 'El inciso exacto está disponible para clientes LANDEX.', nivel }, 403)
 
