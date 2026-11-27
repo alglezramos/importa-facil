@@ -143,7 +143,7 @@ export const FACTOR_VOLUMETRICO_AEREO = 167
 /** Identidad de marca. LANDEX es la primera unidad de negocio de Ramos & Co. */
 export const MARCA = {
   nombre: 'LANDEX',
-  descriptor: 'International Trade Intelligence',
+  descriptor: 'Landed Cost Intelligence',
   eslogan: 'Importa con inteligencia.',
   propuesta: 'De la fábrica a tu bodega.',
   firma: 'A Ramos & Co. Company',
