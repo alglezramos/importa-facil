@@ -1,3 +1,4 @@
+import { CuentaCabecera } from './components/CuentaCabecera'
 import { tr, elegirIdioma, idiomaActual, formatoRegional } from './lib/idioma'
 import { useEffect, useState } from 'react'
 import { Acceso } from './components/Acceso'
@@ -119,25 +120,11 @@ export default function App() {
         <div className="marca">
           <h1 className="marca-h1"><a href="#" onClick={(e) => { e.preventDefault(); setVista('inicio') }} aria-label={tr("LANDEX, ir al inicio")}><Logotipo sobre="oscuro" alto={30} descriptor /></a></h1>
         </div>
-        <div className="cuenta">
-          <select className="idioma-selector" aria-label={idioma === 'en' ? 'Language' : 'Idioma'} value={idioma}
-            onChange={(e) => {
-              const siguiente = e.target.value === 'en' ? 'en' : 'es'
-              elegirIdioma(siguiente)
-              setIdioma(siguiente)
-            }}>
-            <option value="es" lang="es">Español</option>
-            <option value="en" lang="en">English</option>
-          </select>
-          {usuario ? (
-            <>
-              <span className="quien"><b>{perfil.nombre || usuario.email}</b><small>{tr(ROLES[usuario.rol])}</small></span>
-              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>{tr("Salir")}</button>
-            </>
-          ) : (
-            <button type="button" className="btn-cuenta" onClick={() => { setVista('portal'); setAcceso(true) }}>{tr("Ingresar a Mi LANDEX")}</button>
-          )}
-        </div>
+        <CuentaCabecera idioma={idioma} nombre={usuario ? perfil.nombre.trim() || usuario.email : undefined}
+          rol={usuario ? tr(ROLES[usuario.rol]) : undefined}
+          onIdioma={(nuevo) => { elegirIdioma(nuevo); setIdioma(nuevo) }}
+          onSalir={async () => { await salir(); setVista('inicio') }}
+          onIngresar={() => { setVista('portal'); setAcceso(true) }} />
         <nav aria-label={tr("Navegación principal")}>
           {visibles.filter(v => (v !== 'agencia' && !privadas.includes(v)) || v === 'portal').map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
