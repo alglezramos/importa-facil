@@ -56,7 +56,7 @@ export function Inicio({ onCotizar, onAgencia, onSocios, onGuia, onLandexAI }: P
     <div className="inicio">
       <section className="portada">
         <div className="portada-texto">
-          <span className="sobretitulo">Tu agencia aduanal digital</span>
+          <span className="sobretitulo">Tu agencia de aduanas digital</span>
           <h2>Conoce el costo de tu importación <span>antes de comprar.</span></h2>
           <p className="bajada">De la fábrica a tu bodega. Cotización, agencia aduanal y logística en una sola plataforma, con un solo punto de contacto.</p>
           <ul className="sellos" aria-label="Condiciones del cotizador"><li>Sin registro</li><li>Sin compromiso</li><li>Gratis</li></ul>
