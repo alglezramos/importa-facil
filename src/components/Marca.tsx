@@ -21,7 +21,7 @@ interface Props {
   sobre?: 'claro' | 'oscuro'
   /** Altura en píxeles de las letras. */
   alto?: number
-  /** Muestra el descriptor "International Trade Intelligence" con su línea. */
+  /** Muestra el descriptor "Landed Cost Intelligence" con su línea. */
   descriptor?: boolean
   className?: string
 }
@@ -34,7 +34,7 @@ export function Logotipo({ sobre = 'claro', alto = 26, descriptor = false, class
         {LAND.map((d) => <path key={d} d={d} fill={land} fillRule="evenodd" />)}
         {EX.map((d) => <path key={d} d={d} fill={AZUL} />)}
       </svg>
-      {descriptor && <span className="logotipo-desc">International Trade Intelligence</span>}
+      {descriptor && <span className="logotipo-desc">Landed Cost Intelligence</span>}
     </span>
   )
 }
