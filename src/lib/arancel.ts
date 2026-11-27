@@ -3,6 +3,7 @@
  * Los datos viven en public/arancel.json y se cargan solo cuando se necesitan.
  */
 import type { Clasificacion } from './landed'
+import { selectivoDecreto } from './selectivo'
 
 export type Item = [codigo: string, descripcion: string, dai: string | null]
 
@@ -215,17 +216,20 @@ export function aClasificacion(ind: Indice, codigo: string): Clasificacion {
   const dai = it?.[2] && /^\d+(\.\d+)?$/.test(it[2]) ? Number(it[2]) / 100 : null
   const v = tasasValidadas.get(codigo)
   const vigente = v && (Date.now() - new Date(v.fecha).getTime()) / 86400000 <= VIGENCIA_TASA_DIAS
+  // Sin validación del agente, se usa la referencia oficial del Decreto 44921-MH cuando aplica.
+  const ref = vigente ? null : selectivoDecreto(codigo)
   return {
     codigo,
     descripcion: etiqueta(ind, codigo),
     dai,
-    sc: vigente ? v.sc : null,
+    sc: vigente ? v.sc : ref ? ref.sc : null,
     iva: 0.13,
     otros: vigente ? v.otros : 0,
     estado: 'preliminar',
     fuente: vigente
       ? `DAI del Arancel Centroamericano; Selectivo validado por LANDEX en TICA el ${v.fecha.slice(0, 10)}`
-      : 'DAI del Arancel Centroamericano (referencia regional); Selectivo por confirmar',
+      : ref ? `DAI del Arancel Centroamericano (referencia regional); ${ref.texto}`
+        : 'DAI del Arancel Centroamericano (referencia regional); Selectivo por confirmar',
   }
 }
 
