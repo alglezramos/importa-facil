@@ -79,10 +79,14 @@ Deno.serve(async (req) => {
   if (fase === 'incisos' && opciones.length === 0) return json({ error: 'No hay incisos para comparar.' }, 400)
 
   // Nivel del usuario
-  const { data: perfil } = await admin.from('perfiles').select('rol').eq('id', u.user.id).maybeSingle()
+  const { data: perfil } = await admin.from('perfiles').select('rol, nombre, telefono, identificacion').eq('id', u.user.id).maybeSingle()
   let nivel: Nivel = 'gratis'
   if (perfil?.rol === 'agente' || perfil?.rol === 'operador') nivel = 'equipo'
   else {
+    // Registro obligatorio: nombre, teléfono e identificación antes de usar LANDEX AI.
+    if (!perfil?.nombre?.trim() || String(perfil?.telefono ?? '').replace(/\D/g, '').length < 8 || !perfil?.identificacion?.trim()) {
+      return json({ error: 'Completa tu registro (nombre, cédula y teléfono) para usar LANDEX AI.' }, 403)
+    }
     const { count: ops } = await admin.from('cotizaciones').select('id', { count: 'exact', head: true }).eq('cliente_id', u.user.id).in('estado', ['aceptada', 'en_proceso', 'cerrada'])
     const { data: acceso } = await admin.from('ai_accesos').select('nivel').eq('usuario', u.user.id).maybeSingle()
     // "prueba": cuentas de prueba del equipo, mismo cupo que el equipo.
