@@ -956,3 +956,10 @@ nav button { white-space: nowrap; }
 .termino:hover .termino-pop, .termino:focus .termino-pop { display: block; }
 @media (max-width: 640px) { .termino-pop { left: auto; right: -8px; transform: none; width: 220px; } }
 .autoguardado { color: #17663a; }
+.bloque.ai-inicio { background: linear-gradient(135deg, var(--navy), var(--navy-2)); border-color: transparent; color: #fff; }
+.bloque.ai-inicio h2 { color: #fff; }
+.bloque.ai-inicio p { color: var(--gris-azul); }
+.ai-entrar .ai-cand.ai-ejemplo { background: #fff; }
+.ai-entrar .ai-ejemplo .ai-texto, .ai-entrar .ai-ejemplo .codigo, .ai-entrar .ai-ejemplo .tasa { color: var(--text); }
+.ai-entrar .ai-ejemplo .ai-por { color: var(--muted); }
+.ai-entrar .ai-ejemplo small { color: var(--navy-2); }
