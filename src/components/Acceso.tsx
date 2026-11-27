@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { Logotipo } from './Marca'
 import { useEffect, useState } from 'react'
 import { enviarEnlace } from '../lib/nube'
@@ -25,24 +26,24 @@ export function Acceso({ onCerrar }: Props) {
   }
 
   return (
-    <div className="modal-fondo" role="dialog" aria-modal="true" aria-label="Iniciar sesión" onClick={onCerrar}>
+    <div className="modal-fondo" role="dialog" aria-modal="true" aria-label={tr("Iniciar sesión")} onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="cerrar" aria-label="Cerrar" onClick={onCerrar}>×</button>
+        <button type="button" className="cerrar" aria-label={tr("Cerrar")} onClick={onCerrar}>×</button>
         <Logotipo alto={28} descriptor />
         {estado === 'enviado' ? (
           <>
-            <h3>Revisa tu correo</h3>
-            <p>Te enviamos un enlace a <b>{email}</b>. Ábrelo en este mismo navegador para entrar. Si no lo ves, revisa la carpeta de correo no deseado.</p>
-            <button type="button" className="btn" onClick={() => setEstado('inicio')}>Usar otro correo</button>
+            <h3>{tr("Revisa tu correo")}</h3>
+            <p>{tr("Te enviamos un enlace a ")}<b>{email}</b>{tr(". Ábrelo en este mismo navegador para entrar. Si no lo ves, revisa la carpeta de correo no deseado.")}</p>
+            <button type="button" className="btn" onClick={() => setEstado('inicio')}>{tr("Usar otro correo")}</button>
           </>
         ) : (
           <form onSubmit={enviar}>
-            <h3>Entra a tu cuenta</h3>
-            <p className="nota">Te enviamos un enlace de acceso por correo, sin contraseñas. Si es tu primera vez, se crea tu cuenta y te pediremos algunos datos para completar tu registro.</p>
-            <label>Correo<input type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" /></label>
-            {error && <p className="error" role="alert">{error}</p>}
-            <button type="submit" className="btn primario" disabled={!valido || estado === 'enviando'}>{estado === 'enviando' ? 'Enviando…' : 'Enviarme el enlace'}</button>
-            <small className="nota">Con tu cuenta guardas tus cotizaciones, subes documentos y recibes cotizaciones formales.</small>
+            <h3>{tr("Entra a tu cuenta")}</h3>
+            <p className="nota">{tr("Te enviamos un enlace de acceso por correo, sin contraseñas. Si es tu primera vez, se crea tu cuenta y te pediremos algunos datos para completar tu registro.")}</p>
+            <label>{tr("Correo")}<input type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder={tr("tu@empresa.com")} /></label>
+            {error && <p className="error" role="alert">{tr(error)}</p>}
+            <button type="submit" className="btn primario" disabled={!valido || estado === 'enviando'}>{estado === 'enviando' ? tr("Enviando…") : tr("Enviarme el enlace")}</button>
+            <small className="nota">{tr("Con tu cuenta guardas tus cotizaciones, subes documentos y recibes cotizaciones formales.")}</small>
           </form>
         )}
       </div>

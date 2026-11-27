@@ -1,3 +1,4 @@
+import { tr, idiomaActual } from '../lib/idioma'
 import { useEffect, useState } from 'react'
 
 type Modo = 'maritimo' | 'aereo' | 'terrestre'
@@ -62,7 +63,7 @@ const ETAPAS: Etapa[] = [
   {
     cliente: 'Confirmá cuándo está lista la carga.', landex: 'Coordina el retiro y el transporte contratado.',
     id: 'transporte', titulo: 'Recolección y transporte internacional', corto: 'Transporte', icono: 'barco', quien: ['LANDEX'],
-    texto: (m) => `Coordinamos con nuestros socios la recolección en la fábrica y el viaje ${VIAJE[m]}, junto con la póliza de seguro de la carga.`,
+    texto: (m) => idiomaActual() === 'en' ? `We arrange factory pickup, ${tr(VIAJE[m])}, and cargo insurance.` : `Coordinamos con nuestros socios la recolección en la fábrica y el viaje ${VIAJE[m]}, junto con la póliza de seguro de la carga.`,
     documentos: (m) => [DOC_TRANSPORTE[m], 'Póliza de seguro'],
     consejo: 'Si ya tienes tu propio transportista, márcalo en "Alcance del servicio": LANDEX se encarga de la aduana igual.',
   },
@@ -83,7 +84,7 @@ const ETAPAS: Etapa[] = [
   {
     cliente: 'Revisá las unidades recibidas y su estado.', landex: 'Coordina la entrega según el alcance acordado.',
     id: 'entrega', titulo: 'Entrega en tu bodega y costo final', corto: 'Entrega', icono: 'bodega', quien: ['LANDEX'],
-    texto: (m) => `Retiramos la carga del ${m === 'aereo' ? 'almacén del aeropuerto' : 'almacén fiscal'}, la transportamos y la descargamos en tu bodega${m === 'maritimo' ? ', y devolvemos el contenedor vacío' : ''}. Al cerrar, te enviamos el costo final real para tu costeo de inventario.`,
+    texto: (m) => idiomaActual() === 'en' ? `We collect your shipment from the ${m === 'aereo' ? 'airport warehouse' : 'bonded warehouse'}, deliver it and unload it at your warehouse${m === 'maritimo' ? ', then return the empty container' : ''}. You receive the final landed cost for your inventory records.` : `Retiramos la carga del ${m === 'aereo' ? 'almacén del aeropuerto' : 'almacén fiscal'}, la transportamos y la descargamos en tu bodega${m === 'maritimo' ? ', y devolvemos el contenedor vacío' : ''}. Al cerrar, te enviamos el costo final real para tu costeo de inventario.`,
     documentos: () => ['Comprobante de entrega', 'Liquidación final de costos'],
     consejo: 'Indica si tienes montacargas o personal de descarga: cambia el costo y el tiempo de entrega.',
   },
@@ -118,25 +119,25 @@ export function Guia({ onCotizar, onAgencia }: Props) {
 
   return (
     <section className="panel guia-interactiva">
-      <h2>Cómo funciona tu importación</h2>
-      <p className="intro">Desde cualquier país y cualquier proveedor hasta tu bodega. Toca cada etapa para ver qué pasa, quién lo hace y qué documentos necesitas.</p>
+      <h2>{tr("Cómo funciona tu importación")}</h2>
+      <p className="intro">{tr("Desde cualquier país y cualquier proveedor hasta tu bodega. Toca cada etapa para ver qué pasa, quién lo hace y qué documentos necesitas.")}</p>
 
       <div className="guia-modo">
-        <span>¿Cómo viaja tu carga?</span>
-        <div className="seg" role="radiogroup" aria-label="Modalidad de transporte">
+        <span>{tr("¿Cómo viaja tu carga?")}</span>
+        <div className="seg" role="radiogroup" aria-label={tr("Modalidad de transporte")}>
           {MODOS.map((m) => (
-            <button key={m.id} type="button" role="radio" aria-checked={modo === m.id} className={modo === m.id ? 'activa' : ''} onClick={() => setModo(m.id)}>{m.nombre}</button>
+            <button key={m.id} type="button" role="radio" aria-checked={modo === m.id} className={modo === m.id ? 'activa' : ''} onClick={() => setModo(m.id)}>{tr(m.nombre)}</button>
           ))}
         </div>
       </div>
 
-      <ol className="guia-ruta" role="tablist" aria-label="Etapas de la importación">
+      <ol className="guia-ruta" role="tablist" aria-label={tr("Etapas de la importación")}>
         {ETAPAS.map((x, n) => (
           <li key={x.id} className={n < i ? 'hecha' : n === i ? 'actual' : ''}>
             <button type="button" role="tab" aria-selected={n === i} aria-controls="guia-detalle" onClick={() => setI(n)}>
               <span className="guia-icono"><Icono n={x.icono} /></span>
               <span className="guia-num">{n + 1}</span>
-              <span className="guia-corto">{x.corto}</span>
+              <span className="guia-corto">{tr(x.corto)}</span>
             </button>
           </li>
         ))}
@@ -145,30 +146,30 @@ export function Guia({ onCotizar, onAgencia }: Props) {
 
       <div id="guia-detalle" className="guia-detalle" role="tabpanel" aria-live="polite">
         <div className="guia-cabeza">
-          <span className="guia-paso">Etapa {i + 1} de {ETAPAS.length}</span>
-          <div className="guia-quien">{e.quien.map((q) => <span key={q} className={q === 'LANDEX' ? 'landex' : ''}>{q}</span>)}</div>
+          <span className="guia-paso">{tr("Etapa ")}{i + 1}{tr(" de ")}{ETAPAS.length}</span>
+          <div className="guia-quien">{e.quien.map((q) => <span key={q} className={q === 'LANDEX' ? 'landex' : ''}>{tr(q)}</span>)}</div>
         </div>
-        <h3>{e.titulo}</h3>
-        <p>{e.texto(modo)}</p>
+        <h3>{tr(e.titulo)}</h3>
+        <p>{tr(e.texto(modo))}</p>
         <div className="guia-columnas">
-          <div><b>Qué hacés vos</b><p>{e.cliente}</p></div>
-          <div><b>Qué hace LANDEX</b><p>{e.landex}</p></div>
+          <div><b>{tr("Qué hacés vos")}</b><p>{tr(e.cliente)}</p></div>
+          <div><b>{tr("Qué hace LANDEX")}</b><p>{tr(e.landex)}</p></div>
           <div>
-            <b>Qué documento necesitás</b>
-            <ul>{e.documentos(modo).map((d) => <li key={d}>{d}</li>)}</ul>
+            <b>{tr("Qué documento necesitás")}</b>
+            <ul>{e.documentos(modo).map((d) => <li key={d}>{tr(d)}</li>)}</ul>
           </div>
           <div className="guia-consejo">
-            <b>Consejo</b>
-            <p>{e.consejo}</p>
+            <b>{tr("Consejo")}</b>
+            <p>{tr(e.consejo)}</p>
           </div>
         </div>
         <div className="acciones">
-          <button type="button" className="btn" disabled={i === 0} onClick={() => ir(i - 1)}>← Anterior</button>
+          <button type="button" className="btn" disabled={i === 0} onClick={() => ir(i - 1)}>{tr("← Anterior")}</button>
           {i < ETAPAS.length - 1
-            ? <button type="button" className="btn" onClick={() => ir(i + 1)}>Siguiente →</button>
-            : <button type="button" className="btn" onClick={() => ir(0)}>Volver al inicio</button>}
-          {e.accion === 'cotizar' && onCotizar && <button type="button" className="btn primario" onClick={onCotizar}>Cotizar mi importación</button>}
-          {e.accion === 'agencia' && onAgencia && <button type="button" className="btn primario" onClick={onAgencia}>Necesito desalmacenar</button>}
+            ? <button type="button" className="btn" onClick={() => ir(i + 1)}>{tr("Siguiente →")}</button>
+            : <button type="button" className="btn" onClick={() => ir(0)}>{tr("Volver al inicio")}</button>}
+          {e.accion === 'cotizar' && onCotizar && <button type="button" className="btn primario" onClick={onCotizar}>{tr("Cotizar mi importación")}</button>}
+          {e.accion === 'agencia' && onAgencia && <button type="button" className="btn primario" onClick={onAgencia}>{tr("Necesito desalmacenar")}</button>}
         </div>
       </div>
     </section>

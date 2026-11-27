@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useEffect, useState } from 'react'
 import { INCOTERMS, type Incoterm, type Producto } from '../lib/landed'
 import { nuevoProducto } from '../lib/almacen'
@@ -50,42 +51,42 @@ export function Proforma({ onAplicar }: Props) {
     && positivo(peso) && positivo(volumen) && confirmado
   return (
     <details className="panel">
-      <summary><b>¿Tienes una factura proforma?</b> · Consultar documento y cargar datos</summary>
-      <p className="nota">Abre una factura PDF o imagen en tu dispositivo o pega el texto de una proforma o packing list. La extracción por etiquetas es local; todavía no hay lectura directa de PDF ni OCR. Los documentos no se adjuntan al expediente.</p>
-      <label>Factura proforma<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" onChange={(e) => {
+      <summary><b>{tr("¿Tienes una factura proforma?")}</b>{tr(" · Consultar documento y cargar datos")}</summary>
+      <p className="nota">{tr("Abre una factura PDF o imagen en tu dispositivo o pega el texto de una proforma o packing list. La extracción por etiquetas es local; todavía no hay lectura directa de PDF ni OCR. Los documentos no se adjuntan al expediente.")}</p>
+      <label>{tr("Factura proforma")}<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" onChange={(e) => {
         const f = e.target.files?.[0]
         setConfirmado(false); setError(''); setArchivo(null)
         if (!f) return
         if (f.size > 10 * 1024 * 1024 || !/\.(pdf|png|jpe?g|webp)$/i.test(f.name)) { setError('Selecciona un PDF o imagen de hasta 10 MB.'); return }
         setArchivo(f)
       }} /></label>
-      {error && <p className="nota error" role="alert">{error}</p>}
-      {archivo && url && <p><a href={url} target="_blank" rel="noopener noreferrer">Abrir {archivo.name} en otra pestaña</a></p>}
-      <label>Texto de un solo producto (opcional)<textarea rows={6} maxLength={200000} value={texto} onChange={e=>{setTexto(e.target.value);setConfirmado(false);setAviso('')}} placeholder={'Proveedor: Ejemplo S.A.\nSKU: ABC-01\nCantidad: 20\nPrecio unitario (USD): 10'} /></label>
-      <button type="button" className="btn" disabled={!texto.trim()} onClick={sugerir}>Detectar campos</button>
-      {aviso && <p className="nota" role="status">{aviso}</p>}
+      {error && <p className="nota error" role="alert">{tr(error)}</p>}
+      {archivo && url && <p><a href={url} target="_blank" rel="noopener noreferrer">{tr("Abrir ")}{archivo.name}{tr(" en otra pestaña")}</a></p>}
+      <label>{tr("Texto de un solo producto (opcional)")}<textarea rows={6} maxLength={200000} value={texto} onChange={e=>{setTexto(e.target.value);setConfirmado(false);setAviso('')}} placeholder={tr("Proveedor: Ejemplo S.A.\nSKU: ABC-01\nCantidad: 20\nPrecio unitario (USD): 10")} /></label>
+      <button type="button" className="btn" disabled={!texto.trim()} onClick={sugerir}>{tr("Detectar campos")}</button>
+      {aviso && <p className="nota" role="status">{tr(aviso)}</p>}
       {(archivo || texto.trim()) && <>
-        <p className="nota">Completa un producto por vez. Usa el valor unitario convertido a USD y las medidas totales de ese producto, no de todo el embarque.</p>
+        <p className="nota">{tr("Completa un producto por vez. Usa el valor unitario convertido a USD y las medidas totales de ese producto, no de todo el embarque.")}</p>
         <div onChange={() => setConfirmado(false)}>
-          <label>Proveedor<input value={proveedor} onChange={(e) => setProveedor(e.target.value)} /></label>
-          <label>Incoterm<select value={incoterm} onChange={(e) => setIncoterm(e.target.value as Incoterm | '')}><option value="">Por confirmar / conservar actual</option>{Object.keys(INCOTERMS).map((i) => <option key={i}>{i}</option>)}</select></label>
-          <label>Producto<input value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
-          <label>SKU (opcional)<input value={sku} onChange={(e) => setSku(e.target.value)} /></label>
-          <label>País de fabricación<select value={pais} onChange={(e) => setPais(e.target.value)}><option value="">Selecciona…</option>{PAISES.map(([c,n]) => <option key={c} value={c}>{n}</option>)}</select></label>
+          <label>{tr("Proveedor")}<input value={proveedor} onChange={(e) => setProveedor(e.target.value)} /></label>
+          <label>{tr("Incoterm")}<select value={incoterm} onChange={(e) => setIncoterm(e.target.value as Incoterm | '')}><option value="">{tr("Por confirmar / conservar actual")}</option>{Object.keys(INCOTERMS).map((i) => <option key={i} value={i}>{i}</option>)}</select></label>
+          <label>{tr("Producto")}<input value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
+          <label>{tr("SKU (opcional)")}<input value={sku} onChange={(e) => setSku(e.target.value)} /></label>
+          <label>{tr("País de fabricación")}<select value={pais} onChange={(e) => setPais(e.target.value)}><option value="">{tr("Selecciona…")}</option>{PAISES.map(([c,n]) => <option key={c} value={c}>{n}</option>)}</select></label>
           <div className="fila2">
-            <label>Cantidad<input type="number" min="0" value={cantidad} onChange={(e) => setCantidad(e.target.value)} /></label>
-            <label>Precio unitario (USD)<input type="number" min="0" step="any" value={precio} onChange={(e) => setPrecio(e.target.value)} /></label>
-            <label>Peso bruto total (kg)<input type="number" min="0" step="any" value={peso} onChange={(e) => setPeso(e.target.value)} /></label>
-            <label>Volumen total (m³)<input type="number" min="0" step="any" value={volumen} onChange={(e) => setVolumen(e.target.value)} /></label>
+            <label>{tr("Cantidad")}<input type="number" min="0" value={cantidad} onChange={(e) => setCantidad(e.target.value)} /></label>
+            <label>{tr("Precio unitario (USD)")}<input type="number" min="0" step="any" value={precio} onChange={(e) => setPrecio(e.target.value)} /></label>
+            <label>{tr("Peso bruto total (kg)")}<input type="number" min="0" step="any" value={peso} onChange={(e) => setPeso(e.target.value)} /></label>
+            <label>{tr("Volumen total (m³)")}<input type="number" min="0" step="any" value={volumen} onChange={(e) => setVolumen(e.target.value)} /></label>
           </div>
         </div>
-        <p className="nota">La clasificación y los impuestos se mantienen pendientes de revisión. Si faltan peso o volumen, solicita el packing list o utiliza el cotizador guiado.</p>
-        <label className="check"><input type="checkbox" checked={confirmado} onChange={(e) => setConfirmado(e.target.checked)} />Confirmo que revisé los datos y que los precios están en USD.</label>
+        <p className="nota">{tr("La clasificación y los impuestos se mantienen pendientes de revisión. Si faltan peso o volumen, solicita el packing list o utiliza el cotizador guiado.")}</p>
+        <label className="check"><input type="checkbox" checked={confirmado} onChange={(e) => setConfirmado(e.target.checked)} />{tr("Confirmo que revisé los datos y que los precios están en USD.")}</label>
         <button type="button" className="btn primario" disabled={!valido} onClick={() => {
           if (!valido) return
           onAplicar({ ...nuevoProducto(), nombre: nombre.trim(), sku: sku.trim(), paisFabricacion: pais, cantidad: Number(cantidad), valorUnitario: Number(precio), pesoBrutoKg: Number(peso), volumenM3: Number(volumen) }, proveedor.trim(), incoterm)
           setNombre(''); setSku(''); setCantidad(''); setPrecio(''); setPeso(''); setVolumen(''); setTexto(''); setAviso(''); setConfirmado(false)
-        }}>Agregar producto a la cotización</button>
+        }}>{tr("Agregar producto a la cotización")}</button>
       </>}
     </details>
   )

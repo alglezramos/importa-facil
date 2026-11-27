@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useState } from 'react'
 import { CATEGORIAS, visibles, type Aliado, type Categoria } from '../data/aliados'
 import { AGENCIA } from '../data/config'
@@ -21,7 +22,7 @@ function Bloque({ c }: { c: Categoria }) {
   if (!lista.length) return null
   return (
     <div className="categoria">
-      <h3>{c.nombre} <small>{lista.length}</small></h3>
+      <h3>{tr(c.nombre)} <small>{lista.length}</small></h3>
       <ul className="rejilla-logos">{lista.map((x) => <Tarjeta key={x.logo} a={x} />)}</ul>
     </div>
   )
@@ -35,16 +36,13 @@ export function Aliados() {
 
   return (
     <section className="panel aliados">
-      <h2>Nuestros socios comerciales</h2>
-      <p className="intro">
-        Navieras, forwarders, líneas aéreas, terminales y aseguradoras para mover tu carga desde el proveedor hasta tu
-        bodega. {AGENCIA.nombre} es tu único punto de contacto: coordinamos con todos y nos encargamos del trámite aduanal.
-      </p>
+      <h2>{tr("Nuestros socios comerciales")}</h2>
+      <p className="intro">{tr("Navieras, forwarders, líneas aéreas, terminales y aseguradoras para mover tu carga desde el proveedor hasta tu bodega. ")}{AGENCIA.nombre}{tr(" es tu único punto de contacto: coordinamos con todos y nos encargamos del trámite aduanal.")}</p>
 
-      <div className="filtros" role="group" aria-label="Filtrar por categoría">
+      <div className="filtros" role="group" aria-label={tr("Filtrar por categoría")}>
         {[{ id: 'todos', nombre: 'Todos' }, ...operadores].map((c) => (
           <button key={c.id} type="button" className={filtro === c.id ? 'activa' : ''} aria-pressed={filtro === c.id} onClick={() => setFiltro(c.id)}>
-            {c.nombre}
+            {tr(c.nombre)}
           </button>
         ))}
       </div>
@@ -53,8 +51,8 @@ export function Aliados() {
 
       {instituciones.length > 0 && (
         <div className="instituciones">
-          <h3 className="titulo-instituciones">Instituciones del comercio exterior</h3>
-          <p className="nota-inst">Organismos y gremios de referencia para el comercio exterior de Costa Rica.</p>
+          <h3 className="titulo-instituciones">{tr("Instituciones del comercio exterior")}</h3>
+          <p className="nota-inst">{tr("Organismos y gremios de referencia para el comercio exterior de Costa Rica.")}</p>
           {instituciones.map((c) => (
             <ul key={c.id} className="rejilla-logos">{visibles(c.id).map((x) => <Tarjeta key={x.logo} a={x} />)}</ul>
           ))}
@@ -63,14 +61,12 @@ export function Aliados() {
 
       <div className="cta-aliado">
         <div>
-          <strong>¿Quieres ser socio comercial de {AGENCIA.nombre}?</strong>
-          <span>Si eres naviera, forwarder, transportista o almacén, conversemos.</span>
+          <strong>{tr("¿Quieres ser socio comercial de ")}{AGENCIA.nombre}?</strong>
+          <span>{tr("Si eres naviera, forwarder, transportista o almacén, conversemos.")}</span>
         </div>
         <a className="btn primario" href={AGENCIA.whatsapp
           ? `https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent('Hola, me interesa ser socio comercial de ' + AGENCIA.nombre)}`
-          : `mailto:${AGENCIA.emailInfo}?subject=${encodeURIComponent('Quiero ser socio comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">
-          Escríbenos
-        </a>
+          : `mailto:${AGENCIA.emailInfo}?subject=${encodeURIComponent('Quiero ser socio comercial de ' + AGENCIA.nombre)}`} target="_blank" rel="noreferrer">{tr("Escríbenos")}</a>
       </div>
     </section>
   )

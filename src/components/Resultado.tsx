@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { confiabilidad } from '../lib/confianza'
 import { Confiabilidad } from './Confiabilidad'
 import type { ReactNode } from 'react'
@@ -16,7 +18,7 @@ import { desglosar } from '../lib/servicios'
 import { Termino } from './Termino'
 
 function Grupo({ guiado, titulo, children }: { guiado: boolean; titulo: string; children: ReactNode }) {
-  return guiado ? <details className="grupo-resultado"><summary>{titulo}</summary>{children}</details> : <>{children}</>
+  return guiado ? <details className="grupo-resultado"><summary>{tr(titulo)}</summary>{children}</details> : <>{children}</>
 }
 
 interface Props {
@@ -76,51 +78,51 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
     <section className="resultado">
       <div className="total">
         <div className="fila-estado">
-          <span className="etiqueta">{r.estado === 'incompleta' ? 'Subtotal estimado (faltan costos)' : e.requiereDescarga ? 'Costo estimado puesto y descargado en tu bodega' : 'Costo estimado puesto en tu bodega'}</span>
-          <span className={`estado-cot ${formal ? 'formal' : r.estado}`}>{formal ? `Cotización formal · vence el ${formal.vence}` : r.estado === 'incompleta' ? `Estimada incompleta · ${r.pendientes.length} pendiente(s)` : 'Cotización estimada'}</span>
+          <span className="etiqueta">{r.estado === 'incompleta' ? tr("Subtotal estimado (faltan costos)") : e.requiereDescarga ? tr("Costo estimado puesto y descargado en tu bodega") : tr("Costo estimado puesto en tu bodega")}</span>
+          <span className={`estado-cot ${formal ? 'formal' : r.estado}`}>{formal ? tr("Cotización formal · vence el {0}", formal.vence) : r.estado === 'incompleta' ? tr("Estimada incompleta · {0} pendiente(s)", r.pendientes.length) : tr("Cotización estimada")}</span>
         </div>
         <strong>{usd(r.totales.total)}</strong>
-        <span className="crc">{crc(r.totales.total * e.tipoCambio)} · rango referencial {usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? ' + pendientes' : ''}</span>
+        <span className="crc">{crc(r.totales.total * e.tipoCambio)}{tr(" · rango referencial ")}{usd(r.totales.rango.min)} – {usd(r.totales.rango.max)}{r.pendientes.length ? tr(" + pendientes") : ''}</span>
         {unidades > 0 && (
           <p className="explica-unitario">
-            {r.productos.length === 1 ? 'Cada unidad te cuesta' : 'En promedio, cada unidad te cuesta'}{impPend || r.pendientes.length ? ' por ahora' : ''} <b>{usd(r.totales.total / unidades)}</b>.
-            {impPend ? ` Falta calcular los impuestos de ${sinImp.map((p) => p.nombre || p.sku).join(', ')}.` : r.pendientes.length ? ' Faltan algunos montos por confirmar.' : ''}
-            {impPend && onRevision && <button type="button" className="btn mini" onClick={onRevision}>Solicitar revisión arancelaria</button>}
+            {r.productos.length === 1 ? tr("Cada unidad te cuesta") : tr("En promedio, cada unidad te cuesta")}{impPend || r.pendientes.length ? tr(" por ahora") : ''} <b>{usd(r.totales.total / unidades)}</b>.
+            {impPend ? tr(" Falta calcular los impuestos de {0}.", sinImp.map((p) => p.nombre || p.sku).join(', ')) : r.pendientes.length ? tr(" Faltan algunos montos por confirmar.") : ''}
+            {impPend && onRevision && <button type="button" className="btn mini" onClick={onRevision}>{tr("Solicitar revisión arancelaria")}</button>}
           </p>
         )}
         <div className="kpis resumen">
-          <div><span>Sobre el valor de tu mercancía</span><b>{r.totales.mercancia ? `+${((adicional / r.totales.mercancia) * 100).toFixed(1)} %` : '—'}{r.estado === 'incompleta' ? ' + pend.' : ''}</b></div>
-          <div><span>Costo por unidad {r.estado === 'incompleta' ? '(parcial)' : ''}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
-          <div><span>Tiempo estimado</span><b>{r.tiempo.dias} días</b></div>
+          <div><span>{tr("Sobre el valor de tu mercancía")}</span><b>{r.totales.mercancia ? `+${((adicional / r.totales.mercancia) * 100).toFixed(1)} %` : '—'}{r.estado === 'incompleta' ? tr(" + pend.") : ''}</b></div>
+          <div><span>{tr("Costo por unidad ")}{r.estado === 'incompleta' ? tr("(parcial)") : ''}</span><b>{unidades ? usd(r.totales.total / unidades) : '—'}</b></div>
+          <div><span>{tr("Tiempo estimado")}</span><b>{r.tiempo.dias}{tr(" días")}</b></div>
         </div>
-        {guiado && onSolicitar && <button type="button" className="btn primario" onClick={onSolicitar}>Solicitar cotización formal</button>}
+        {guiado && onSolicitar && <button type="button" className="btn primario" onClick={onSolicitar}>{tr("Solicitar cotización formal")}</button>}
       </div>
       <Grupo guiado={guiado} titulo="Ver desglose">
       <div className="total">
         <div className="a-quien">
-          <b>¿A quién le pagas?</b>
+          <b>{tr("¿A quién le pagas?")}</b>
           <ul>
-            <li><span>Tu proveedor <small>valor de la mercancía</small></span><b>{usd(d.mercancia)}</b></li>
-            <li className="landex"><span>LANDEX · honorarios <small>agencia de aduanas y coordinación</small></span><b>{usd(d.honorariosLandex)}{d.honorariosPendiente ? ' + pend.' : ''}</b></li>
-            {(d.serviciosLandex > 0 || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente)) && <li className="landex"><span>LANDEX · servicios de terceros que coordinamos <small>flete, seguro, transporte y descarga con socios</small></span><b>{usd(d.serviciosLandex)}{d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? ' + pend.' : ''}</b></li>}
-            <li><span>El Estado <small>impuestos de importación</small></span><b>{impPend ? (d.impuestos ? `${usd(d.impuestos)} + pend.` : 'Pendiente') : usd(d.impuestos)}{impPend && onSolicitar ? <button type="button" className="link" onClick={onSolicitar}>Solicitar revisión</button> : null}</b></li>
-            <li><span>Puerto y almacén fiscal <small>gastos de terceros en destino</small></span><b>{usd(d.gastosTerceros)}</b></li>
-            {d.serviciosCliente > 0 && <li><span>Tus propios proveedores <small>servicios que ya contrataste</small></span><b>{usd(d.serviciosCliente)}</b></li>}
+            <li><span>{tr("Tu proveedor ")}<small>{tr("valor de la mercancía")}</small></span><b>{usd(d.mercancia)}</b></li>
+            <li className="landex"><span>{tr("LANDEX · honorarios ")}<small>{tr("agencia de aduanas y coordinación")}</small></span><b>{usd(d.honorariosLandex)}{d.honorariosPendiente ? tr(" + pend.") : ''}</b></li>
+            {(d.serviciosLandex > 0 || d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente)) && <li className="landex"><span>{tr("LANDEX · servicios de terceros que coordinamos ")}<small>{tr("flete, seguro, transporte y descarga con socios")}</small></span><b>{usd(d.serviciosLandex)}{d.lineas.some((l) => l.proveedor === 'landex' && l.pendiente) ? tr(" + pend.") : ''}</b></li>}
+            <li><span>{tr("El Estado ")}<small>{tr("impuestos de importación")}</small></span><b>{impPend ? (d.impuestos ? tr("{0} + pend.", usd(d.impuestos)) : tr("Pendiente")) : usd(d.impuestos)}{impPend && onSolicitar ? <button type="button" className="link" onClick={onSolicitar}>{tr("Solicitar revisión")}</button> : null}</b></li>
+            <li><span>{tr("Puerto y almacén fiscal ")}<small>{tr("gastos de terceros en destino")}</small></span><b>{usd(d.gastosTerceros)}</b></li>
+            {d.serviciosCliente > 0 && <li><span>{tr("Tus propios proveedores ")}<small>{tr("servicios que ya contrataste")}</small></span><b>{usd(d.serviciosCliente)}</b></li>}
           </ul>
           <p className="comparacion-comercial">
-            <span>Contratarías con LANDEX <b>{usd(d.honorariosLandex + d.serviciosLandex)}{landexPend ? ' + pend.' : ''}</b></span>
-            {d.serviciosCliente > 0 && <span>Ya contrataste por tu cuenta <b>{usd(d.serviciosCliente)}</b></span>}
-            <span>Falta confirmar <b>{r.pendientes.length ? `${r.pendientes.length} ${r.pendientes.length === 1 ? 'monto' : 'montos'}` : 'nada'}</b></span>
+            <span>{tr("Contratarías con LANDEX ")}<b>{usd(d.honorariosLandex + d.serviciosLandex)}{landexPend ? tr(" + pend.") : ''}</b></span>
+            {d.serviciosCliente > 0 && <span>{tr("Ya contrataste por tu cuenta ")}<b>{usd(d.serviciosCliente)}</b></span>}
+            <span>{tr("Falta confirmar ")}<b>{r.pendientes.length ? `${r.pendientes.length} ${r.pendientes.length === 1 ? 'monto' : 'montos'}` : tr("nada")}</b></span>
           </p>
-          <small>Solo las filas de LANDEX las factura LANDEX. La mercancía, los impuestos y los gastos de puerto no son ingresos de LANDEX.</small>
+          <small>{tr("Solo las filas de LANDEX las factura LANDEX. La mercancía, los impuestos y los gastos de puerto no son ingresos de LANDEX.")}</small>
         </div>
         <details className="mas-indicadores">
-          <summary>Más indicadores</summary>
+          <summary>{tr("Más indicadores")}</summary>
           <div className="kpis">
-            <div><span>Desembolso {r.estado === "incompleta" ? "parcial" : "estimado"}</span><b>{usd(r.totales.desembolso)}</b></div>
-            <div><span>IVA recuperable*</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
-            <div><span>Costo sin IVA recuperable</span><b>{usd(r.totales.totalSinIVA)}</b></div>
-            <div><span>Logística y otros gastos</span><b>{usd(otrosServicios)}</b></div>
+            <div><span>{tr("Desembolso ")}{r.estado === "incompleta" ? tr("parcial") : tr("estimado")}</span><b>{usd(r.totales.desembolso)}</b></div>
+            <div><span>{tr("IVA recuperable*")}</span><b>{usd(r.totales.ivaRecuperable)}</b></div>
+            <div><span>{tr("Costo sin IVA recuperable")}</span><b>{usd(r.totales.totalSinIVA)}</b></div>
+            <div><span>{tr("Logística y otros gastos")}</span><b>{usd(otrosServicios)}</b></div>
           </div>
         </details>
       </div>
@@ -130,24 +132,24 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
 
       {r.pendientes.length > 0 && (
         <div className="pendientes">
-          <b>Pendiente de confirmar (no está sumado al total) y cómo resolverlo:</b>
+          <b>{tr("Pendiente de confirmar (no está sumado al total) y cómo resolverlo:")}</b>
           <ul>
             {sinImp.map((p) => {
               const prod = productos.find((x) => x.id === p.id)
               return (
                 <li key={p.id} className="pend-accion">
-                  <span><b>Impuestos de {p.nombre || p.sku}</b> · faltan {p.impuestos.pendientes.join(', ')}
-                    <small>Ya tenemos: {[prod?.descripcion || p.nombre, prod?.paisFabricacion ? `fabricado en ${prod.paisFabricacion}` : '', prod?.clasificacion ? `partida ${prod.clasificacion.codigo}` : 'sin partida todavía'].filter(Boolean).join(' · ')}</small>
+                  <span><b>{tr("Impuestos de ")}{p.nombre || p.sku}</b>{tr(" · faltan ")}{p.impuestos.pendientes.join(', ')}
+                    <small>{tr("Ya tenemos: ")}{[prod?.descripcion || p.nombre, prod?.paisFabricacion ? `fabricado en ${prod.paisFabricacion}` : '', prod?.clasificacion ? `partida ${prod.clasificacion.codigo}` : 'sin partida todavía'].filter(Boolean).join(' · ')}</small>
                     {prod?.clasificacion?.fuente?.includes('Decreto 44921') && <small>{prod.clasificacion.fuente.split('; ').pop()}</small>}
                   </span>
-                  {onSolicitar && <button type="button" className="btn mini" onClick={onSolicitar}>Solicitar revisión de {p.nombre || 'mi producto'}</button>}
+                  {onSolicitar && <button type="button" className="btn mini" onClick={onSolicitar}>{tr("Solicitar revisión de ")}{p.nombre || tr("mi producto")}</button>}
                 </li>
               )
             })}
             {otrosPend.map((x) => (
               <li key={x} className="pend-accion">
                 <span>{x}<small>{ayudaPend(x)}</small></span>
-                {onSolicitar && ayudaPend(x).startsWith('LANDEX') && <button type="button" className="btn mini" onClick={onSolicitar}>Que LANDEX lo confirme</button>}
+                {onSolicitar && ayudaPend(x).startsWith('LANDEX') && <button type="button" className="btn mini" onClick={onSolicitar}>{tr("Que LANDEX lo confirme")}</button>}
               </li>
             ))}
           </ul>
@@ -155,7 +157,7 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
       )}
       {r.carga.alertas.length > 0 && <ul className="avisos">{r.carga.alertas.map((a) => <li key={a}>{a}</li>)}</ul>}
 
-      <h3>Distribución del costo</h3>
+      <h3>{tr("Distribución del costo")}</h3>
       <div className="barra">
         {segmentos.filter((s) => s.v > 0).map((s) => <div key={s.k} style={{ flexGrow: s.v, background: COLORES[s.k] }} title={`${s.nombre}: ${usd(s.v)}`} />)}
       </div>
@@ -165,25 +167,24 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
 
       </Grupo>
       <Grupo guiado={guiado} titulo="Comparar transportes">
-      <h3>Carga y modalidades</h3>
-      <p className="nota">La modalidad seleccionada incluye tus ajustes. Las demás usan tarifas de referencia. Los subtotales incompletos no permiten identificar la opción más barata.</p>
+      <h3>{tr("Carga y modalidades")}</h3>
+      <p className="nota">{tr("La modalidad seleccionada incluye tus ajustes. Las demás usan tarifas de referencia. Los subtotales incompletos no permiten identificar la opción más barata.")}</p>
       <p className="nota">
-        {r.carga.volumenM3.toFixed(2)} m³ · {r.carga.pesoKg.toLocaleString('es-CR')} kg · {r.carga.bultos} bultos
-        {r.carga.contenedores ? ` · ${r.carga.contenedores} unidad(es) · ocupación ${Math.round((r.carga.ocupacionVolumen ?? 0) * 100)}% del volumen y ${Math.round((r.carga.ocupacionPeso ?? 0) * 100)}% del peso` : ''}
-        {e.modo === 'AEREO' ? ` · peso cobrable ${Math.round(r.carga.pesoCobrableAereo)} kg` : ''}
+        {r.carga.volumenM3.toFixed(2)}{tr(" m³ · ")}{r.carga.pesoKg.toLocaleString(formatoRegional())}{tr(" kg · ")}{r.carga.bultos}{tr(" bultos")}{r.carga.contenedores ? tr(" · {0} unidad(es) · ocupación {1}% del volumen y {2}% del peso", r.carga.contenedores, Math.round((r.carga.ocupacionVolumen ?? 0) * 100), Math.round((r.carga.ocupacionPeso ?? 0) * 100)) : ''}
+        {e.modo === 'AEREO' ? tr(" · peso cobrable {0} kg", Math.round(r.carga.pesoCobrableAereo)) : ''}
       </p>
       <div className="scroll">
         <table className="tabla comp">
-          <thead><tr><th>Modalidad</th><th>Unidades</th><th className="num">Logística</th><th className="num">Total</th><th className="num">Días</th><th></th></tr></thead>
+          <thead><tr><th>{tr("Modalidad")}</th><th>{tr("Unidades")}</th><th className="num">{tr("Logística")}</th><th className="num">{tr("Total")}</th><th className="num">{tr("Días")}</th><th></th></tr></thead>
           <tbody>
             {comp.map((m) => (
               <tr key={m.modo} className={m.modo === e.modo ? 'actual' : ''}>
-                <td>{MODOS[m.modo]}{recomendada?.modo === m.modo && <span className="sello validada">Menor costo de referencia</span>}</td>
+                <td>{tr(MODOS[m.modo])}{recomendada?.modo === m.modo && <span className="sello validada">{tr("Menor costo de referencia")}</span>}</td>
                 <td>{m.contenedores || '—'}</td>
-                <td className="num">{m.modo === e.modo ? usd(r.totales.logistica) : m.fletePendiente ? 'Pendiente' : usd(m.logistica)}</td>
-                <td className="num">{m.modo === e.modo ? <><b>Tu escenario: {usd(r.totales.total)}{r.pendientes.length ? ' + pendientes' : ''}</b>{m.total !== r.totales.total && <small className="referencia-modo">Referencia LANDEX: {usd(m.total)}{m.incompleta ? ' + pendientes' : ''}</small>}</> : m.fletePendiente ? 'Pendiente' : m.incompleta ? `${usd(m.total)} + pendientes` : usd(m.total)}</td>
+                <td className="num">{m.modo === e.modo ? usd(r.totales.logistica) : m.fletePendiente ? tr("Pendiente") : usd(m.logistica)}</td>
+                <td className="num">{m.modo === e.modo ? <><b>{tr("Tu escenario: ")}{usd(r.totales.total)}{r.pendientes.length ? tr(" + pendientes") : ''}</b>{m.total !== r.totales.total && <small className="referencia-modo">{tr("Referencia LANDEX: ")}{usd(m.total)}{m.incompleta ? tr(" + pendientes") : ''}</small>}</> : m.fletePendiente ? tr("Pendiente") : m.incompleta ? tr("{0} + pendientes", usd(m.total)) : usd(m.total)}</td>
                 <td className="num">{m.dias}</td>
-                <td>{!m.compatible ? <span className="sello no">No compatible</span> : m.modo === e.modo ? <span className="nota">Seleccionado</span> : <button type="button" className="link" onClick={() => onModo(m.modo)}>Usar</button>}</td>
+                <td>{!m.compatible ? <span className="sello no">{tr("No compatible")}</span> : m.modo === e.modo ? <span className="nota">{tr("Seleccionado")}</span> : <button type="button" className="link" onClick={() => onModo(m.modo)}>{tr("Usar")}</button>}</td>
               </tr>
             ))}
           </tbody>
@@ -194,8 +195,8 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
       <Grupo guiado={guiado} titulo="Ver detalle por etapa y producto">
       {ofertas}
 
-      <h3>Desglose por etapa</h3>
-      <p className="nota">Toca una etapa para ver cada concepto. <span className="sello-est confirmado">Confirmado</span> = tarifa real del proveedor · <span className="sello-est estimado">Estimado</span> = valor de referencia · <span className="sello-est pendiente">Pendiente</span> = aún sin monto, no se suma al total.</p>
+      <h3>{tr("Desglose por etapa")}</h3>
+      <p className="nota">{tr("Toca una etapa para ver cada concepto. ")}<span className="sello-est confirmado">{tr("Confirmado")}</span>{tr(" = tarifa real del proveedor · ")}<span className="sello-est estimado">{tr("Estimado")}</span>{tr(" = valor de referencia · ")}<span className="sello-est pendiente">{tr("Pendiente")}</span>{tr(" = aún sin monto, no se suma al total.")}</p>
       <div className="etapas">
         {([1, 2, 3, 4, 5, 6, 7] as Etapa[]).map((et) => {
           const conceptos = r.conceptos.filter((k) => k.etapa === et)
@@ -204,8 +205,8 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
             <div key={et} className="etapa">
               <button type="button" className="etapa-cab" onClick={() => setAbierta(abierta === et ? null : et)} aria-expanded={abierta === et}>
                 <span className="num-etapa">{et}</span>
-                <span className="nombre">{ETAPAS[et]}</span>
-                {r.porEtapa[et].pendientes > 0 && <span className="sello pend">{r.porEtapa[et].pendientes} pendiente(s)</span>}
+                <span className="nombre">{tr(ETAPAS[et])}</span>
+                {r.porEtapa[et].pendientes > 0 && <span className="sello pend">{r.porEtapa[et].pendientes}{tr(" pendiente(s)")}</span>}
                 <span className="monto">{usd(total)}</span>
               </button>
               {abierta === et && (
@@ -215,8 +216,8 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
                       <tbody>
                         {r.productos.map((p) => (
                           <tr key={p.id}>
-                            <td>Impuestos {p.sku} <Termino id="dai" /> <small>Valor aduanero {usd(p.valorAduanero)} · DAI {p.impuestos.tasaDAIAplicada == null ? 'pendiente' : `${(p.impuestos.tasaDAIAplicada * 100).toFixed(1)}%`}{p.impuestos.ahorroTLC ? ` · ahorro potencial TLC ${usd(p.impuestos.ahorroTLC)}` : ''}</small></td>
-                            <td className="num">{p.impuestos.pendientes.length ? <span className="sello pend">Pendiente: {p.impuestos.pendientes.join(', ')}</span> : usd(p.impuestosTotal)}</td>
+                            <td>{tr("Impuestos ")}{p.sku} <Termino id="dai" /> <small>{tr("Valor aduanero ")}{usd(p.valorAduanero)}{tr(" · DAI ")}{p.impuestos.tasaDAIAplicada == null ? tr("pendiente") : `${(p.impuestos.tasaDAIAplicada * 100).toFixed(1)}%`}{p.impuestos.ahorroTLC ? tr(" · ahorro potencial TLC {0}", usd(p.impuestos.ahorroTLC)) : ''}</small></td>
+                            <td className="num">{p.impuestos.pendientes.length ? <span className="sello pend">{tr("Pendiente: ")}{p.impuestos.pendientes.join(', ')}</span> : usd(p.impuestosTotal)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -226,24 +227,24 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
                     const aj = e.ajustes?.[k.id]
                     return (
                       <div key={k.id} className={`concepto est-${k.estado}`}>
-                        <div className="c-nombre">{k.nombre}{(k.estado === 'confirmado' || k.estado === 'estimado' || k.estado === 'pendiente') && <span className={`sello-est ${k.estado}`}>{k.estado === 'confirmado' ? 'Confirmado' : k.estado === 'estimado' ? 'Estimado' : 'Pendiente'}</span>}{k.nota && <small>{k.nota}</small>}</div>
+                        <div className="c-nombre">{tr(k.nombre)}{(k.estado === 'confirmado' || k.estado === 'estimado' || k.estado === 'pendiente') && <span className={`sello-est ${k.estado}`}>{k.estado === 'confirmado' ? tr("Confirmado") : k.estado === 'estimado' ? tr("Estimado") : tr("Pendiente")}</span>}{k.nota && <small>{k.nota}</small>}</div>
                         <select value={k.estado} onChange={(ev) => onAjuste(k.id, { ...aj, estado: ev.target.value as EstadoConcepto, monto: ev.target.value === 'confirmado' || ev.target.value === 'estimado' ? (k.monto ?? 0) : aj?.monto })}>
-                          {(Object.keys(ESTADOS) as EstadoConcepto[]).map((s) => <option key={s} value={s}>{ESTADOS[s]}</option>)}
+                          {(Object.keys(ESTADOS) as EstadoConcepto[]).map((s) => <option key={s} value={s}>{tr(ESTADOS[s])}</option>)}
                         </select>
                         {(k.estado === 'estimado' || k.estado === 'confirmado') ? (
                           <input type="number" min={0} step="0.01" className="c-monto" value={k.monto ?? 0}
-                            onChange={(ev) => onAjuste(k.id, { ...aj, estado: 'confirmado', monto: Number(ev.target.value) })} aria-label={`Monto de ${k.nombre}`} />
-                        ) : <span className="c-monto texto">{k.estado === 'pendiente' ? 'Pendiente' : '—'}</span>}
-                        <select className="c-base" value={k.base} onChange={(ev) => onAjuste(k.id, { ...aj, base: ev.target.value as Base })} title="Cómo se reparte entre productos">
-                          {(Object.keys(BASES) as Base[]).map((b) => <option key={b} value={b}>{BASES[b]}</option>)}
+                            onChange={(ev) => onAjuste(k.id, { ...aj, estado: 'confirmado', monto: Number(ev.target.value) })} aria-label={tr("Monto de {0}", k.nombre)} />
+                        ) : <span className="c-monto texto">{k.estado === 'pendiente' ? tr("Pendiente") : '—'}</span>}
+                        <select className="c-base" value={k.base} onChange={(ev) => onAjuste(k.id, { ...aj, base: ev.target.value as Base })} title={tr("Cómo se reparte entre productos")}>
+                          {(Object.keys(BASES) as Base[]).map((b) => <option key={b} value={b}>{tr(BASES[b])}</option>)}
                         </select>
                         {k.base === 'directo' && (
                           <select className="c-base" value={k.productoDirecto ?? ''} onChange={(ev) => onAjuste(k.id, { ...aj, base: 'directo', productoDirecto: ev.target.value })}>
-                            <option value="">Productos con permiso</option>
+                            <option value="">{tr("Productos con permiso")}</option>
                             {productos.map((p) => <option key={p.id} value={p.id}>{p.sku}</option>)}
                           </select>
                         )}
-                        {aj && <button type="button" className="link" onClick={() => onAjuste(k.id, null)}>Restablecer</button>}
+                        {aj && <button type="button" className="link" onClick={() => onAjuste(k.id, null)}>{tr("Restablecer")}</button>}
                       </div>
                     )
                   })}
@@ -253,45 +254,45 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
           )
         })}
       </div>
-      <p className="nota">Tarifas: {VIGENCIA_TARIFAS.fuente}, actualizadas al {VIGENCIA_TARIFAS.actualizado}. Se confirman en la cotización formal. *El IVA de importación es crédito fiscal si tu empresa está inscrita en IVA.</p>
+      <p className="nota">{tr("Tarifas: ")}{VIGENCIA_TARIFAS.fuente}{tr(", actualizadas al ")}{VIGENCIA_TARIFAS.actualizado}{tr(". Se confirman en la cotización formal. *El IVA de importación es crédito fiscal si tu empresa está inscrita en IVA.")}</p>
 
-      <h3>Landed Cost por producto <Termino id="landed" /></h3>
+      <h3>{tr("Landed Cost por producto ")}<Termino id="landed" /></h3>
       <div className="scroll">
         <table className="tabla sku">
-          <thead><tr><th>SKU</th><th>Producto</th><th className="num">Cant.</th><th className="num">Precio unit.</th><th className="num">Logística asignada</th><th className="num">Impuestos</th><th className="num">Landed unit.</th><th className="num">Landed total</th></tr></thead>
+          <thead><tr><th>{tr("SKU")}</th><th>{tr("Producto")}</th><th className="num">{tr("Cant.")}</th><th className="num">{tr("Precio unit.")}</th><th className="num">{tr("Logística asignada")}</th><th className="num">{tr("Impuestos")}</th><th className="num">{tr("Landed unit.")}</th><th className="num">{tr("Landed total")}</th></tr></thead>
           <tbody>
             {r.productos.map((p) => (
               <tr key={p.id}>
-                <td>{p.sku}</td><td>{p.nombre}</td><td className="num">{p.cantidad.toLocaleString('es-CR')}</td>
+                <td>{p.sku}</td><td>{p.nombre}</td><td className="num">{p.cantidad.toLocaleString(formatoRegional())}</td>
                 <td className="num">{usd(p.valorMercancia / p.cantidad)}</td><td className="num">{usd(p.logistica)}</td>
-                <td className="num">{p.impuestos.pendientes.length ? <span className="sello pend">Pendiente</span> : usd(p.impuestosTotal)}</td>
-                <td className="num"><b>{usd(p.landedUnitario)}</b><small>{usd(p.landedUnitarioSinIVA)} sin IVA</small></td>
+                <td className="num">{p.impuestos.pendientes.length ? <span className="sello pend">{tr("Pendiente")}</span> : usd(p.impuestosTotal)}</td>
+                <td className="num"><b>{usd(p.landedUnitario)}</b><small>{usd(p.landedUnitarioSinIVA)}{tr(" sin IVA")}</small></td>
                 <td className="num">{usd(p.landedTotal)}</td>
               </tr>
             ))}
-            <tr className="suma"><td colSpan={2}>Total</td><td className="num">{unidades.toLocaleString('es-CR')}</td><td className="num">{usd(r.totales.mercancia)}</td><td className="num">{usd(r.totales.logistica)}</td><td className="num">{impPend && !r.totales.impuestos ? 'Pendiente' : usd(r.totales.impuestos)}</td><td></td><td className="num">{usd(r.totales.total)}</td></tr>
+            <tr className="suma"><td colSpan={2}>{tr("Total")}</td><td className="num">{unidades.toLocaleString(formatoRegional())}</td><td className="num">{usd(r.totales.mercancia)}</td><td className="num">{usd(r.totales.logistica)}</td><td className="num">{impPend && !r.totales.impuestos ? tr("Pendiente") : usd(r.totales.impuestos)}</td><td></td><td className="num">{usd(r.totales.total)}</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h3>De la bodega del proveedor a la tuya</h3>
+      <h3>{tr("De la bodega del proveedor a la tuya")}</h3>
       <ol className="linea-tiempo">
         {r.tiempo.etapas.map((t) => (
           <li key={t.nombre} className={t.paralelo ? 'paralelo' : ''}>
-            <span className="dia">Día {t.inicio}</span>
+            <span className="dia">{tr("Día ")}{t.inicio}</span>
             <span className="nombre">{t.nombre}</span>
-            <span className="dur">{t.dias} {t.dias === 1 ? 'día' : 'días'}</span>
+            <span className="dur">{t.dias} {t.dias === 1 ? tr("día") : tr("días")}</span>
           </li>
         ))}
-        <li className="fin"><span className="dia">Día {r.tiempo.dias}</span><span className="nombre">Mercancía descargada en tu bodega</span></li>
+        <li className="fin"><span className="dia">{tr("Día ")}{r.tiempo.dias}</span><span className="nombre">{tr("Mercancía descargada en tu bodega")}</span></li>
       </ol>
 
       {r.supuestos.length > 0 && (
-        <details className="notas"><summary>Supuestos de esta cotización</summary><ul>{r.supuestos.map((s) => <li key={s}>{s}</li>)}</ul></details>
+        <details className="notas"><summary>{tr("Supuestos de esta cotización")}</summary><ul>{r.supuestos.map((s) => <li key={s}>{s}</li>)}</ul></details>
       )}
 
       <div className="acciones">
-        <button type="button" className="btn" onClick={() => descargar(`landed-cost-${new Date().toISOString().slice(0, 10)}.csv`, exportarSKU(r))}>Exportar por SKU (Excel/CSV)</button>
+        <button type="button" className="btn" onClick={() => descargar(`landed-cost-${new Date().toISOString().slice(0, 10)}.csv`, exportarSKU(r))}>{tr("Exportar por SKU (Excel/CSV)")}</button>
       </div>
 
       </Grupo>

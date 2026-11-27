@@ -1,7 +1,8 @@
+import { formatoRegional } from './idioma'
 export const usd = (n: number) =>
-  n.toLocaleString('es-CR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  n.toLocaleString(formatoRegional(), { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export const crc = (n: number) =>
-  '₡' + Math.round(n).toLocaleString('es-CR')
+  '₡' + Math.round(n).toLocaleString(formatoRegional())
 
-export const pct = (n: number) => `${(n * 100).toLocaleString('es-CR', { maximumFractionDigits: 1 })}%`
+export const pct = (n: number) => `${(n * 100).toLocaleString(formatoRegional(), { maximumFractionDigits: 1 })}%`

@@ -190,3 +190,15 @@ body { background:#f5f7fa; }
   max-width: 100%;
   height: auto;
 }
+
+.idioma-selector {
+  font: inherit;
+  font-size: 0.875rem;
+  color: white;
+  background: #102035;
+  border: 1px solid #8696a8;
+  border-radius: 8px;
+  padding: 7px 8px;
+}
+.idioma-selector:focus-visible { outline: 2px solid #4badff; outline-offset: 2px; }
+@media (max-width: 600px) { .app .cuenta { flex-wrap: wrap; } }

@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { calcularLanded, type Producto } from '../lib/landed'
 import { EMBARQUE_INICIAL } from '../lib/almacen'
 import { usd } from '../lib/formato'
@@ -71,102 +72,102 @@ export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onL
     <div className="inicio">
       <section className="portada">
         <div className="portada-texto">
-          <span className="sobretitulo">Tu agencia de aduanas digital</span>
-          <h2>Conoce el costo de tu importación <span>antes de comprar.</span></h2>
-          <p className="bajada">De la fábrica a tu bodega. Cotización, agencia de aduanas y logística en una sola plataforma, con un solo punto de contacto.</p>
-          <ul className="sellos" aria-label="Condiciones del cotizador"><li>Sin registro</li><li>Sin compromiso</li><li>Gratis</li></ul>
+          <span className="sobretitulo">{tr("Tu agencia de aduanas digital")}</span>
+          <h2>{tr("Conoce el costo de tu importación ")}<span>{tr("antes de comprar.")}</span></h2>
+          <p className="bajada">{tr("De la fábrica a tu bodega. Cotización, agencia de aduanas y logística en una sola plataforma, con un solo punto de contacto.")}</p>
+          <ul className="sellos" aria-label={tr("Condiciones del cotizador")}><li>{tr("Sin registro")}</li><li>{tr("Sin compromiso")}</li><li>{tr("Gratis")}</li></ul>
           <div className="acciones">
-            <button type="button" className="btn primario grande" onClick={() => onCotizar('guiado')}>Cotizar mi importación gratis</button>
-            <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>Mi mercancía ya viene en camino</button>
+            <button type="button" className="btn primario grande" onClick={() => onCotizar('guiado')}>{tr("Cotizar mi importación gratis")}</button>
+            <button type="button" className="btn claro grande" onClick={() => onAgencia('desalmacenaje')}>{tr("Mi mercancía ya viene en camino")}</button>
           </div>
-          <p className="nota portada-nota">La estimación es referencial: los costos definitivos se validan antes de contratar.</p>
+          <p className="nota portada-nota">{tr("La estimación es referencial: los costos definitivos se validan antes de contratar.")}</p>
         </div>
         <article className="demo-carga">
-          <small>Cotización de ejemplo · China → Costa Rica</small>
-          <h3>100 camisetas de algodón</h3>
-          <p className="demo-precio">{usd(ejemplo.totales.total / camiseta.cantidad)} <small>por camiseta</small></p>
-          <dl><div><dt>Compra al proveedor</dt><dd>{usd(ejemplo.totales.mercancia)}</dd></div>
-          <div><dt>Subtotal en tu bodega</dt><dd>{usd(ejemplo.totales.total)}</dd></div>
-          <div><dt>Plazo estimado</dt><dd>{ejemplo.tiempo.dias} días</dd></div></dl>
-          <p>Estimación parcial con impuestos pendientes.</p>
-          <details><summary>Ver cómo se calcula</summary><p>100 unidades a {usd(camiseta.valorUnitario)}. Retiro en fábrica, 25 kg y 0,2 m³ por marítimo consolidado, con seguro y descarga en la GAM.</p>
-          <p>Mercancía {usd(ejemplo.totales.mercancia)} + logística {usd(ejemplo.totales.logistica)}. El subtotal se divide entre las 100 unidades. La clasificación del producto permitirá estimar los impuestos.</p></details>
+          <small>{tr("Cotización de ejemplo · China → Costa Rica")}</small>
+          <h3>{tr("100 camisetas de algodón")}</h3>
+          <p className="demo-precio">{usd(ejemplo.totales.total / camiseta.cantidad)} <small>{tr("por camiseta")}</small></p>
+          <dl><div><dt>{tr("Compra al proveedor")}</dt><dd>{usd(ejemplo.totales.mercancia)}</dd></div>
+          <div><dt>{tr("Subtotal en tu bodega")}</dt><dd>{usd(ejemplo.totales.total)}</dd></div>
+          <div><dt>{tr("Plazo estimado")}</dt><dd>{ejemplo.tiempo.dias}{tr(" días")}</dd></div></dl>
+          <p>{tr("Estimación parcial con impuestos pendientes.")}</p>
+          <details><summary>{tr("Ver cómo se calcula")}</summary><p>{tr("100 unidades a ")}{usd(camiseta.valorUnitario)}{tr(". Retiro en fábrica, 25 kg y 0,2 m³ por marítimo consolidado, con seguro y descarga en la GAM.")}</p>
+          <p>{tr("Mercancía ")}{usd(ejemplo.totales.mercancia)}{tr(" + logística ")}{usd(ejemplo.totales.logistica)}{tr(". El subtotal se divide entre las 100 unidades. La clasificación del producto permitirá estimar los impuestos.")}</p></details>
         </article>
       </section>
 
       <section className="bloque">
-        <span className="etiqueta">¿Cómo te ayudamos?</span>
-        <h2>Tu importación empieza aquí.</h2>
+        <span className="etiqueta">{tr("¿Cómo te ayudamos?")}</span>
+        <h2>{tr("Tu importación empieza aquí.")}</h2>
         <div className="entradas">
           <button type="button" className="entrada" onClick={() => onCotizar('guiado')}>
-            <Icono n="ruta" /><b>Cotizar por primera vez</b><span>Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.</span><em>Cotizar paso a paso →</em>
+            <Icono n="ruta" /><b>{tr("Cotizar por primera vez")}</b><span>{tr("Te guiamos paso a paso para saber cuánto cuesta importar, con explicaciones sencillas.")}</span><em>{tr("Cotizar paso a paso →")}</em>
           </button>
           <button type="button" className="entrada" onClick={() => onCotizar('experto')}>
-            <Icono n="calculadora" /><b>Cotizar con mis datos</b><span>Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.</span><em>Ir al cotizador →</em>
+            <Icono n="calculadora" /><b>{tr("Cotizar con mis datos")}</b><span>{tr("Cotizador completo: Incoterms, varios SKU, modalidades y Landed Cost por producto.")}</span><em>{tr("Ir al cotizador →")}</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('desalmacenaje')}>
-            <Icono n="aduana" /><b>Desalmacenar una carga</b><span>Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.</span><em>Solicitar agencia de aduanas →</em>
+            <Icono n="aduana" /><b>{tr("Desalmacenar una carga")}</b><span>{tr("Tu mercancía ya viene en camino o está en el puerto, aeropuerto o almacén fiscal.")}</span><em>{tr("Solicitar agencia de aduanas →")}</em>
           </button>
           <button type="button" className="entrada" onClick={() => onAgencia('empresarial')}>
-            <Icono n="edificio" /><b>Coordinar importaciones recurrentes</b><span>Importas con frecuencia y buscas una agencia de aduanas y un socio logístico permanente.</span><em>Solicitar una reunión →</em>
+            <Icono n="edificio" /><b>{tr("Coordinar importaciones recurrentes")}</b><span>{tr("Importas con frecuencia y buscas una agencia de aduanas y un socio logístico permanente.")}</span><em>{tr("Solicitar una reunión →")}</em>
           </button>
         </div>
       </section>
 
       <section className="bloque">
-        <h2>Cómo funciona</h2>
+        <h2>{tr("Cómo funciona")}</h2>
         <ol className="pasos-inicio">
-          <li><b>Estimá el costo</b><span>Revisá el costo por unidad hasta tu bodega.</span></li>
-          <li><b>Confirmá la cotización</b><span>LANDEX valida la clasificación, los documentos y las tarifas.</span></li>
-          <li><b>Recibí en tu bodega</b><span>Coordinamos el transporte, la aduana y la entrega.</span></li>
-        </ol><button className="link" onClick={onGuia}>Explorar la guía por modalidad →</button>
+          <li><b>{tr("Estimá el costo")}</b><span>{tr("Revisá el costo por unidad hasta tu bodega.")}</span></li>
+          <li><b>{tr("Confirmá la cotización")}</b><span>{tr("LANDEX valida la clasificación, los documentos y las tarifas.")}</span></li>
+          <li><b>{tr("Recibí en tu bodega")}</b><span>{tr("Coordinamos el transporte, la aduana y la entrega.")}</span></li>
+        </ol><button className="link" onClick={onGuia}>{tr("Explorar la guía por modalidad →")}</button>
       </section>
-      <section className="bloque ai-inicio"><div><h2>Identificá tu producto con LANDEX AI</h2>
-        <p>Describí el material y el uso. Un agente revisa la sugerencia antes de confirmar los impuestos.</p>
-        <button className="btn" onClick={onLandexAI}>Identificar mi producto</button><small> Requiere cuenta.</small></div>
-        <div className="ai-inicio-demo"><p>Camiseta de algodón para adulto</p><b>Posible clasificación · requiere validación</b></div>
+      <section className="bloque ai-inicio"><div><h2>{tr("Identificá tu producto con LANDEX AI")}</h2>
+        <p>{tr("Describí el material y el uso. Un agente revisa la sugerencia antes de confirmar los impuestos.")}</p>
+        <button className="btn" onClick={onLandexAI}>{tr("Identificar mi producto")}</button><small>{tr(" Requiere cuenta.")}</small></div>
+        <div className="ai-inicio-demo"><p>{tr("Camiseta de algodón para adulto")}</p><b>{tr("Posible clasificación · requiere validación")}</b></div>
       </section>
-      <section className="bloque socios-inicio"><h2>Quién participa en cada tramo</h2><ul className="tira-logos">
+      <section className="bloque socios-inicio"><h2>{tr("Quién participa en cada tramo")}</h2><ul className="tira-logos">
         {funciones.map(([categoria, nombre, texto]) => {
           const socio = operadores.find((a) => a.categoria === categoria)
-          return <li key={categoria}><b>{nombre}</b>{socio && <img src={socio.logo} alt={socio.nombre} loading="lazy" width={600} height={320} />}<span>{texto}</span></li>
+          return <li key={categoria}><b>{tr(nombre)}</b>{socio && <img src={socio.logo} alt={socio.nombre} loading="lazy" width={600} height={320} />}<span>{tr(texto)}</span></li>
         })}
-        </ul><button className="link" onClick={onSocios}>Ver todos los socios →</button>
+        </ul><button className="link" onClick={onSocios}>{tr("Ver todos los socios →")}</button>
       </section>
 
       <section className="bloque">
-        <span className="etiqueta">Preguntas frecuentes</span>
-        <h2>Lo que más nos preguntan</h2>
+        <span className="etiqueta">{tr("Preguntas frecuentes")}</span>
+        <h2>{tr("Lo que más nos preguntan")}</h2>
         <div className="faq">
           {PREGUNTAS.map(([p, r], i) => (
             <div key={p} className={`faq-item ${abierta === i ? 'abierta' : ''}`}>
-              <button type="button" aria-expanded={abierta === i} onClick={() => setAbierta(abierta === i ? null : i)}>{p}</button>
-              {abierta === i && <p>{r}</p>}
+              <button type="button" aria-expanded={abierta === i} onClick={() => setAbierta(abierta === i ? null : i)}>{tr(p)}</button>
+              {abierta === i && <p>{tr(r)}</p>}
             </div>
           ))}
         </div>
       </section>
 
-      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Nuestra Historia</h2>
-        <p>Nuestra historia empezó con la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. coordina tu importación de la fábrica a tu bodega.</p>
-        <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
+      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt={tr("Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras")} width={900} height={985} loading="lazy" /><div><h2>{tr("Nuestra Historia")}</h2>
+        <p>{tr("Nuestra historia empezó con la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos & Co. coordina tu importación de la fábrica a tu bodega.")}</p>
+        <button className="link" onClick={onHistoria}>{tr("Conocé nuestra historia →")}</button></div>
       </section>
       <section className="bloque contacto-inicio">
         <div>
-          <span className="etiqueta">Contacto comercial</span>
-          <h2>¿Qué necesitás resolver?</h2>
-          <button className="btn primario" onClick={() => onCotizar('guiado')}>Cotizar mi importación</button>
+          <span className="etiqueta">{tr("Contacto comercial")}</span>
+          <h2>{tr("¿Qué necesitás resolver?")}</h2>
+          <button className="btn primario" onClick={() => onCotizar('guiado')}>{tr("Cotizar mi importación")}</button>
           <div className="contacto-rutas">
-            <button className="link" onClick={() => onAgencia('desalmacenaje')}>Desalmacenar una carga →</button>
-            <button className="link" onClick={() => onAgencia('empresarial')}>Operaciones recurrentes →</button>
+            <button className="link" onClick={() => onAgencia('desalmacenaje')}>{tr("Desalmacenar una carga →")}</button>
+            <button className="link" onClick={() => onAgencia('empresarial')}>{tr("Operaciones recurrentes →")}</button>
           </div>
         </div>
         <div className="contacto-datos">
-          <div><b>Cotizaciones</b><a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></div>
-          <div><b>Información general</b><a href={`mailto:${AGENCIA.emailInfo}`}>{AGENCIA.emailInfo}</a></div>
-          {AGENCIA.whatsapp && <div><b>WhatsApp</b><a href={`https://wa.me/${AGENCIA.whatsapp}`} target="_blank" rel="noreferrer">Escríbenos</a></div>}
-          {EMPRESA.telefono && <div><b>Teléfono</b><a href={`tel:${EMPRESA.telefono}`}>{EMPRESA.telefono}</a></div>}
-          {corporativos.map(([k, v]) => k !== 'Teléfono' && <div key={k}><b>{k}</b><span>{v}</span></div>)}
+          <div><b>{tr("Cotizaciones")}</b><a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></div>
+          <div><b>{tr("Información general")}</b><a href={`mailto:${AGENCIA.emailInfo}`}>{AGENCIA.emailInfo}</a></div>
+          {AGENCIA.whatsapp && <div><b>{tr("WhatsApp")}</b><a href={`https://wa.me/${AGENCIA.whatsapp}`} target="_blank" rel="noreferrer">{tr("Escríbenos")}</a></div>}
+          {EMPRESA.telefono && <div><b>{tr("Teléfono")}</b><a href={`tel:${EMPRESA.telefono}`}>{EMPRESA.telefono}</a></div>}
+          {corporativos.map(([k, v]) => k !== 'Teléfono' && <div key={k}><b>{tr(k)}</b><span>{v}</span></div>)}
         </div>
       </section>
     </div>

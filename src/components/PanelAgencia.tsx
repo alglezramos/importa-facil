@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useState } from 'react'
 import { puedeEmitir, type Emision, type Requisito } from '../lib/formal'
 import type { Producto } from '../lib/landed'
@@ -30,40 +31,40 @@ export function PanelAgencia({ productos, requisitos, emision, vigente, onValida
 
   return (
     <div className="panel-agencia">
-      <div className="pa-cab"><b>Panel de la agencia</b><small>Solo visible en modo agencia</small></div>
+      <div className="pa-cab"><b>{tr("Panel de la agencia")}</b><small>{tr("Solo visible en modo agencia")}</small></div>
 
       {onAsignar && (
         <div className="pa-bloque">
-          <span>Cliente de la cotización: <b>{clienteActual || 'sin asignar (queda en tu cuenta)'}</b></span>
+          <span>{tr("Cliente de la cotización: ")}<b>{clienteActual || tr("sin asignar (queda en tu cuenta)")}</b></span>
           {guardada ? (
             <div className="pa-fila">
-              <input type="email" value={correo} placeholder="correo@cliente.com" onChange={(e) => setCorreo(e.target.value)} />
+              <input type="email" value={correo} placeholder={tr("correo@cliente.com")} onChange={(e) => setCorreo(e.target.value)} />
               <button type="button" className="btn" disabled={asignando || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())}
-                onClick={async () => { setAsignando(true); const e = await onAsignar(correo); setAsignando(false); setMsgCliente(e ?? 'Cotización asignada. El cliente ya la ve en su cuenta.') }}>Asignar</button>
+                onClick={async () => { setAsignando(true); const e = await onAsignar(correo); setAsignando(false); setMsgCliente(e ?? 'Cotización asignada. El cliente ya la ve en su cuenta.') }}>{tr("Asignar")}</button>
             </div>
-          ) : <small>Guárdala primero para poder asignarla a un cliente.</small>}
+          ) : <small>{tr("Guárdala primero para poder asignarla a un cliente.")}</small>}
           {msgCliente && <small role="status">{msgCliente}</small>}
         </div>
       )}
 
-      <label>Agente aduanero que valida<input value={agente} placeholder="Nombre y código del agente" onChange={(e) => guardarAgente(e.target.value)} /></label>
+      <label>{tr("Agente aduanero que valida")}<input value={agente} placeholder={tr("Nombre y código del agente")} onChange={(e) => guardarAgente(e.target.value)} /></label>
 
       {sinValidar.length > 0 && (
         <div className="pa-bloque">
-          <span>Clasificaciones por validar</span>
-          <ul>{sinValidar.map((p) => <li key={p.id}>{p.sku || p.nombre}: <span className="codigo">{p.clasificacion!.codigo}</span> {p.clasificacion!.dai == null ? '· sin tasa DAI cargada' : ''}</li>)}</ul>
-          <small>Antes de validar, revisa la ficha técnica y confirma en TICA el DAI, el Selectivo y el IVA de cada inciso (en el editor del producto).</small>
-          <button type="button" className="btn" disabled={!agente.trim()} onClick={() => onValidar(sinValidar.map((p) => p.id), agente.trim())}>Marcar como validadas</button>
+          <span>{tr("Clasificaciones por validar")}</span>
+          <ul>{sinValidar.map((p) => <li key={p.id}>{p.sku || p.nombre}: <span className="codigo">{p.clasificacion!.codigo}</span> {p.clasificacion!.dai == null ? tr("· sin tasa DAI cargada") : ''}</li>)}</ul>
+          <small>{tr("Antes de validar, revisa la ficha técnica y confirma en TICA el DAI, el Selectivo y el IVA de cada inciso (en el editor del producto).")}</small>
+          <button type="button" className="btn" disabled={!agente.trim()} onClick={() => onValidar(sinValidar.map((p) => p.id), agente.trim())}>{tr("Marcar como validadas")}</button>
         </div>
       )}
 
       <div className="pa-bloque">
-        <span>Requisitos de la cotización formal</span>
+        <span>{tr("Requisitos de la cotización formal")}</span>
         <ul className="requisitos">
           {requisitos.map((q) => (
             <li key={q.texto} className={q.ok ? 'ok' : 'falta'}>
-              {q.ok ? '✓' : '✗'} {q.texto}
-              {!q.ok && q.detalle && q.detalle.length > 0 && <ul>{q.detalle.slice(0, 6).map((d) => <li key={d}>{d}</li>)}{q.detalle.length > 6 && <li>y {q.detalle.length - 6} más</li>}</ul>}
+              {q.ok ? '✓' : '✗'} {tr(q.texto)}
+              {!q.ok && q.detalle && q.detalle.length > 0 && <ul>{q.detalle.slice(0, 6).map((d) => <li key={d}>{d}</li>)}{q.detalle.length > 6 && <li>{tr("y ")}{q.detalle.length - 6}{tr(" más")}</li>}</ul>}
             </li>
           ))}
         </ul>
@@ -71,14 +72,14 @@ export function PanelAgencia({ productos, requisitos, emision, vigente, onValida
 
       {emision && vigente ? (
         <div className="pa-bloque emitida">
-          <span>Cotización formal emitida el {emision.emitida.slice(0, 10)} por {emision.por}. Vence el {emision.vence}.</span>
-          <button type="button" className="link peligro" onClick={onAnular}>Anular emisión</button>
+          <span>{tr("Cotización formal emitida el ")}{emision.emitida.slice(0, 10)}{tr(" por ")}{emision.por}{tr(". Vence el ")}{emision.vence}.</span>
+          <button type="button" className="link peligro" onClick={onAnular}>{tr("Anular emisión")}</button>
         </div>
       ) : (
         <>
-          {emision && !vigente && <p className="nota">Los datos cambiaron después de emitir la cotización formal, así que volvió a ser estimada.</p>}
-          <button type="button" className="btn primario" disabled={!ok || !agente.trim()} onClick={() => onEmitir(agente.trim())}>Emitir cotización formal</button>
-          {!ok && <small className="nota">Cumple todos los requisitos para emitirla.</small>}
+          {emision && !vigente && <p className="nota">{tr("Los datos cambiaron después de emitir la cotización formal, así que volvió a ser estimada.")}</p>}
+          <button type="button" className="btn primario" disabled={!ok || !agente.trim()} onClick={() => onEmitir(agente.trim())}>{tr("Emitir cotización formal")}</button>
+          {!ok && <small className="nota">{tr("Cumple todos los requisitos para emitirla.")}</small>}
         </>
       )}
     </div>

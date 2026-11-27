@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
 import {
@@ -259,16 +261,15 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
   return (
     <>
     <div className="modo-barra">
-      <div className="seg grande" role="tablist" aria-label="Modo de cotización">
-        <button type="button" role="tab" aria-selected={modoVista === 'guiado'} className={modoVista === 'guiado' ? 'activa' : ''} onClick={() => setModoVista('guiado')}>Mi primera importación</button>
-        <button type="button" role="tab" aria-selected={modoVista === 'experto'} className={modoVista === 'experto' ? 'activa' : ''} onClick={() => setModoVista('experto')}>Tengo experiencia importando</button>
+      <div className="seg grande" role="tablist" aria-label={tr("Modo de cotización")}>
+        <button type="button" role="tab" aria-selected={modoVista === 'guiado'} className={modoVista === 'guiado' ? 'activa' : ''} onClick={() => setModoVista('guiado')}>{tr("Mi primera importación")}</button>
+        <button type="button" role="tab" aria-selected={modoVista === 'experto'} className={modoVista === 'experto' ? 'activa' : ''} onClick={() => setModoVista('experto')}>{tr("Tengo experiencia importando")}</button>
       </div>
-      {!numero && <span className="nota autoguardado">✓ Tu avance se guarda solo en este navegador. {usuario ? 'Guárdalo en tu cuenta para verlo desde otro equipo.' : 'Ingresa para guardarlo en tu cuenta.'}</span>}
+      {!numero && <span className="nota autoguardado">{tr("✓ Tu avance se guarda solo en este navegador. ")}{usuario ? tr("Guárdalo en tu cuenta para verlo desde otro equipo.") : tr("Ingresa para guardarlo en tu cuenta.")}</span>}
       {numero && (
-        <span className="nota">
-          Cotización <b>{numero}</b>
-          {nubeEstado && <span className={`sello ${nubeEstado === 'formal' || nubeEstado === 'aceptada' ? 'validada' : ''}`}>{ESTADOS_NUBE[nubeEstado]}</span>}
-          {cliente && <> · cliente: <b>{cliente.empresa || cliente.nombre || cliente.email}</b></>}
+        <span className="nota">{tr("Cotización ")}<b>{numero}</b>
+          {nubeEstado && <span className={`sello ${nubeEstado === 'formal' || nubeEstado === 'aceptada' ? 'validada' : ''}`}>{tr(ESTADOS_NUBE[nubeEstado])}</span>}
+          {cliente && <>{tr(" · cliente: ")}<b>{cliente.empresa || cliente.nombre || cliente.email}</b></>}
         </span>
       )}
     </div>
@@ -288,114 +289,112 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
       {modoVista === 'guiado' ? (
         <div className="formulario">
           <fieldset>
-            <legend><span>✓</span> Cotización guiada</legend>
+            <legend><span>✓</span>{tr(" Cotización guiada")}</legend>
             <Guiado ef={ef} setEf={setEf} productos={productos} setProductos={setProductos} perfil={perfil} conectado={!!usuario} onIngresar={onIniciarSesion}
               onTerminar={() => { setGuiaLista(true); setTimeout(() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }} />
           </fieldset>
-          {productos.length > 0 && <p className="nota">¿Tienes más de un producto? <button type="button" className="link" onClick={() => setModoVista('experto')}>Agrégalos en el modo detallado</button>: tus datos se conservan.</p>}
+          {productos.length > 0 && <p className="nota">{tr("¿Tienes más de un producto? ")}<button type="button" className="link" onClick={() => setModoVista('experto')}>{tr("Agrégalos en el modo detallado")}</button>{tr(": tus datos se conservan.")}</p>}
         </div>
       ) : (
       <form className="formulario" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
-          <legend><span>1</span> El embarque</legend>
-          <label>Puerto o ciudad de embarque <Termino id="embarque" />
+          <legend><span>1</span>{tr(" El embarque")}</legend>
+          <label>{tr("Puerto o ciudad de embarque ")}<Termino id="embarque" />
             <select value={ef.origenId} onChange={(e) => set({ origenId: e.target.value })}>
-              {ORIGENES.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+              {ORIGENES.map((o) => <option key={o.id} value={o.id}>{tr(o.nombre)}</option>)}
             </select>
           </label>
           <details className="proveedor" open={Object.values(prov).some(Boolean)}>
-            <summary>Datos del proveedor</summary>
-            <label>Empresa del proveedor<input value={prov.empresa ?? ''} placeholder="Ej.: Ningbo Home Furniture Co., Ltd." autoComplete="organization" onChange={(e) => setProv({ empresa: e.target.value })} /></label>
-            <label>Dirección del proveedor<input value={prov.direccion ?? ''} placeholder="Calle, ciudad, provincia, país" autoComplete="street-address" onChange={(e) => setProv({ direccion: e.target.value })} /></label>
-            <label>Nombre del contacto<input value={prov.contacto ?? ''} placeholder="Persona que atiende tu pedido" onChange={(e) => setProv({ contacto: e.target.value })} /></label>
+            <summary>{tr("Datos del proveedor")}</summary>
+            <label>{tr("Empresa del proveedor")}<input value={prov.empresa ?? ''} placeholder={tr("Ej.: Ningbo Home Furniture Co., Ltd.")} autoComplete="organization" onChange={(e) => setProv({ empresa: e.target.value })} /></label>
+            <label>{tr("Dirección del proveedor")}<input value={prov.direccion ?? ''} placeholder={tr("Calle, ciudad, provincia, país")} autoComplete="street-address" onChange={(e) => setProv({ direccion: e.target.value })} /></label>
+            <label>{tr("Nombre del contacto")}<input value={prov.contacto ?? ''} placeholder={tr("Persona que atiende tu pedido")} onChange={(e) => setProv({ contacto: e.target.value })} /></label>
             <div className="fila2">
-              <label>Teléfono<input type="tel" value={prov.telefono ?? ''} placeholder="+86 …" onChange={(e) => setProv({ telefono: e.target.value })} /></label>
-              <label>Email<input type="email" value={prov.email ?? ''} placeholder="ventas@proveedor.com" aria-invalid={emailInvalido} onChange={(e) => setProv({ email: e.target.value.trim() })} /></label>
+              <label>{tr("Teléfono")}<input type="tel" value={prov.telefono ?? ''} placeholder={tr("+86 …")} onChange={(e) => setProv({ telefono: e.target.value })} /></label>
+              <label>{tr("Email")}<input type="email" value={prov.email ?? ''} placeholder={tr("ventas@proveedor.com")} aria-invalid={emailInvalido} onChange={(e) => setProv({ email: e.target.value.trim() })} /></label>
             </div>
-            {emailInvalido && <small className="nota error">Revisa el formato del email.</small>}
+            {emailInvalido && <small className="nota error">{tr("Revisa el formato del email.")}</small>}
           </details>
-          <label>¿Qué incluye el precio de tu proveedor? (Incoterm 2020) <Termino id="incoterm" />
+          <label>{tr("¿Qué incluye el precio de tu proveedor? (Incoterm 2020) ")}<Termino id="incoterm" />
             <select value={ef.incoterm} onChange={(e) => set({ incoterm: e.target.value as Incoterm })}>
-              {(Object.keys(INCOTERMS) as Incoterm[]).map((k) => <option key={k} value={k}>{k} – {INCOTERMS[k].sencillo}</option>)}
+              {(Object.keys(INCOTERMS) as Incoterm[]).map((k) => <option key={k} value={k}>{k} – {tr(INCOTERMS[k].sencillo)}</option>)}
             </select>
           </label>
-          <small className="nota">El riesgo pasa a ti: {INCOTERMS[ef.incoterm].riesgo}</small>
-          {!incotermCompatible(ef.incoterm, ef.modo) && <ul className="avisos"><li>{ef.incoterm} solo se usa en transporte marítimo. Usa FCA, CPT o CIP para otras modalidades.</li></ul>}
+          <small className="nota">{tr("El riesgo pasa a ti: ")}{tr(INCOTERMS[ef.incoterm].riesgo)}</small>
+          {!incotermCompatible(ef.incoterm, ef.modo) && <ul className="avisos"><li>{ef.incoterm}{tr(" solo se usa en transporte marítimo. Usa FCA, CPT o CIP para otras modalidades.")}</li></ul>}
           <div className="fila2">
-            <label>Lugar convenido<input value={ef.lugarConvenido ?? ''} placeholder="Ej.: Bodega del proveedor, Ningbo" onChange={(e) => set({ lugarConvenido: e.target.value })} /></label>
+            <label>{tr("Lugar convenido")}<input value={ef.lugarConvenido ?? ''} placeholder={tr("Ej.: Bodega del proveedor, Ningbo")} onChange={(e) => set({ lugarConvenido: e.target.value })} /></label>
             {esD && (
-              <label>El proveedor entrega en
-                <select value={ef.entregaDestino} onChange={(e) => set({ entregaDestino: e.target.value as 'bodega' | 'puerto' })}>
-                  <option value="bodega">Mi bodega</option>
-                  <option value="puerto">Puerto o aeropuerto en Costa Rica</option>
+              <label>{tr("El proveedor entrega en")}<select value={ef.entregaDestino} onChange={(e) => set({ entregaDestino: e.target.value as 'bodega' | 'puerto' })}>
+                  <option value="bodega">{tr("Mi bodega")}</option>
+                  <option value="puerto">{tr("Puerto o aeropuerto en Costa Rica")}</option>
                 </select>
               </label>
             )}
           </div>
-          <label>Modalidad de transporte <Termino id="modalidad" />
+          <label>{tr("Modalidad de transporte ")}<Termino id="modalidad" />
             <select value={ef.modo} onChange={(e) => set({ modo: e.target.value as Modo })}>
-              {(Object.keys(MODOS) as Modo[]).filter((m) => m !== 'TERRESTRE' || origen.flete.terrestre !== null).map((m) => <option key={m} value={m}>{MODOS[m]}</option>)}
+              {(Object.keys(MODOS) as Modo[]).filter((m) => m !== 'TERRESTRE' || origen.flete.terrestre !== null).map((m) => <option key={m} value={m}>{tr(MODOS[m])}</option>)}
             </select>
           </label>
           <div className="fila2">
-            <label>Días hasta que la mercancía esté lista<input type="number" min={0} value={ef.diasProduccion} onChange={(e) => set({ diasProduccion: Number(e.target.value) })} /></label>
-            <label>Tipo de cambio (₡/USD) <Termino id="cambio" /><input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value), tipoCambioManual: true })} />
-              <small className="nota">{tc && !ef.tipoCambioManual && ef.tipoCambio === tc.venta ? `Referencia BCCR (venta) del ${tc.fecha}${tc.desactualizado ? ', último disponible' : ''}.` : tc ? <>Escrito a mano. <button type="button" className="link" onClick={() => set({ tipoCambio: tc.venta, tipoCambioManual: false })}>Usar el del BCCR (₡{tc.venta})</button></> : 'Referencia del BCCR no disponible en este momento.'}</small>
+            <label>{tr("Días hasta que la mercancía esté lista")}<input type="number" min={0} value={ef.diasProduccion} onChange={(e) => set({ diasProduccion: Number(e.target.value) })} /></label>
+            <label>{tr("Tipo de cambio (₡/USD) ")}<Termino id="cambio" /><input type="number" min={1} value={ef.tipoCambio} onChange={(e) => set({ tipoCambio: Number(e.target.value), tipoCambioManual: true })} />
+              <small className="nota">{tc && !ef.tipoCambioManual && ef.tipoCambio === tc.venta ? tr("Referencia BCCR (venta) del {0}{1}.", tc.fecha, tc.desactualizado ? ', último disponible' : '') : tc ? <>{tr("Escrito a mano. ")}<button type="button" className="link" onClick={() => set({ tipoCambio: tc.venta, tipoCambioManual: false })}>{tr("Usar el del BCCR (₡")}{tc.venta})</button></> : tr("Referencia del BCCR no disponible en este momento.")}</small>
             </label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend><span>2</span> Productos</legend>
+          <legend><span>2</span>{tr(" Productos")}</legend>
           {productos.length === 0 && !editando && (
-            <p className="nota">Agrega uno o varios productos. Cada uno lleva su propia clasificación e impuestos.</p>
+            <p className="nota">{tr("Agrega uno o varios productos. Cada uno lleva su propia clasificación e impuestos.")}</p>
           )}
           <ul className="lista-prod">
             {productos.map((p) => (
               <li key={p.id}>
                 <div>
-                  <b>{p.sku || 'Sin SKU'}</b> · {p.nombre}
-                  <small>{p.cantidad.toLocaleString('es-CR')} u × {usd(p.valorUnitario)} · {volumenProducto(p).toFixed(2)} m³ · {p.pesoBrutoKg.toLocaleString('es-CR')} kg · {p.clasificacion ? <span className="codigo">{p.clasificacion.codigo}</span> : <span className="sello pend">Sin clasificar</span>}</small>
+                  <b>{p.sku || tr("Sin SKU")}</b> · {p.nombre}
+                  <small>{p.cantidad.toLocaleString(formatoRegional())}{tr(" u × ")}{usd(p.valorUnitario)} · {volumenProducto(p).toFixed(2)}{tr(" m³ · ")}{p.pesoBrutoKg.toLocaleString(formatoRegional())}{tr(" kg · ")}{p.clasificacion ? <span className="codigo">{p.clasificacion.codigo}</span> : <span className="sello pend">{tr("Sin clasificar")}</span>}</small>
                 </div>
                 <div className="mini-acc">
-                  <button type="button" className="link" onClick={() => setEditando(p)}>Editar</button>
-                  <button type="button" className="link" onClick={() => duplicar(p)}>Duplicar</button>
-                  <button type="button" className="link peligro" onClick={() => eliminar(p.id)}>Eliminar</button>
+                  <button type="button" className="link" onClick={() => setEditando(p)}>{tr("Editar")}</button>
+                  <button type="button" className="link" onClick={() => duplicar(p)}>{tr("Duplicar")}</button>
+                  <button type="button" className="link peligro" onClick={() => eliminar(p.id)}>{tr("Eliminar")}</button>
                 </div>
               </li>
             ))}
           </ul>
           {editando ? (
-            <div ref={editorRef}>{mensaje && editando.clasificacion && !editando.cantidad && <p className="aviso-carga" role="status">{mensaje}</p>}
+            <div ref={editorRef}>{mensaje && editando.clasificacion && !editando.cantidad && <p className="aviso-carga" role="status">{tr(mensaje)}</p>}
             <ProductoEditor key={editando.id} inicial={editando} onGuardar={guardar} onCancelar={() => setEditando(null)} /></div>
           ) : (
             <div className="acciones">
-              <button type="button" className="btn primario" onClick={() => setEditando(nuevoProducto())}>+ Agregar producto</button>
-              <button type="button" className="btn" onClick={() => archivo.current?.click()}>Importar Excel/CSV</button>
-              <button type="button" className="link" onClick={() => descargar('plantilla-productos.csv', '﻿' + plantillaCSV())}>Descargar plantilla</button>
+              <button type="button" className="btn primario" onClick={() => setEditando(nuevoProducto())}>{tr("+ Agregar producto")}</button>
+              <button type="button" className="btn" onClick={() => archivo.current?.click()}>{tr("Importar Excel/CSV")}</button>
+              <button type="button" className="link" onClick={() => descargar('plantilla-productos.csv', '﻿' + plantillaCSV())}>{tr("Descargar plantilla")}</button>
               <input ref={archivo} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) importar(f); e.target.value = '' }} />
             </div>
           )}
         </fieldset>
 
         <fieldset>
-          <legend><span>3</span> Entrega y servicios</legend>
-          <label>Zona de tu bodega
-            <select value={ef.zona} onChange={(e) => set({ zona: e.target.value as Zona })}>
-              {Object.entries(ZONAS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          <legend><span>3</span>{tr(" Entrega y servicios")}</legend>
+          <label>{tr("Zona de tu bodega")}<select value={ef.zona} onChange={(e) => set({ zona: e.target.value as Zona })}>
+              {Object.entries(ZONAS).map(([k, v]) => <option key={k} value={k}>{tr(v)}</option>)}
             </select>
           </label>
-          <label className="check"><input type="checkbox" checked={ef.requiereDescarga} onChange={(e) => set({ requiereDescarga: e.target.checked })} />Necesito que descarguen la mercancía en mi bodega</label>
-          {ef.requiereDescarga && <label className="check sub"><input type="checkbox" checked={ef.clienteTieneMontacargas} onChange={(e) => set({ clienteTieneMontacargas: e.target.checked })} />Tengo montacargas propio</label>}
-          {['FCL20', 'FCL40', 'FCL40HC'].includes(ef.modo) && <label className="check"><input type="checkbox" checked={ef.requiereDevolucionContenedor} onChange={(e) => set({ requiereDevolucionContenedor: e.target.checked })} />Incluir la devolución del contenedor vacío</label>}
-          <label className="check"><input type="checkbox" checked={ef.seguro} onChange={(e) => set({ seguro: e.target.checked })} />Asegurar la carga</label>
-          <label className="check"><input type="checkbox" checked={!!ef.inspeccionOrigen} onChange={(e) => set({ inspeccionOrigen: e.target.checked })} />Inspección de calidad en origen</label>
-          <label className="check"><input type="checkbox" checked={!!ef.embalajeAdicional} onChange={(e) => set({ embalajeAdicional: e.target.checked })} />Embalaje adicional o paletización</label>
-          <label className="check"><input type="checkbox" checked={!!ef.custodia} onChange={(e) => set({ custodia: e.target.checked })} />Custodia o transporte especializado</label>
+          <label className="check"><input type="checkbox" checked={ef.requiereDescarga} onChange={(e) => set({ requiereDescarga: e.target.checked })} />{tr("Necesito que descarguen la mercancía en mi bodega")}</label>
+          {ef.requiereDescarga && <label className="check sub"><input type="checkbox" checked={ef.clienteTieneMontacargas} onChange={(e) => set({ clienteTieneMontacargas: e.target.checked })} />{tr("Tengo montacargas propio")}</label>}
+          {['FCL20', 'FCL40', 'FCL40HC'].includes(ef.modo) && <label className="check"><input type="checkbox" checked={ef.requiereDevolucionContenedor} onChange={(e) => set({ requiereDevolucionContenedor: e.target.checked })} />{tr("Incluir la devolución del contenedor vacío")}</label>}
+          <label className="check"><input type="checkbox" checked={ef.seguro} onChange={(e) => set({ seguro: e.target.checked })} />{tr("Asegurar la carga")}</label>
+          <label className="check"><input type="checkbox" checked={!!ef.inspeccionOrigen} onChange={(e) => set({ inspeccionOrigen: e.target.checked })} />{tr("Inspección de calidad en origen")}</label>
+          <label className="check"><input type="checkbox" checked={!!ef.embalajeAdicional} onChange={(e) => set({ embalajeAdicional: e.target.checked })} />{tr("Embalaje adicional o paletización")}</label>
+          <label className="check"><input type="checkbox" checked={!!ef.custodia} onChange={(e) => set({ custodia: e.target.checked })} />{tr("Custodia o transporte especializado")}</label>
         </fieldset>
         <div className="acciones">
-          {agencia && <button type="button" className="link" onClick={cargarEjemplo}>Cargar escenario de prueba NOVA HOME</button>}
-          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setGuiaLista(false); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>Empezar de cero</button>}
+          {agencia && <button type="button" className="link" onClick={cargarEjemplo}>{tr("Cargar escenario de prueba NOVA HOME")}</button>}
+          {productos.length > 0 && <button type="button" className="link peligro" onClick={() => { setProductos([]); setEf(EMBARQUE_INICIAL); setMensaje(''); setGuiaLista(false); setNumero(undefined); setNubeId(undefined); setNubeEstado(undefined); setCliente(undefined); setEmision(undefined) }}>{tr("Empezar de cero")}</button>}
         </div>
       </form>
       )}
@@ -405,13 +404,13 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         <section className="resultado vacio guia-espera">
           {r && r.totales.mercancia > 0 ? (
             <>
-              <h3>Tu mercancía cuesta {usd(r.totales.mercancia)}</h3>
-              <p>Ahora vamos a calcular cuánto cuesta traerla hasta tu bodega. Te mostramos el costo total cuando sepamos el tamaño de tu carga, dónde la recibes y qué transporte prefieres.</p>
+              <h3>{tr("Tu mercancía cuesta ")}{usd(r.totales.mercancia)}</h3>
+              <p>{tr("Ahora vamos a calcular cuánto cuesta traerla hasta tu bodega. Te mostramos el costo total cuando sepamos el tamaño de tu carga, dónde la recibes y qué transporte prefieres.")}</p>
             </>
           ) : (
             <>
-              <h3>Tu cotización aparecerá aquí</h3>
-              <p>Responde las preguntas de la izquierda. Al final verás el costo de tu importación puesto en tu bodega y el costo por unidad.</p>
+              <h3>{tr("Tu cotización aparecerá aquí")}</h3>
+              <p>{tr("Responde las preguntas de la izquierda. Al final verás el costo de tu importación puesto en tu bodega y el costo por unidad.")}</p>
             </>
           )}
         </section>
@@ -419,22 +418,21 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
         <>
           {!staff && !guiado && puedeSolicitar && (
             <div className="cta-contratar">
-              <button type="button" className="btn primario grande" onClick={() => setContratar('contratar')}>Quiero importar con LANDEX</button>
-              <span>Tu agencia de aduanas se encarga de todo, de la fábrica a tu bodega.</span>
+              <button type="button" className="btn primario grande" onClick={() => setContratar('contratar')}>{tr("Quiero importar con LANDEX")}</button>
+              <span>{tr("Tu agencia de aduanas se encarga de todo, de la fábrica a tu bodega.")}</span>
             </div>
           )}
-          {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.</p>}
+          {!staff && nubeEstado === 'solicitada' && <p className="aviso-formal">{tr("Enviaste esta cotización a LANDEX. Un especialista la está revisando y te avisará cuando la cotización formal esté lista.")}</p>}
           {contratar && (
             <Contratar intencion={contratar} r={r} ef={ef} productos={productos} usuario={usuario} perfil={perfil}
               onEnviarCuenta={async (i) => (await guardarCot(undefined, { estado: 'solicitada', intencion: i })) ? null : 'No se pudo enviar la solicitud. Intenta de nuevo.'}
               onIniciarSesion={onIniciarSesion} onPerfil={(p) => onPerfil?.(p)} onCerrar={() => setContratar(null)} />
           )}
-          {!usuario && <p className="nota">¿Quieres guardarla en tu cuenta, subir documentos y recibir una cotización formal? <button type="button" className="link" onClick={onIniciarSesion}>Inicia sesión</button></p>}
-          {!staff && nubeEstado === 'formal' && formalVigente && <p className="aviso-formal">LANDEX te envió esta <b>cotización formal</b>, válida hasta el {emision!.vence}. Revísala en PDF y, si estás de acuerdo, acéptala para iniciar tu importación.</p>}
-          {mensaje && <p className="nota" role="status">{mensaje}</p>}
+          {!usuario && <p className="nota">{tr("¿Quieres guardarla en tu cuenta, subir documentos y recibir una cotización formal? ")}<button type="button" className="link" onClick={onIniciarSesion}>{tr("Inicia sesión")}</button></p>}
+          {!staff && nubeEstado === 'formal' && formalVigente && <p className="aviso-formal">{tr("LANDEX te envió esta ")}<b>{tr("cotización formal")}</b>{tr(", válida hasta el ")}{emision!.vence}{tr(". Revísala en PDF y, si estás de acuerdo, acéptala para iniciar tu importación.")}</p>}
+          {mensaje && <p className="nota" role="status">{tr(mensaje)}</p>}
           {presupuesto ? (
-            <p className={`presupuesto ${r.totales.desembolso <= presupuesto ? 'ok' : 'excede'}`}>
-              Tu monto disponible: {usd(presupuesto)} · {r.totales.desembolso <= presupuesto ? `el desembolso estimado cabe (quedan ${usd(presupuesto - r.totales.desembolso)})` : `el desembolso estimado lo supera en ${usd(r.totales.desembolso - presupuesto)}`}{r.pendientes.length ? ', sin contar los pendientes' : ''}.
+            <p className={`presupuesto ${r.totales.desembolso <= presupuesto ? 'ok' : 'excede'}`}>{tr("Tu monto disponible: ")}{usd(presupuesto)} · {r.totales.desembolso <= presupuesto ? tr("el desembolso estimado cabe (quedan {0})", usd(presupuesto - r.totales.desembolso)) : tr("el desembolso estimado lo supera en {0}", usd(r.totales.desembolso - presupuesto))}{r.pendientes.length ? tr(", sin contar los pendientes") : ''}.
             </p>
           ) : null}
           {agencia && (
@@ -461,29 +459,29 @@ export function Cotizador({ clasificacionNueva, descripcionNueva, perfil, apertu
               cotId={nubeId} usuario={usuario} onGuardarPrimero={() => guardarCot()} onIniciarSesion={onIniciarSesion}
               onEstado={(id, st) => setEf((x) => ({ ...x, documentos: { ...(x.documentos ?? {}), [id]: st } }))} />} />
           <div className={`acciones arriba${!staff ? ' secundarias' : ''}`}>
-            {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar cotización'}</button>}
-            {!staff && !guiado && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>Solicitar cotización formal</button>}
-            {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>Hablar con un especialista</a>}
-            {!staff && !bloqueada && <button type="button" className="btn" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? 'Guardando…' : numero ? 'Guardar cambios' : 'Guardar estimación'}</button>}
-            <button type="button" className="btn" onClick={abrirDoc}>Descargar PDF</button>
+            {staff && !bloqueada && <button type="button" className="btn primario" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? tr("Guardando…") : numero ? tr("Guardar cambios") : tr("Guardar cotización")}</button>}
+            {!staff && !guiado && puedeSolicitar && <button type="button" className="btn" onClick={() => setContratar('cotizacion_formal')}>{tr("Solicitar cotización formal")}</button>}
+            {!staff && <a className="btn" href={`mailto:${AGENCIA.email}?subject=${encodeURIComponent('Quiero hablar con un especialista')}&body=${encodeURIComponent('Hola, quiero hablar con un especialista sobre esta importación:\n\n' + resumenTexto(r, ef, productos))}`}>{tr("Hablar con un especialista")}</a>}
+            {!staff && !bloqueada && <button type="button" className="btn" disabled={ocupado} onClick={() => guardarCot()}>{ocupado ? tr("Guardando…") : numero ? tr("Guardar cambios") : tr("Guardar estimación")}</button>}
+            <button type="button" className="btn" onClick={abrirDoc}>{tr("Descargar PDF")}</button>
             {!staff && nubeEstado === 'formal' && formalVigente && (
-              <button type="button" className="btn primario" onClick={aceptar}>Aceptar cotización formal</button>
+              <button type="button" className="btn primario" onClick={aceptar}>{tr("Aceptar cotización formal")}</button>
             )}
           </div>
         </>
       ) : (
         <section className="resultado vacio">
-          <h3>Tu cotización aparecerá aquí</h3>
-          <p>Agrega al menos un producto para ver el costo total puesto y descargado en tu bodega, el costo por unidad y el tiempo estimado.</p>
-          <button type="button" className="btn" onClick={cargarEjemplo}>Ver un ejemplo</button>
+          <h3>{tr("Tu cotización aparecerá aquí")}</h3>
+          <p>{tr("Agrega al menos un producto para ver el costo total puesto y descargado en tu bodega, el costo por unidad y el tiempo estimado.")}</p>
+          <button type="button" className="btn" onClick={cargarEjemplo}>{tr("Ver un ejemplo")}</button>
         </section>
       )}
       </div>
     </div>
     {r && (modoVista !== 'guiado' || guiaLista || !!nubeEstado) && (
       <div className="resumen-movil" aria-hidden={doc}>
-        <div><small>{formalVigente ? 'Cotización formal' : r.estado === 'incompleta' ? 'Estimada incompleta' : 'Estimada'}</small><b>{usd(r.totales.total)}</b></div>
-        <button type="button" className="btn primario" onClick={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth' })}>Ver resumen</button>
+        <div><small>{formalVigente ? tr("Cotización formal") : r.estado === 'incompleta' ? tr("Estimada incompleta") : tr("Estimada")}</small><b>{usd(r.totales.total)}</b></div>
+        <button type="button" className="btn primario" onClick={() => resultadoRef.current?.scrollIntoView({ behavior: 'smooth' })}>{tr("Ver resumen")}</button>
       </div>
     )}
     {doc && r && (
