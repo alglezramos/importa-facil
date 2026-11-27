@@ -138,6 +138,7 @@ export function Resultado({ guiado = false, onRevision, e, productos, r, onAjust
                 <li key={p.id} className="pend-accion">
                   <span><b>Impuestos de {p.nombre || p.sku}</b> · faltan {p.impuestos.pendientes.join(', ')}
                     <small>Ya tenemos: {[prod?.descripcion || p.nombre, prod?.paisFabricacion ? `fabricado en ${prod.paisFabricacion}` : '', prod?.clasificacion ? `partida ${prod.clasificacion.codigo}` : 'sin partida todavía'].filter(Boolean).join(' · ')}</small>
+                    {prod?.clasificacion?.fuente?.includes('Decreto 44921') && <small>{prod.clasificacion.fuente.split('; ').pop()}</small>}
                   </span>
                   {onSolicitar && <button type="button" className="btn mini" onClick={onSolicitar}>Solicitar revisión de {p.nombre || 'mi producto'}</button>}
                 </li>
