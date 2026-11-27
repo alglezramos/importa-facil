@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Acceso } from './components/Acceso'
+import { Registro, registroCompleto } from './components/Registro'
+import { Nosotros } from './components/Nosotros'
 import { AgenciaAduanal, type Seccion } from './components/AgenciaAduanal'
 import { Inicio } from './components/Inicio'
 import { Solicitudes } from './components/Solicitudes'
@@ -13,20 +15,22 @@ import { guardarPerfil, leerPerfil, type Perfil as TPerfil } from './lib/almacen
 import { Guia } from './components/Guia'
 import { Tarifas } from './components/Tarifas'
 import { fijarAgencia } from './lib/formal'
-import { alCambiarSesion, cargarUsuario, esStaff, ROLES, salir, type Usuario } from './lib/nube'
+import { alCambiarSesion, cargarUsuario, esStaff, guardarPerfilNube, ROLES, salir, type Usuario } from './lib/nube'
 import { AGENCIA, EMPRESA, MARCA } from './data/config'
 import { Logotipo } from './components/Marca'
+import { cargarTasasValidadas } from './lib/tasas'
 import type { Clasificacion as Cls } from './lib/landed'
 
-type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'portal' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
+type Vista = 'inicio' | 'cotizar' | 'agencia' | 'clasificar' | 'guia' | 'aliados' | 'nosotros' | 'portal' | 'cotizaciones' | 'perfil' | 'solicitudes' | 'tarifas'
 
 const VISTAS: Record<Vista, string> = {
   inicio: 'Inicio',
   cotizar: 'Cotizar',
-  agencia: 'Agencia aduanal',
   clasificar: 'LANDEX AI',
+  agencia: 'Servicios',
   guia: 'Cómo funciona',
   aliados: 'Socios Comerciales',
+  nosotros: 'Nosotros',
   portal: 'Mi LANDEX',
   cotizaciones: 'Mis cotizaciones',
   perfil: 'Mi perfil',
@@ -37,11 +41,11 @@ const VISTAS: Record<Vista, string> = {
 /** Rutas con # para enlazar secciones (compatible con GitHub Pages y con el regreso del enlace de acceso). */
 const RUTAS: Record<string, Vista> = {
   '': 'inicio', inicio: 'inicio', cotizar: 'cotizar', 'agencia-aduanal': 'agencia', desalmacenar: 'agencia', empresas: 'agencia',
-  clasificacion: 'clasificar', 'landex-ai': 'clasificar', 'como-funciona': 'guia', socios: 'aliados', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
+  clasificacion: 'clasificar', 'landex-ai': 'clasificar', 'como-funciona': 'guia', socios: 'aliados', nosotros: 'nosotros', 'quienes-somos': 'nosotros', portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil',
   solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const HASH: Record<Vista, string> = {
-  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'landex-ai', guia: 'como-funciona', aliados: 'socios',
+  inicio: '', cotizar: 'cotizar', agencia: 'agencia-aduanal', clasificar: 'landex-ai', guia: 'como-funciona', aliados: 'socios', nosotros: 'nosotros',
   portal: 'portal', cotizaciones: 'cotizaciones', perfil: 'perfil', solicitudes: 'solicitudes', tarifas: 'tarifas',
 }
 const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
@@ -78,6 +82,7 @@ export default function App() {
   // La ventana de ingreso se cierra al iniciar sesión o al cambiar de sección.
   useEffect(() => { if (usuario) setAcceso(false) }, [usuario])
   const [versionTarifas, setVersionTarifas] = useState(0)
+  useEffect(() => { cargarTasasValidadas() }, [])
   const agencia = esStaff(usuario)
   fijarAgencia(agencia)
   const abrir = (a: Omit<Apertura, 'vez'>) => { setApertura({ ...a, vez: Date.now() }); setVista('cotizar') }
@@ -140,7 +145,7 @@ export default function App() {
           </aside>}
           <div className="workspace-content">
         {vista === 'inicio' && (
-          <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia}
+          <Inicio onCotizar={(modo) => (modo ? abrir({ cotizacion: null, modo }) : setVista('cotizar'))} onAgencia={irAgencia} onLandexAI={() => setVista('clasificar')}
             onSocios={() => setVista('aliados')} onGuia={() => setVista('guia')} />
         )}
         {vista === 'agencia' && <AgenciaAduanal seccion={seccion} onSeccion={irAgencia} usuario={usuario} onCotizar={() => setVista('cotizar')} />}
@@ -170,12 +175,18 @@ export default function App() {
         {vista === 'clasificar' && <Clasificacion onUsar={usarPartida} conectado={!!usuario} onIngresar={() => setAcceso(true)} onCotizar={() => setVista('cotizar')} equipo={esStaff(usuario)} />}
         {vista === 'guia' && <Guia onCotizar={() => setVista('cotizar')} onAgencia={() => irAgencia('desalmacenaje')} />}
         {vista === 'aliados' && <Aliados />}
+        {vista === 'nosotros' && <Nosotros onCotizar={() => setVista('cotizar')} onContacto={() => irAgencia('empresarial')} />}
         {vista === 'tarifas' && usuario?.rol === 'operador' && <Tarifas onCambio={() => setVersionTarifas((x) => x + 1)} />}
           </div>
         </div>
       </main>
 
       {acceso && <Acceso onCerrar={() => setAcceso(false)} />}
+      {usuario && !esStaff(usuario) && !registroCompleto(perfil) && (
+        <Registro perfil={perfil} email={usuario.email}
+          onGuardar={async (p) => { const e = await guardarPerfilNube(usuario.id, p); if (!e) { setPerfil(p); guardarPerfil(p) } return e }}
+          onSalir={async () => { await salir(); setVista('inicio') }} />
+      )}
 
       <footer>
         <nav className="pie-enlaces" aria-label="Enlaces del pie">

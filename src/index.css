@@ -896,3 +896,28 @@ nav button { white-space: nowrap; }
 .ai-admin summary { cursor: pointer; color: #fff; font-weight: 600; }
 .ai-admin input { flex: 1; min-width: 200px; color: var(--text); }
 .aviso-carga { background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 14px; margin: 0 0 10px; }
+.sug-ia { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; margin: 8px 0; }
+.sug-ia p { margin: 0 0 8px; }
+.sug-ia .partidas small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.sellos { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 10px 0 16px; }
+.sellos li { border: 1px solid rgba(72,169,255,.5); color: #fff; border-radius: 99px; padding: 4px 12px; font-size: 13px; }
+.sellos li::before { content: '✓ '; color: var(--accent); }
+.visual-recibes { margin-top: 12px; background: rgba(255,255,255,.06); border-radius: 12px; padding: 12px 14px; color: var(--gris-azul); }
+.visual-recibes > span { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+.visual-recibes ul { margin: 6px 0 0; padding-left: 18px; color: #fff; font-size: 14px; line-height: 1.6; }
+.ai-inicio { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: center; background: linear-gradient(135deg, var(--navy), var(--navy-2)); color: #fff; }
+.ai-inicio h2 { color: #fff; }
+.ai-inicio p { color: var(--gris-azul); }
+.ai-inicio .etiqueta { color: var(--accent); }
+.ai-inicio-demo { background: #fff; color: var(--text); border-radius: 14px; padding: 16px; border: 2px solid var(--accent); }
+.ai-inicio-demo .ai-inicio-q { color: var(--muted); font-style: italic; margin: 0 0 10px; }
+.ai-inicio-demo .ai-inicio-r { color: var(--text); margin: 0; font-weight: 600; }
+@media (max-width: 760px) { .ai-inicio { grid-template-columns: 1fr; } }
+.nosotros-portada { grid-template-columns: 1fr; }
+.nosotros-texto { max-width: 760px; }
+.nosotros-texto p { font-size: 16px; line-height: 1.7; margin: 0 0 14px; }
+.nosotros-cierre { margin-top: 22px !important; font-size: 18px !important; }
+.nosotros-firma { color: var(--accent); font-weight: 700; letter-spacing: .04em; }
+.datos-empresa { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 8px 0 0; }
+.datos-empresa dt { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.datos-empresa dd { margin: 2px 0 0; font-weight: 600; }
