@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------
  * Logotipos del kit LANDEX_Logos_Final (27 PNG de 600 × 320 px) en
  * public/logos/<categoría>/. Se muestran sin enlaces externos: LANDEX es el
- * único punto de contacto comercial y la agencia aduanal.
+ * único punto de contacto comercial y la agencia de aduanas.
  *
  * La publicación de estos logos fue decisión de Ale (24/11/2026). Los acuerdos
  * con cada empresa se siguen en la hoja "Socios comerciales".

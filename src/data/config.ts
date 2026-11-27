@@ -120,7 +120,7 @@ export const TRANSPORTE_LOCAL: Record<Zona, { cargaSuelta: { base: number; porM3
   FUERA_GAM: { cargaSuelta: { base: 110, porM3: 18 }, contenedor: 900 },
 }
 
-/** Honorarios de la agencia aduanal (USD). El cálculo usa REF.nacionalizacion en data/logistica.ts (tarifario 26-11-2026). */
+/** Honorarios de la agencia de aduanas (USD). El cálculo usa REF.nacionalizacion en data/logistica.ts (tarifario 26-11-2026). */
 export const HONORARIOS = {
   porcentajeCIF: 0.006,
   minimo: 150,
