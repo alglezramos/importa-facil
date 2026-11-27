@@ -202,7 +202,10 @@ export default function App() {
           Las estimaciones son referenciales. La clasificación, los impuestos y las tarifas se confirman en la cotización
           formal del agente aduanero. Las tarifas de esta versión son valores de referencia internos de ejemplo, no ofertas vigentes de proveedores.
         </p>
-        <p className="firma"><span>A Ramos &amp; Co. Company</span> {MARCA.nombre} © {new Date().getFullYear()}</p>
+        <div className="pie-identidad">
+          <div className="pie-marca"><Logotipo alto={23} /><span>Una iniciativa de Ramos &amp; Co.</span></div>
+          <small>© {new Date().getFullYear()} {MARCA.nombre}</small>
+        </div>
       </footer>
     </div>
   )
