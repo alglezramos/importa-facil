@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ORIGENES } from '../data/config'
 import { calcularLanded, type Embarque, type Producto } from './landed'
-import { desglosar, GASTOS_TERCEROS, HONORARIOS_LANDEX, SERVICIOS } from './servicios'
+import { conceptosDeServicios, desglosar, fijarMontoNegociado, GASTOS_TERCEROS, HONORARIOS_LANDEX, montoNegociado, SERVICIOS } from './servicios'
 
 const ningbo = ORIGENES.find((o) => o.id === 'cn-este')!
 const cls = { codigo: '9403.60.00.00', descripcion: 'Muebles', dai: 0.14, sc: 0, iva: 0.13, otros: 0, estado: 'preliminar' as const }
@@ -55,5 +55,23 @@ describe('Alcance del servicio (capa de presentación)', () => {
     expect(d.honorariosLandex).toBeGreaterThan(0)
     expect(d.honorariosLandex).toBeLessThan(r.totales.mercancia)
     expect(d.honorariosLandex + d.serviciosLandex).toBeLessThan(r.totales.total - r.totales.mercancia - r.totales.impuestos + 0.01)
+  })
+
+  it('el monto que el cliente negoció reemplaza la estimación del servicio, sin margen y sin duplicarse', () => {
+    const e = { ...base, conceptosCliente: conceptosDeServicios(['transporte_internacional']) }
+    const r0 = calcularLanded(e, nova)
+    const aj = fijarMontoNegociado(r0, undefined, 'transporte_internacional', 3000)
+    const r1 = calcularLanded({ ...e, ajustes: aj }, nova)
+    const d = desglosar(r1, ['transporte_internacional'])
+    expect(d.lineas.find((l) => l.servicio.id === 'transporte_internacional')!.monto).toBe(3000)
+    expect(montoNegociado(aj, 'transporte_internacional')).toBe(3000)
+    // Cambiar el monto otra vez no revive los conceptos ya incluidos
+    const aj2 = fijarMontoNegociado(r1, aj, 'transporte_internacional', 2500)
+    const r2 = calcularLanded({ ...e, ajustes: aj2 }, nova)
+    expect(desglosar(r2, ['transporte_internacional']).lineas.find((l) => l.servicio.id === 'transporte_internacional')!.monto).toBe(2500)
+    // Quitarlo vuelve a la estimación de referencia
+    const aj3 = fijarMontoNegociado(r2, aj2, 'transporte_internacional', null)
+    expect(Object.keys(aj3)).toHaveLength(0)
+    expect(calcularLanded({ ...e, ajustes: aj3 }, nova).totales.total).toBe(r0.totales.total)
   })
 })

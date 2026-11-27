@@ -10,7 +10,7 @@
  *   - costos incluidos en el precio del proveedor según el Incoterm.
  * El costo total de la importación es el mismo del motor.
  */
-import type { Concepto, ResultadoLanded } from './landed'
+import type { Ajuste, Concepto, ResultadoLanded } from './landed'
 
 export type GrupoServicio =
   | 'recoleccion' | 'transporte_internacional' | 'inspeccion' | 'seguro' | 'gestion_documental'
@@ -105,4 +105,34 @@ export function desglosar(r: ResultadoLanded, externos: string[] = []): Desglose
     pendientes: r.pendientes.length,
     lineas,
   }
+}
+
+/** Conceptos del motor que corresponden a los servicios que el cliente contrató por su cuenta. */
+export function conceptosDeServicios(ids: string[]): string[] {
+  return SERVICIOS.filter((s) => ids.includes(s.id)).flatMap((s) => s.conceptos)
+}
+
+/** Monto que el cliente ya negoció para un servicio que contrató por su cuenta (si lo indicó). */
+export function montoNegociado(ajustes: Record<string, Ajuste> | undefined, servicioId: string): number | null {
+  const s = SERVICIOS.find((x) => x.id === servicioId)
+  if (!s || !ajustes) return null
+  const k = s.conceptos.find((id) => ajustes[id]?.negociado)
+  return k ? ajustes[k].monto ?? null : null
+}
+
+/**
+ * Registra el monto que el cliente negoció por su cuenta para un servicio: el primer concepto activo
+ * queda confirmado con ese monto y los demás conceptos del servicio, incluidos en él.
+ * Con `monto` null se quitan esos ajustes y vuelve la estimación de referencia.
+ */
+export function fijarMontoNegociado(r: ResultadoLanded, ajustes: Record<string, Ajuste> | undefined, servicioId: string, monto: number | null): Record<string, Ajuste> {
+  const s = SERVICIOS.find((x) => x.id === servicioId)
+  const out = { ...(ajustes ?? {}) }
+  if (!s) return out
+  for (const id of s.conceptos) if (out[id]?.negociado) delete out[id]
+  if (monto == null) return out
+  const activos = s.conceptos.filter((id) => { const k = r.conceptos.find((c) => c.id === id); return !!k && (cuenta(k) || !!ajustes?.[id]?.negociado) })
+  if (!activos.length) return out
+  activos.forEach((id, i) => { out[id] = i === 0 ? { estado: 'confirmado', monto, negociado: true } : { estado: 'incluido_en_otro', negociado: true } })
+  return out
 }

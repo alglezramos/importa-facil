@@ -116,6 +116,8 @@ export interface Ajuste {
   base?: Base
   /** Para asignación directa: id del producto que absorbe el costo. */
   productoDirecto?: string
+  /** El monto lo negoció el cliente por su cuenta (servicio que no coordina LANDEX). */
+  negociado?: boolean
 }
 
 export interface DatosProveedor {
@@ -150,6 +152,8 @@ export interface Embarque {
   ajustes?: Record<string, Ajuste>
   /** Tarifas de proveedores aplicadas (Fase 3). El motor no las lee: llegan como ajustes. */
   tarifasAplicadas?: string[]
+  /** Conceptos que el cliente contrató por su cuenta: LANDEX no les aplica su margen. */
+  conceptosCliente?: string[]
 }
 
 export interface Concepto {
@@ -444,7 +448,8 @@ function construirConceptos(e: Embarque, productos: Producto[], carga: Carga): C
     if (k.estado === 'no_aplica' || k.estado === 'incluido' || k.estado === 'incluido_en_otro') k.monto = 0
   }
   // Margen de LANDEX sobre servicios de terceros que coordina (se cobra dentro del precio del servicio)
-  for (const k of L) if (CONCEPTOS_CON_MARGEN.has(k.id) && k.monto) k.monto = Math.round(k.monto * (1 + R.margenServiciosTerceros) * 100) / 100
+  const propiosCliente = new Set(e.conceptosCliente ?? [])
+  for (const k of L) if (CONCEPTOS_CON_MARGEN.has(k.id) && !propiosCliente.has(k.id) && k.monto) k.monto = Math.round(k.monto * (1 + R.margenServiciosTerceros) * 100) / 100
   return L
 }
 

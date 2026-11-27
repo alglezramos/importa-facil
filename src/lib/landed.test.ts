@@ -107,6 +107,11 @@ describe('multiproducto (5 SKU)', () => {
     expect(sin.conceptos.find((k) => k.id === 'flete')!.monto).toBe(1100)
     expect(sin.conceptos.find((k) => k.id === 'thc_destino')!.monto).toBe(200)
   })
+  it('lo que el cliente contrató por su cuenta no lleva el margen de LANDEX', () => {
+    const r = calcularLanded({ ...base, conceptosCliente: ['flete'], ajustes: { flete: { estado: 'confirmado', monto: 1000 }, seguro: { estado: 'confirmado', monto: 50 } } }, multi)
+    expect(r.conceptos.find((k) => k.id === 'flete')!.monto).toBe(1000)
+    expect(r.conceptos.find((k) => k.id === 'seguro')!.monto).toBe(55)
+  })
   it('una asignación directa va completa a un producto', () => {
     const r2 = calcularLanded({ ...base, ajustes: { permisos: { estado: 'confirmado', monto: 300, base: 'directo', productoDirecto: 'd' } } }, multi)
     const perf = r2.productos.find((p) => p.id === 'd')!
