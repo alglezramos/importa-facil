@@ -126,7 +126,7 @@ export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onL
         <button className="btn" onClick={onLandexAI}>Identificar mi producto</button><small> Requiere cuenta.</small></div>
         <div className="ai-inicio-demo"><p>Camiseta de algodón para adulto</p><b>Posible clasificación · requiere validación</b></div>
       </section>
-      <section className="bloque historia-carga"><img src="historia-terminal.jpg" alt="Vista aérea ilustrativa de una terminal de contenedores" width={900} height={600} loading="lazy" /><div><h2>Quién responde por tu carga</h2>
+      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Quién responde por tu carga</h2>
         <p>La historia de LANDEX tiene sus raíces en la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. reúne esa experiencia familiar y la coordinación logística en un solo punto de contacto.</p>
         <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
       </section>
