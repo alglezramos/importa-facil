@@ -188,20 +188,22 @@ export default function App() {
       )}
 
       <footer>
+
+
+        <div className="pie-identidad">
+          <div className="pie-marca"><Logotipo alto={23} /><span>Una iniciativa de Ramos &amp; Co.</span></div>
         <nav className="pie-enlaces" aria-label="Enlaces del pie">
           <button type="button" className="link" onClick={() => setVista('aliados')}>Socios comerciales</button>
-          <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>
+          {vista !== 'inicio' && <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>}
           {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>Términos y condiciones</a>}
           {EMPRESA.privacidadUrl && <a href={EMPRESA.privacidadUrl}>Política de privacidad</a>}
         </nav>
+          <small>© {new Date().getFullYear()} {MARCA.nombre}</small>
+        </div>
         <p>
           Las estimaciones son referenciales. La clasificación, los impuestos y las tarifas se confirman en la cotización
           formal del agente aduanero. Las tarifas de esta versión son valores de referencia internos de ejemplo, no ofertas vigentes de proveedores.
         </p>
-        <div className="pie-identidad">
-          <div className="pie-marca"><Logotipo alto={23} /><span>Una iniciativa de Ramos &amp; Co.</span></div>
-          <small>© {new Date().getFullYear()} {MARCA.nombre}</small>
-        </div>
       </footer>
     </div>
   )

@@ -126,10 +126,6 @@ export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onL
         <button className="btn" onClick={onLandexAI}>Identificar mi producto</button><small> Requiere cuenta.</small></div>
         <div className="ai-inicio-demo"><p>Camiseta de algodón para adulto</p><b>Posible clasificación · requiere validación</b></div>
       </section>
-      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Quién responde por tu carga</h2>
-        <p>La historia de LANDEX tiene sus raíces en la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. reúne esa experiencia familiar y la coordinación logística en un solo punto de contacto.</p>
-        <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
-      </section>
       <section className="bloque socios-inicio"><h2>Quién participa en cada tramo</h2><ul className="tira-logos">
         {funciones.map(([categoria, nombre, texto]) => {
           const socio = operadores.find((a) => a.categoria === categoria)
@@ -151,26 +147,28 @@ export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onL
         </div>
       </section>
 
+      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Nuestra Historia</h2>
+        <p>Nuestra historia empezó con la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. coordina tu importación de la fábrica a tu bodega.</p>
+        <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
+      </section>
       <section className="bloque contacto-inicio">
-        <span className="etiqueta">Contacto comercial</span>
-        <h2>¿Qué necesitás resolver?</h2>
-        <div className="acciones"><button className="btn primario" onClick={() => onCotizar('guiado')}>Cotizar</button>
-        <button className="btn claro" onClick={() => onAgencia('desalmacenaje')}>Desalmacenar una carga</button>
-        <button className="btn claro" onClick={() => onAgencia('empresarial')}>Hablar sobre operaciones recurrentes</button></div>
-        <div className="columnas">
+        <div>
+          <span className="etiqueta">Contacto comercial</span>
+          <h2>¿Qué necesitás resolver?</h2>
+          <button className="btn primario" onClick={() => onCotizar('guiado')}>Cotizar mi importación</button>
+          <div className="contacto-rutas">
+            <button className="link" onClick={() => onAgencia('desalmacenaje')}>Desalmacenar una carga →</button>
+            <button className="link" onClick={() => onAgencia('empresarial')}>Operaciones recurrentes →</button>
+          </div>
+        </div>
+        <div className="contacto-datos">
           <div><b>Cotizaciones</b><a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></div>
           <div><b>Información general</b><a href={`mailto:${AGENCIA.emailInfo}`}>{AGENCIA.emailInfo}</a></div>
           {AGENCIA.whatsapp && <div><b>WhatsApp</b><a href={`https://wa.me/${AGENCIA.whatsapp}`} target="_blank" rel="noreferrer">Escríbenos</a></div>}
           {EMPRESA.telefono && <div><b>Teléfono</b><a href={`tel:${EMPRESA.telefono}`}>{EMPRESA.telefono}</a></div>}
+          {corporativos.map(([k, v]) => k !== 'Teléfono' && <div key={k}><b>{k}</b><span>{v}</span></div>)}
         </div>
       </section>
-
-      {corporativos.length > 0 && (
-        <section className="bloque legal">
-          <span className="etiqueta">Información corporativa</span>
-          <dl>{corporativos.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-        </section>
-      )}
     </div>
   )
 }
