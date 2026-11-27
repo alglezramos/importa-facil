@@ -35,8 +35,8 @@ export function Nosotros({ onCotizar, onContacto }: Props) {
           <p className="nosotros-firma">LANDEX — Landed Cost Intelligence.</p>
         </div>
         <figure className="nosotros-retrato">
-          <img src="retrato-legado.webp" width={900} height={985} alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" />
-          <figcaption>Don Oscar Ramos Valverde y Juan Rafael Mora Porras</figcaption>
+          <img src="historia-collage.webp" width={1024} height={1536} alt="Collage de don Oscar Ramos Valverde, su agencia aduanera y el reconocimiento a su trayectoria" />
+          <figcaption>Don Oscar Ramos Valverde y su trayectoria en el comercio exterior de Costa Rica.</figcaption>
         </figure>
       </section>
 

@@ -147,7 +147,7 @@ export function Inicio({ onCotizar, onAgencia, onHistoria, onSocios, onGuia, onL
         </div>
       </section>
 
-      <section className="bloque historia-carga"><img src="retrato-legado.webp" alt="Retrato ilustrado de don Oscar Ramos Valverde y Juan Rafael Mora Porras" width={900} height={985} loading="lazy" /><div><h2>Nuestra Historia</h2>
+      <section className="bloque historia-carga"><img src="historia-collage.webp" alt="Collage de don Oscar Ramos Valverde, su agencia aduanera y el reconocimiento a su trayectoria" width={1024} height={1536} loading="lazy" /><div><h2>Nuestra Historia</h2>
         <p>Nuestra historia empezó con la agencia que fundó don Oscar Ramos Valverde en San José. Hoy, Ramos &amp; Co. coordina tu importación de la fábrica a tu bodega.</p>
         <button className="link" onClick={onHistoria}>Conocé nuestra historia →</button></div>
       </section>
