@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useEffect, useMemo, useState } from 'react'
 import type { Clasificacion as Cls } from '../lib/landed'
 import { LandexAI } from './LandexAI'
@@ -24,8 +25,8 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
 
   const resultados = useMemo(() => (ind && q.trim().length >= 2 ? buscar(ind, q) : []), [ind, q])
 
-  if (error) return <section className="panel"><p>{error}. Recarga la página para intentar de nuevo.</p></section>
-  if (!ind) return <section className="panel"><p className="nota">Cargando el arancel completo…</p></section>
+  if (error) return <section className="panel"><p>{tr(error)}{tr(". Recarga la página para intentar de nuevo.")}</p></section>
+  if (!ind) return <section className="panel"><p className="nota">{tr("Cargando el arancel completo…")}</p></section>
 
   const detalle = sel ? ind.porCodigo.get(sel) : null
   const camino = sel ? ancestros(ind, sel) : []
@@ -36,22 +37,21 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
     <section className="panel clasif">
       <LandexAI ind={ind} conectado={conectado} onIngresar={onIngresar} onCotizar={onCotizar} equipo={equipo} onUsar={onUsar} onVer={(c) => { setQ(''); setSel(c); document.querySelector('.clasif-grid')?.scrollIntoView({ behavior: 'smooth' }) }} />
 
-      <h2 className="tarifa-titulo">Buscá tu producto en el arancel</h2>
-      <p>Ingresá una descripción o un código arancelario.</p>
+      <h2 className="tarifa-titulo">{tr("Buscá tu producto en el arancel")}</h2>
+      <p>{tr("Ingresá una descripción o un código arancelario.")}</p>
       <form className="tarifa-buscar" onSubmit={(e) => { e.preventDefault(); document.getElementById('tarifa-lista')?.focus() }}>
-        <input type="search" aria-label="Descripción del producto o código arancelario" placeholder="Ej. camiseta de algodón para adulto" value={q}
+        <input type="search" aria-label={tr("Descripción del producto o código arancelario")} placeholder={tr("Ej. camiseta de algodón para adulto")} value={q}
           onChange={(e) => { setQ(e.target.value); setSel(null) }} />
-        <button className="btn primario" disabled={q.trim().length < 2}>Buscar</button>
+        <button className="btn primario" disabled={q.trim().length < 2}>{tr("Buscar")}</button>
       </form>
-      <div className="tarifa-ejemplos">Ejemplos de búsqueda
-        {['Botella de acero', 'Bicicleta eléctrica'].map((texto) => <button type="button" key={texto} onClick={() => { setQ(texto); setSel(null) }}>{texto}</button>)}
+      <div className="tarifa-ejemplos">{tr("Ejemplos de búsqueda")}{['Botella de acero', 'Bicicleta eléctrica'].map((texto) => <button type="button" key={texto} onClick={() => { setQ(texto); setSel(null) }}>{tr(texto)}</button>)}
       </div>
-      <details className="tarifa-ayuda-movil"><summary>¿Cómo describo mi producto?</summary><p>Indicá el producto, el material y el uso. Por ejemplo, una camiseta de algodón para adulto.</p></details>
+      <details className="tarifa-ayuda-movil"><summary>{tr("¿Cómo describo mi producto?")}</summary><p>{tr("Indicá el producto, el material y el uso. Por ejemplo, una camiseta de algodón para adulto.")}</p></details>
 
       {comparar.length > 0 && (
         <div className="comparacion">
-          <div className="comp-cab"><b>Comparación de partidas</b> <small>Elige hasta 3. Lee las notas: definen qué entra en cada una.</small>
-            <button type="button" className="link" onClick={() => setComparar([])}>Limpiar</button></div>
+          <div className="comp-cab"><b>{tr("Comparación de partidas")}</b> <small>{tr("Elige hasta 3. Lee las notas: definen qué entra en cada una.")}</small>
+            <button type="button" className="link" onClick={() => setComparar([])}>{tr("Limpiar")}</button></div>
           <div className="comp-grid" style={{ gridTemplateColumns: `repeat(${comparar.length}, minmax(0, 1fr))` }}>
             {comparar.map((c) => {
               const it = ind.porCodigo.get(c)
@@ -62,14 +62,14 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
                   <span className="codigo">{c}</span>
                   <p>{etiqueta(ind, c)}</p>
                   <dl>
-                    <dt>Capítulo</dt><dd>{cp ? `${cp.n} · ${cp.title}` : '—'}</dd>
-                    <dt>Partida</dt><dd>{ancestros(ind, c)[0]?.[1] ?? '—'}</dd>
-                    <dt>DAI de referencia</dt><dd><b>{dai(it[2])}</b></dd>
+                    <dt>{tr("Capítulo")}</dt><dd>{cp ? `${cp.n} · ${cp.title}` : '—'}</dd>
+                    <dt>{tr("Partida")}</dt><dd>{ancestros(ind, c)[0]?.[1] ?? '—'}</dd>
+                    <dt>{tr("DAI de referencia")}</dt><dd><b>{dai(it[2])}</b></dd>
                   </dl>
                   <div className="acciones">
-                    <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c))}>Usar esta</button>
-                    <button type="button" className="link" onClick={() => setSel(c)}>Ver notas</button>
-                    <button type="button" className="link peligro" onClick={() => alternar(c)}>Quitar</button>
+                    <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c))}>{tr("Usar esta")}</button>
+                    <button type="button" className="link" onClick={() => setSel(c)}>{tr("Ver notas")}</button>
+                    <button type="button" className="link peligro" onClick={() => alternar(c)}>{tr("Quitar")}</button>
                   </div>
                 </div>
               )
@@ -79,17 +79,17 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
       )}
 
       <div className="clasif-grid">
-        <div className="col-lista" id="tarifa-lista" tabIndex={-1} aria-label="Explorador del arancel" role="region">
+        <div className="col-lista" id="tarifa-lista" tabIndex={-1} aria-label={tr("Explorador del arancel")} role="region">
           {q.trim().length >= 2 ? (
             <>
-              <p className="nota">{resultados.length ? `${resultados.length}${resultados.length === 40 ? '+' : ''} incisos encontrados` : 'Sin resultados: prueba con otras palabras (material, uso) o navega por capítulos.'}</p>
+              <p className="nota">{resultados.length ? tr("{0}{1} incisos encontrados", resultados.length, resultados.length === 40 ? '+' : '') : tr("Sin resultados: prueba con otras palabras (material, uso) o navega por capítulos.")}</p>
               <ul className="resultados">
                 {resultados.map(({ item }) => (
                   <li key={item[0]}>
                     <button type="button" className={sel === item[0] ? 'activa' : ''} onClick={() => setSel(item[0])}>
                       <span className="codigo">{item[0]}</span>
                       <span className="desc">{etiqueta(ind, item[0])}</span>
-                      <span className="tasa">DAI {dai(item[2])}</span>
+                      <span className="tasa">{tr("DAI ")}{dai(item[2])}</span>
                     </button>
                   </li>
                 ))}
@@ -97,7 +97,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
             </>
           ) : (
             <div className="arbol">
-              <h3>Explorá por sección</h3>
+              <h3>{tr("Explorá por sección")}</h3>
               {ind.data.secciones.slice(0, todas ? undefined : 4).map((s) => (
                 <details key={s.n}>
                   <summary><b>{ROMANOS[s.n]}</b> · {['Animales y productos de origen animal', 'Productos vegetales', 'Grasas y aceites', 'Alimentos, bebidas y tabaco'][s.n - 1] ?? s.title}</summary>
@@ -105,7 +105,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
                   {ind.data.capitulos.filter((c) => c.s === s.n).map((c) => (
                     <div key={c.n} className="cap">
                       <button type="button" className="cap-btn" onClick={() => setCapAbierto(capAbierto === c.n ? null : c.n)}>
-                        <span className="codigo">Cap. {String(c.n).padStart(2, '0')}</span> {c.title}
+                        <span className="codigo">{tr("Cap. ")}{String(c.n).padStart(2, '0')}</span> {c.title}
                       </button>
                       {capAbierto === c.n && (
                         <ul className="items-cap">
@@ -126,7 +126,7 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
                   ))}
                 </details>
               ))}
-              <button type="button" className="link" aria-expanded={todas} onClick={() => setTodas(!todas)}>{todas ? 'Ver menos secciones' : 'Ver todas las secciones'}</button>
+              <button type="button" className="link" aria-expanded={todas} onClick={() => setTodas(!todas)}>{todas ? tr("Ver menos secciones") : tr("Ver todas las secciones")}</button>
             </div>
           )}
         </div>
@@ -137,58 +137,55 @@ export function Clasificacion({ onUsar, conectado = false, onIngresar = () => {}
               <span className="codigo grande">{detalle[0]}</span>
               <h3>{etiqueta(ind, detalle[0])}</h3>
               <ol className="ruta">
-                {sec && <li><b>Sección {ROMANOS[sec.n]}</b> · {sec.title}</li>}
-                {cap && <li><b>Capítulo {cap.n}</b> · {cap.title}</li>}
+                {sec && <li><b>{tr("Sección ")}{ROMANOS[sec.n]}</b> · {sec.title}</li>}
+                {cap && <li><b>{tr("Capítulo ")}{cap.n}</b> · {cap.title}</li>}
                 {camino.map((a) => <li key={a[0]}><span className="codigo">{a[0]}</span> {a[1]}</li>)}
                 <li className="final"><span className="codigo">{detalle[0]}</span> {detalle[1]}</li>
               </ol>
               <div className="kpis dos">
-                <div><span>DAI (arancel regional de referencia)</span><b>{dai(detalle[2])}</b></div>
-                <div><span>Nivel</span><b>{digitos(detalle[0]).length} dígitos</b></div>
+                <div><span>{tr("DAI (arancel regional de referencia)")}</span><b>{dai(detalle[2])}</b></div>
+                <div><span>{tr("Nivel")}</span><b>{digitos(detalle[0]).length}{tr(" dígitos")}</b></div>
               </div>
-              <p className="nota">
-                El DAI mostrado viene del Arancel Centroamericano. Costa Rica puede tener tasas propias en incisos no armonizados,
-                además de Selectivo de Consumo, IVA reducido o preferencias por TLC: el agente las confirma.
-              </p>
+              <p className="nota">{tr("El DAI mostrado viene del Arancel Centroamericano. Costa Rica puede tener tasas propias en incisos no armonizados, además de Selectivo de Consumo, IVA reducido o preferencias por TLC: el agente las confirma.")}</p>
               <div className="acciones">
-                <button className="btn primario" type="button" onClick={() => onUsar(aClasificacion(ind, detalle[0]))}>Agregar al cotizador</button>
+                <button className="btn primario" type="button" onClick={() => onUsar(aClasificacion(ind, detalle[0]))}>{tr("Agregar al cotizador")}</button>
                 <button className="btn" type="button" onClick={() => alternar(detalle[0])} disabled={!comparar.includes(detalle[0]) && comparar.length >= 3}>
-                  {comparar.includes(detalle[0]) ? 'Quitar de la comparación' : `Comparar (${comparar.length}/3)`}
+                  {comparar.includes(detalle[0]) ? tr("Quitar de la comparación") : tr("Comparar ({0}/3)", comparar.length)}
                 </button>
-                <a className="btn" href="https://www.hacienda.go.cr/tica/web/hdbaranc.aspx" target="_blank" rel="noreferrer">Verificar en TICA</a>
+                <a className="btn" href="https://www.hacienda.go.cr/tica/web/hdbaranc.aspx" target="_blank" rel="noreferrer">{tr("Verificar en TICA")}</a>
               </div>
               {cap?.notes && (
                 <details className="notas" open>
-                  <summary>Notas del capítulo {cap.n}</summary>
+                  <summary>{tr("Notas del capítulo ")}{cap.n}</summary>
                   <pre>{cap.notes}</pre>
                 </details>
               )}
               {sec?.notes && (
                 <details className="notas">
-                  <summary>Notas de la sección {ROMANOS[sec.n]}</summary>
+                  <summary>{tr("Notas de la sección ")}{ROMANOS[sec.n]}</summary>
                   <pre>{sec.notes}</pre>
                 </details>
               )}
               <details className="notas">
-                <summary>Reglas generales de interpretación</summary>
+                <summary>{tr("Reglas generales de interpretación")}</summary>
                 <pre>{ind.data.reglas}</pre>
               </details>
             </div>
           ) : (
             <div className="detalle vacio">
-              <div className="tarifa-guia"><h3>¿Cómo describo mi producto?</h3>
-                <dl><dt>Producto</dt><dd>Camiseta</dd><dt>Material</dt><dd>Algodón</dd><dt>Uso</dt><dd>Vestir a un adulto</dd></dl>
+              <div className="tarifa-guia"><h3>{tr("¿Cómo describo mi producto?")}</h3>
+                <dl><dt>{tr("Producto")}</dt><dd>{tr("Camiseta")}</dd><dt>{tr("Material")}</dt><dd>{tr("Algodón")}</dd><dt>{tr("Uso")}</dt><dd>{tr("Vestir a un adulto")}</dd></dl>
               </div>
               <details className="notas">
-                <summary>Reglas generales de interpretación</summary>
+                <summary>{tr("Reglas generales de interpretación")}</summary>
                 <pre>{ind.data.reglas}</pre>
               </details>
             </div>
           )}
         </div>
       </div>
-      <p>La clasificación es preliminar. Tu agente aduanero la confirma con la ficha técnica.</p>
-      <p className="nota">Fuente: {ind.data.fuente}. Versión preliminar: algunas descripciones largas pueden tener errores de extracción.</p>
+      <p>{tr("La clasificación es preliminar. Tu agente aduanero la confirma con la ficha técnica.")}</p>
+      <p className="nota">{tr("Fuente: ")}{ind.data.fuente}{tr(". Versión preliminar: algunas descripciones largas pueden tener errores de extracción.")}</p>
     </section>
   )
 }

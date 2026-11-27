@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { useEffect, useState } from 'react'
 import { datosFaltantes } from '../data/config'
 import type { Perfil } from '../lib/almacen'
@@ -17,7 +19,7 @@ const ETIQUETAS: Record<string, string> = {
   intereses: 'Le interesa', intencion: 'Pidió',
 }
 const VALORES: Record<string, string> = { contratar: 'Quiere importar con LANDEX', revision_arancelaria: 'Revisión arancelaria', cotizacion_formal: 'Cotización formal' }
-const fecha = (s: string) => new Date(s).toLocaleString('es-CR', { dateStyle: 'medium', timeStyle: 'short' })
+const fecha = (s: string) => new Date(s).toLocaleString(formatoRegional(), { dateStyle: 'medium', timeStyle: 'short' })
 
 /** Detalle legible de lo que envió el prospecto. */
 function Detalle({ s }: { s: Solicitud }) {
@@ -26,8 +28,8 @@ function Detalle({ s }: { s: Solicitud }) {
   const pares = Object.entries(d).filter(([k, v]) => !['embarque', 'productos', 'resumen'].includes(k) && v !== '' && !(Array.isArray(v) && !v.length))
   return (
     <dl className="detalle-sol">
-      {res && <><dt>Estimación</dt><dd>{usd(res.total ?? 0)} · {res.dias} días · {res.estado}</dd></>}
-      {Array.isArray(d.productos) && <><dt>Productos</dt><dd>{(d.productos as { nombre?: string; cantidad?: number }[]).map((p) => `${p.nombre} (${p.cantidad})`).join(', ')}</dd></>}
+      {res && <><dt>{tr("Estimación")}</dt><dd>{usd(res.total ?? 0)} · {res.dias}{tr(" días · ")}{res.estado}</dd></>}
+      {Array.isArray(d.productos) && <><dt>{tr("Productos")}</dt><dd>{(d.productos as { nombre?: string; cantidad?: number }[]).map((p) => `${p.nombre} (${p.cantidad})`).join(', ')}</dd></>}
       {pares.map(([k, v]) => <div key={k}><dt>{ETIQUETAS[k] ?? k}</dt><dd>{Array.isArray(v) ? v.join(', ') : VALORES[String(v)] ?? String(v)}</dd></div>)}
     </dl>
   )
@@ -61,72 +63,70 @@ export function Solicitudes({ perfilBase, onAbrir }: { perfilBase: Perfil; onAbr
 
   return (
     <section className="panel solicitudes">
-      <h2>LANDEX CRM · Solicitudes</h2>
+      <h2>{tr("LANDEX CRM · Solicitudes")}</h2>
       <div className="columnas">{Object.entries(ESTADOS_SOLICITUD).map(([k,v]) => <div key={k}><b>{sols.filter(s=>s.estado===k).length}</b><p>{v}</p></div>)}</div>
-      <p className="intro">Lo que llega desde la web: cotizaciones que los clientes enviaron, pedidos de desalmacenaje, empresas y personas sin cuenta que quieren importar.</p>
-      {faltan.length > 0 && <p className="aviso">Datos corporativos sin configurar (no se muestran en la web): {faltan.join(', ')}.</p>}
-      {error && <p className="error" role="alert">{error}</p>}
+      <p className="intro">{tr("Lo que llega desde la web: cotizaciones que los clientes enviaron, pedidos de desalmacenaje, empresas y personas sin cuenta que quieren importar.")}</p>
+      {faltan.length > 0 && <p className="aviso">{tr("Datos corporativos sin configurar (no se muestran en la web): ")}{faltan.join(', ')}.</p>}
+      {error && <p className="error" role="alert">{tr(error)}</p>}
 
-      <h3>Cotizaciones enviadas por clientes <small>{cots.length}</small></h3>
+      <h3>{tr("Cotizaciones enviadas por clientes ")}<small>{cots.length}</small></h3>
       {cots.length ? (
         <div className="tabla-scroll"><table className="tabla">
-          <thead><tr><th>Número</th><th>Cliente</th><th>Pidió</th><th>Total estimado</th><th>Enviada</th><th></th></tr></thead>
+          <thead><tr><th>{tr("Número")}</th><th>{tr("Cliente")}</th><th>{tr("Pidió")}</th><th>{tr("Total estimado")}</th><th>{tr("Enviada")}</th><th></th></tr></thead>
           <tbody>{cots.map((c) => (
             <tr key={c.id}>
               <td>{c.numero}</td>
               <td>{c.perfiles?.nombre || c.perfiles?.email}<small>{c.perfiles?.empresa} {c.perfiles?.telefono}</small></td>
-              <td>{VALORES[c.datos.embarque.intencion ?? 'cotizacion_formal']}</td>
+              <td>{tr(VALORES[c.datos.embarque.intencion ?? 'cotizacion_formal'])}</td>
               <td>{c.total != null ? usd(c.total) : '—'}</td>
               <td>{fecha(c.actualizada)}</td>
-              <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfilBase) })}>Abrir y preparar formal</button></td>
+              <td><button type="button" className="link" onClick={() => onAbrir({ cotizacion: desdeNube(c), nube: c, cliente: perfilDeCot(c, perfilBase) })}>{tr("Abrir y preparar formal")}</button></td>
             </tr>
           ))}</tbody>
         </table></div>
-      ) : <p className="nota">No hay cotizaciones pendientes.</p>}
+      ) : <p className="nota">{tr("No hay cotizaciones pendientes.")}</p>}
 
-      <h3>Solicitudes desde la web <small>{visibles.length}</small></h3>
+      <h3>{tr("Solicitudes desde la web ")}<small>{visibles.length}</small></h3>
       <div className="filtros">
         {(['abiertas', 'todas', ...Object.keys(ESTADOS_SOLICITUD)] as const).map((f) => (
           <button key={f} type="button" className={filtro === f ? 'activa' : ''} onClick={() => setFiltro(f as typeof filtro)}>
-            {f === 'abiertas' ? 'Abiertas' : f === 'todas' ? 'Todas' : ESTADOS_SOLICITUD[f as EstadoSolicitud]}
+            {f === 'abiertas' ? tr("Abiertas") : f === 'todas' ? tr("Todas") : tr(ESTADOS_SOLICITUD[f as EstadoSolicitud])}
           </button>
         ))}
-        <button type="button" className="link" onClick={cargar}>Actualizar</button>
+        <button type="button" className="link" onClick={cargar}>{tr("Actualizar")}</button>
       </div>
       {visibles.length ? (
         <ul className="lista-sol">{visibles.map((s) => (
           <li key={s.id} className={`sol ${s.estado}`}>
             <div className="sol-cab">
-              <span className="tipo">{TIPOS_SOLICITUD[s.tipo]}</span>
+              <span className="tipo">{tr(TIPOS_SOLICITUD[s.tipo])}</span>
               <b>{s.nombre}</b>{s.empresa && <span> · {s.empresa}</span>}
               <span className="fecha">{fecha(s.creada)}</span>
             </div>
             <div className="sol-contacto">
               <a href={`mailto:${s.correo}`}>{s.correo}</a>{s.telefono && <> · <a href={`tel:${s.telefono}`}>{s.telefono}</a></>}
-              {s.usuario_id && <span className="sello">con cuenta</span>}
+              {s.usuario_id && <span className="sello">{tr("con cuenta")}</span>}
             </div>
             <Detalle s={s} />
             <CRMDetalle sol={s}/>
             <div className="sol-acciones">
-              <label>Estado
-                <select value={s.estado} onChange={(e) => cambiar(s, { estado: e.target.value as EstadoSolicitud })}>
+              <label>{tr("Estado")}<select value={s.estado} onChange={(e) => cambiar(s, { estado: e.target.value as EstadoSolicitud })}>
                   {Object.entries(ESTADOS_SOLICITUD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </label>
-              <label className="ancho">Notas internas
-                <textarea rows={2} value={notas[s.id] ?? s.notas} onChange={(e) => setNotas({ ...notas, [s.id]: e.target.value })}
+              <label className="ancho">{tr("Notas internas")}<textarea rows={2} value={notas[s.id] ?? s.notas} onChange={(e) => setNotas({ ...notas, [s.id]: e.target.value })}
                   onBlur={() => notas[s.id] !== undefined && notas[s.id] !== s.notas && cambiar(s, { notas: notas[s.id] })} />
               </label>
               {s.tipo === 'importacion' && Array.isArray((s.datos as { productos?: unknown }).productos) && (
                 <button type="button" className="btn" onClick={() => {
                   const d = s.datos as { embarque: CotNube['datos']['embarque']; productos: CotNube['datos']['productos']; resumen?: { total?: number } }
                   onAbrir({ copia: true, cotizacion: { numero: 'Solicitud web', fecha: s.creada, vigenciaDias: 15, nombre: s.nombre, embarque: d.embarque, productos: d.productos, total: d.resumen?.total ?? 0, estado: 'estimada', actualizada: s.creada } })
-                }}>Abrir en el cotizador</button>
+                }}>{tr("Abrir en el cotizador")}</button>
               )}
             </div>
           </li>
         ))}</ul>
-      ) : <p className="nota">No hay solicitudes {filtro === 'abiertas' ? 'abiertas' : 'con ese estado'}.</p>}
+      ) : <p className="nota">{tr("No hay solicitudes ")}{filtro === 'abiertas' ? tr("abiertas") : tr("con ese estado")}.</p>}
     </section>
   )
 }

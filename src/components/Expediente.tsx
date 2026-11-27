@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { useEffect, useRef, useState } from 'react'
 import { documentosRequeridos, ESTADOS_DOC, RESPONSABLES, type EstadoDoc, type Responsable } from '../lib/expediente'
 import type { Embarque, Producto } from '../lib/landed'
@@ -62,29 +64,28 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
   return (
     <div className="expediente document-center">
       <div className="dc-header">
-        <span className="dc-kicker">LANDEX · DOCUMENT CENTER</span>
-        <h3>Documentos de tu importación</h3>
-        <div className="dc-progress-label"><span>{enNube ? 'Documentos subidos' : 'Documentos que ya tienes'}</span><strong>{listos} de {tuyos.length}</strong></div>
-        <progress className="dc-progress" value={listos} max={tuyos.length || 1} aria-label="Documentos obligatorios subidos" />
+        <span className="dc-kicker">{tr("LANDEX · DOCUMENT CENTER")}</span>
+        <h3>{tr("Documentos de tu importación")}</h3>
+        <div className="dc-progress-label"><span>{enNube ? tr("Documentos subidos") : tr("Documentos que ya tienes")}</span><strong>{listos}{tr(" de ")}{tuyos.length}</strong></div>
+        <progress className="dc-progress" value={listos} max={tuyos.length || 1} aria-label={tr("Documentos obligatorios subidos")} />
         {enNube && <>
-          <div className="dc-progress-label"><span>Revisados por el agente aduanero</span><strong>{revisados} de {tuyos.length}</strong></div>
-          <progress className="dc-progress revisados" value={revisados} max={tuyos.length || 1} aria-label="Documentos revisados por el agente" />
+          <div className="dc-progress-label"><span>{tr("Revisados por el agente aduanero")}</span><strong>{revisados}{tr(" de ")}{tuyos.length}</strong></div>
+          <progress className="dc-progress revisados" value={revisados} max={tuyos.length || 1} aria-label={tr("Documentos revisados por el agente")} />
         </>}
-        <small>{enNube ? 'Subido no significa aprobado: el agente revisa cada documento antes de nacionalizar.' : 'Marca los que ya tienes; podrás subirlos cuando guardes la cotización en tu cuenta.'}</small>
+        <small>{enNube ? tr("Subido no significa aprobado: el agente revisa cada documento antes de nacionalizar.") : tr("Marca los que ya tienes; podrás subirlos cuando guardes la cotización en tu cuenta.")}</small>
       </div>
-      <p className="nota">
-        Sin factura, lista de empaque y documento de transporte no se puede nacionalizar.{' '}
-        {!usuario && <>Para subirlos, <button type="button" className="link" onClick={onIniciarSesion}>inicia sesión</button>.</>}
-        {usuario && !cotId && <>Para subirlos, <button type="button" className="link" onClick={onGuardarPrimero}>guarda la cotización</button> en tu cuenta.</>}
-        {enNube && 'Formatos: PDF, imagen, Excel o Word, hasta 10 MB.'}
+      <p className="nota">{tr("Sin factura, lista de empaque y documento de transporte no se puede nacionalizar.")}{' '}
+        {!usuario && <>{tr("Para subirlos, ")}<button type="button" className="link" onClick={onIniciarSesion}>{tr("inicia sesión")}</button>.</>}
+        {usuario && !cotId && <>{tr("Para subirlos, ")}<button type="button" className="link" onClick={onGuardarPrimero}>{tr("guarda la cotización")}</button>{tr(" en tu cuenta.")}</>}
+        {enNube && tr("Formatos: PDF, imagen, Excel o Word, hasta 10 MB.")}
       </p>
-      {error && <p className="nota error" role="alert">{error}</p>}
+      {error && <p className="nota error" role="alert">{tr(error)}</p>}
       {ORDEN.map((resp) => {
         const grupo = docs.filter((d) => d.responsable === resp)
         if (!grupo.length) return null
         return (
           <div key={resp} className="exp-grupo">
-            <div className="dc-group-heading"><span className="dc-group-icon"><IconoDoc /></span><div><b>{TITULOS[resp]}</b><small>{RESPONSABLES[resp]}{resp !== 'landex' ? ` · ${grupo.filter(d => d.obligatorio && estadoDe(d.id) !== 'pendiente').length}/${grupo.filter(d => d.obligatorio).length} obligatorios` : ''}</small></div></div>
+            <div className="dc-group-heading"><span className="dc-group-icon"><IconoDoc /></span><div><b>{tr(TITULOS[resp])}</b><small>{tr(RESPONSABLES[resp])}{resp !== 'landex' ? tr(" · {0}/{1} obligatorios", grupo.filter(d => d.obligatorio && estadoDe(d.id) !== 'pendiente').length, grupo.filter(d => d.obligatorio).length) : ''}</small></div></div>
             <ul>
               {grupo.map((d) => {
                 const s = estadoDe(d.id)
@@ -93,22 +94,22 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
                     <div className="doc-fila">
                       <IconoDoc listo={s === 'recibido' || s === 'revisado'} />
                       <div className="dc-copy">
-                        <span><b>{d.nombre}</b>{!d.obligatorio && <small className="opc"> · recomendado</small>}</span>
+                        <span><b>{d.nombre}</b>{!d.obligatorio && <small className="opc">{tr(" · recomendado")}</small>}</span>
                         <small>{d.detalle}</small>
-                        {enNube && <small className={`dc-status ${s}`}>{ESTADOS_DOC[s]}</small>}
+                        {enNube && <small className={`dc-status ${s}`}>{tr(ESTADOS_DOC[s])}</small>}
                       </div>
                       <div className="dc-action">{enNube ? (
-                        resp === 'landex' && !staff ? <span className="sello">LANDEX</span> : (
+                        resp === 'landex' && !staff ? <span className="sello">{tr("LANDEX")}</span> : (
                           <Subir tipo={d.id} ocupado={subiendo === d.id} onArchivo={(f) => subir(d.id, f)} />
                         )
                       ) : resp === 'landex' ? (
-                        <span className="sello">{agencia ? ESTADOS_DOC[s] : 'LANDEX'}</span>
+                        <span className="sello">{agencia ? tr(ESTADOS_DOC[s]) : tr("LANDEX")}</span>
                       ) : agencia ? (
-                        <select value={s} onChange={(ev) => onEstado(d.id, ev.target.value as EstadoDoc)} aria-label={`Estado de ${d.nombre}`}>
+                        <select value={s} onChange={(ev) => onEstado(d.id, ev.target.value as EstadoDoc)} aria-label={tr("Estado de {0}", d.nombre)}>
                           {Object.entries(ESTADOS_DOC).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
                       ) : (
-                        <label className="check"><input type="checkbox" aria-label={`Ya tengo ${d.nombre}`} checked={s !== 'pendiente'} onChange={(ev) => onEstado(d.id, ev.target.checked ? 'recibido' : 'pendiente')} />Ya lo tengo</label>
+                        <label className="check"><input type="checkbox" aria-label={tr("Ya tengo {0}", d.nombre)} checked={s !== 'pendiente'} onChange={(ev) => onEstado(d.id, ev.target.checked ? 'recibido' : 'pendiente')} />{tr("Ya lo tengo")}</label>
                       )}</div>
                     </div>
                     {enNube && deTipo(d.id).length > 0 && (
@@ -125,11 +126,11 @@ export function Expediente({ e, productos, estados, agencia, onEstado, cotId, us
       })}
       {enNube && (
         <div className="exp-grupo">
-          <span className="tipo">Otros documentos</span>
+          <span className="tipo">{tr("Otros documentos")}</span>
           <ul>
             <li className="doc">
               <div className="doc-fila">
-                <IconoDoc /><div className="dc-copy"><b>Otro documento</b><small>Cualquier otro archivo que el agente aduanero te pida.</small></div>
+                <IconoDoc /><div className="dc-copy"><b>{tr("Otro documento")}</b><small>{tr("Cualquier otro archivo que el agente aduanero te pida.")}</small></div>
                 <div className="dc-action"><Subir tipo="otro" ocupado={subiendo === 'otro'} onArchivo={(f) => subir('otro', f)} /></div>
               </div>
               {deTipo('otro').length > 0 && (
@@ -147,8 +148,8 @@ function Subir({ tipo, ocupado, onArchivo }: { tipo: string; ocupado: boolean; o
   const ref = useRef<HTMLInputElement>(null)
   return (
     <>
-      <button type="button" className="btn" disabled={ocupado} onClick={() => ref.current?.click()}>{ocupado ? 'Subiendo…' : 'Subir archivo'}</button>
-      <input ref={ref} type="file" hidden accept={TIPOS_ARCHIVO} aria-label={`Subir ${tipo}`}
+      <button type="button" className="btn" disabled={ocupado} onClick={() => ref.current?.click()}>{ocupado ? tr("Subiendo…") : tr("Subir archivo")}</button>
+      <input ref={ref} type="file" hidden accept={TIPOS_ARCHIVO} aria-label={tr("Subir {0}", tipo)}
         onChange={(ev) => { const f = ev.target.files?.[0]; if (f) onArchivo(f); ev.target.value = '' }} />
     </>
   )
@@ -167,20 +168,20 @@ function Archivo({ a, staff, onCambio, onError }: { a: DocNube; staff: boolean; 
   }
   return (
     <li className={`archivo ${a.estado}`}>
-      <button type="button" className="link" onClick={ver}>{a.nombre_archivo || 'archivo'}</button>
-      <small>{new Date(a.subido).toLocaleDateString('es-CR')}</small>
+      <button type="button" className="link" onClick={ver}>{a.nombre_archivo || tr("archivo")}</button>
+      <small>{new Date(a.subido).toLocaleDateString(formatoRegional())}</small>
       {staff ? (
         <span className="revision">
-          <input value={obs} placeholder="Observación para el cliente" onChange={(ev) => setObs(ev.target.value)} />
-          <button type="button" className="link" onClick={() => revisar('revisado')}>Revisado</button>
-          <button type="button" className="link peligro" onClick={() => revisar('observado')}>Observar</button>
+          <input value={obs} placeholder={tr("Observación para el cliente")} onChange={(ev) => setObs(ev.target.value)} />
+          <button type="button" className="link" onClick={() => revisar('revisado')}>{tr("Revisado")}</button>
+          <button type="button" className="link peligro" onClick={() => revisar('observado')}>{tr("Observar")}</button>
         </span>
       ) : (
         <>
-          <span className={`sello ${a.estado === 'revisado' ? 'validada' : a.estado === 'observado' ? 'pend' : ''}`}>{ESTADOS_ARCHIVO[a.estado]}</span>
-          {a.observacion && <small className="obs">Observación: {a.observacion}</small>}
+          <span className={`sello ${a.estado === 'revisado' ? 'validada' : a.estado === 'observado' ? 'pend' : ''}`}>{tr(ESTADOS_ARCHIVO[a.estado])}</span>
+          {a.observacion && <small className="obs">{tr("Observación: ")}{a.observacion}</small>}
           {a.estado === 'recibido' && (
-            <button type="button" className="link peligro" onClick={async () => { const err = await eliminarDocumento(a); if (err) onError(err); else onCambio() }}>Quitar</button>
+            <button type="button" className="link peligro" onClick={async () => { const err = await eliminarDocumento(a); if (err) onError(err); else onCambio() }}>{tr("Quitar")}</button>
           )}
         </>
       )}

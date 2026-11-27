@@ -1,3 +1,4 @@
+import { tr, elegirIdioma, idiomaActual, formatoRegional } from './lib/idioma'
 import { useEffect, useState } from 'react'
 import { Acceso } from './components/Acceso'
 import { Registro, registroCompleto } from './components/Registro'
@@ -54,6 +55,11 @@ const leerRuta = () => location.hash.replace(/^#\/?/, '').split('?')[0]
 const vistaDeRuta = (): Vista => RUTAS[leerRuta()] ?? 'inicio'
 
 export default function App() {
+  const [idioma, setIdioma] = useState(idiomaActual)
+  useEffect(() => {
+    document.documentElement.lang = idioma
+    document.title = idioma === 'en' ? 'LANDEX · Your digital customs brokerage in Costa Rica' : 'LANDEX · Tu agencia de aduanas digital en Costa Rica'
+  }, [idioma])
   const [vista, setVistaEstado] = useState<Vista>(vistaDeRuta)
   const [seccion, setSeccion] = useState<Seccion>(leerRuta() === 'empresas' ? 'empresarial' : 'desalmacenaje')
   const setVista = (v: Vista) => {
@@ -111,39 +117,48 @@ export default function App() {
     <div className="app">
       <header>
         <div className="marca">
-          <h1 className="marca-h1"><a href="#" onClick={(e) => { e.preventDefault(); setVista('inicio') }} aria-label="LANDEX, ir al inicio"><Logotipo sobre="oscuro" alto={30} descriptor /></a></h1>
+          <h1 className="marca-h1"><a href="#" onClick={(e) => { e.preventDefault(); setVista('inicio') }} aria-label={tr("LANDEX, ir al inicio")}><Logotipo sobre="oscuro" alto={30} descriptor /></a></h1>
         </div>
         <div className="cuenta">
+          <select className="idioma-selector" aria-label={idioma === 'en' ? 'Language' : 'Idioma'} value={idioma}
+            onChange={(e) => {
+              const siguiente = e.target.value === 'en' ? 'en' : 'es'
+              elegirIdioma(siguiente)
+              setIdioma(siguiente)
+            }}>
+            <option value="es" lang="es">Español</option>
+            <option value="en" lang="en">English</option>
+          </select>
           {usuario ? (
             <>
-              <span className="quien"><b>{perfil.nombre || usuario.email}</b><small>{ROLES[usuario.rol]}</small></span>
-              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>Salir</button>
+              <span className="quien"><b>{perfil.nombre || usuario.email}</b><small>{tr(ROLES[usuario.rol])}</small></span>
+              <button type="button" className="btn-cuenta" onClick={async () => { await salir(); setVista('inicio') }}>{tr("Salir")}</button>
             </>
           ) : (
-            <button type="button" className="btn-cuenta" onClick={() => { setVista('portal'); setAcceso(true) }}>Ingresar a Mi LANDEX</button>
+            <button type="button" className="btn-cuenta" onClick={() => { setVista('portal'); setAcceso(true) }}>{tr("Ingresar a Mi LANDEX")}</button>
           )}
         </div>
-        <nav aria-label="Navegación principal">
+        <nav aria-label={tr("Navegación principal")}>
           {visibles.filter(v => (v !== 'agencia' && !privadas.includes(v)) || v === 'portal').map((v) => (
             <button key={v} className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>
-              {v === 'portal' && agencia ? 'LANDEX Business' : VISTAS[v]}
+              {v === 'portal' && agencia ? tr("LANDEX Business") : tr(VISTAS[v])}
             </button>
           ))}
         </nav>
-        {agencia && <div className="banda-agencia">Sesión de agencia · {ROLES[usuario!.rol]}: ves las cotizaciones de todos los clientes.</div>}
+        {agencia && <div className="banda-agencia">{tr("Sesión de agencia · ")}{tr(ROLES[usuario!.rol])}{tr(": ves las cotizaciones de todos los clientes.")}</div>}
       </header>
 
       <div className="print-brand" aria-hidden>
         <Logotipo alto={22} />
-        <span>{MARCA.descriptor} · {MARCA.firma} · {new Date().toLocaleDateString('es-CR')}</span>
+        <span>{MARCA.descriptor} · {MARCA.firma} · {new Date().toLocaleDateString(formatoRegional())}</span>
       </div>
 
       <main>
         <div className={espacioPrivado ? 'workspace' : undefined}>
-          {espacioPrivado && <aside className="workspace-menu" aria-label="Navegación del portal">
-            <strong>{agencia ? 'LANDEX Business' : 'Mi LANDEX'}</strong>
-            {menuPrivado.map(v => <button key={v} type="button" className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>{v === 'portal' ? 'Resumen' : v === 'solicitudes' ? 'CRM comercial' : VISTAS[v]}</button>)}
-            <button type="button" onClick={() => setVista('cotizar')}>Nueva cotización</button>
+          {espacioPrivado && <aside className="workspace-menu" aria-label={tr("Navegación del portal")}>
+            <strong>{agencia ? tr("LANDEX Business") : tr("Mi LANDEX")}</strong>
+            {menuPrivado.map(v => <button key={v} type="button" className={vista === v ? 'activa' : ''} aria-current={vista === v ? 'page' : undefined} onClick={() => setVista(v)}>{v === 'portal' ? tr("Resumen") : v === 'solicitudes' ? tr("CRM comercial") : tr(VISTAS[v])}</button>)}
+            <button type="button" onClick={() => setVista('cotizar')}>{tr("Nueva cotización")}</button>
           </aside>}
           <div className="workspace-content">
         {vista === 'inicio' && (
@@ -156,8 +171,8 @@ export default function App() {
         {vista === 'cotizar' && (
           <section className="hero">
             <div>
-              <h2>Cotizá tu importación</h2>
-              <p>Elegí cómo ingresar los datos de tu embarque.</p>
+              <h2>{tr("Cotizá tu importación")}</h2>
+              <p>{tr("Elegí cómo ingresar los datos de tu embarque.")}</p>
             </div>
           </section>
         )}
@@ -165,7 +180,7 @@ export default function App() {
           <Cotizador clasificacionNueva={clasificacionNueva} descripcionNueva={descripcionNueva} perfil={perfil} apertura={apertura} versionTarifas={versionTarifas}
             usuario={usuario} onIniciarSesion={() => setAcceso(true)} onPerfil={setPerfil} />
         )}
-        {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} onTarifas={() => setVista('tarifas')} onNueva={() => setVista('cotizar')} /> : <section className="panel"><h2>Mi LANDEX</h2><p>Ingresa para consultar tus operaciones y cotizaciones.</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>Ingresar</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>Ver cotizaciones locales</button></div></section>)}
+        {vista === 'portal' && (usuario ? <Portal key={usuario.id} usuario={usuario} perfil={perfil} onAbrir={abrir} onCotizaciones={() => setVista('cotizaciones')} onSolicitudes={() => setVista('solicitudes')} onTarifas={() => setVista('tarifas')} onNueva={() => setVista('cotizar')} /> : <section className="panel"><h2>{tr("Mi LANDEX")}</h2><p>{tr("Ingresa para consultar tus operaciones y cotizaciones.")}</p><div className="acciones"><button type="button" className="btn primario" onClick={() => setAcceso(true)}>{tr("Ingresar")}</button><button type="button" className="btn" onClick={() => setVista('cotizaciones')}>{tr("Ver cotizaciones locales")}</button></div></section>)}
         {vista === 'cotizaciones' && (
           <MisCotizaciones usuario={usuario} perfilBase={perfil} onAbrir={(a) => abrir(a)} onNueva={() => abrir({ cotizacion: null })}
             onIniciarSesion={() => setAcceso(true)} />
@@ -191,18 +206,15 @@ export default function App() {
 
 
         <div className="pie-identidad">
-          <div className="pie-marca"><img src="brand/landex-pie.png" width={138} height={42} alt="LANDEX · Landed Cost Intelligence" /><span>Una iniciativa de Ramos &amp; Co.</span></div>
-        <nav className="pie-enlaces" aria-label="Enlaces del pie">
+          <div className="pie-marca"><img src="brand/landex-pie.png" width={138} height={42} alt={tr("LANDEX · Landed Cost Intelligence")} /><span>{tr("Una iniciativa de Ramos & Co.")}</span></div>
+        <nav className="pie-enlaces" aria-label={tr("Enlaces del pie")}>
           {vista !== 'inicio' && <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>}
-          {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>Términos y condiciones</a>}
-          {EMPRESA.privacidadUrl && <a href={EMPRESA.privacidadUrl}>Política de privacidad</a>}
+          {EMPRESA.terminosUrl && <a href={EMPRESA.terminosUrl}>{tr("Términos y condiciones")}</a>}
+          {EMPRESA.privacidadUrl && <a href={EMPRESA.privacidadUrl}>{tr("Política de privacidad")}</a>}
         </nav>
           <small>© {new Date().getFullYear()} {MARCA.nombre}</small>
         </div>
-        <p>
-          Las estimaciones son referenciales. La clasificación, los impuestos y las tarifas se confirman en la cotización
-          formal del agente aduanero. Las tarifas de esta versión son valores de referencia internos de ejemplo, no ofertas vigentes de proveedores.
-        </p>
+        <p>{tr("Las estimaciones son referenciales. La clasificación, los impuestos y las tarifas se confirman en la cotización formal del agente aduanero. Las tarifas de esta versión son valores de referencia internos de ejemplo, no ofertas vigentes de proveedores.")}</p>
       </footer>
     </div>
   )

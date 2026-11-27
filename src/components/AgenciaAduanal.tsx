@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useState, type ReactNode } from 'react'
 import { AGENCIA } from '../data/config'
 import { guardarPerfil, leerPerfil } from '../lib/almacen'
@@ -15,10 +16,10 @@ type Campos = Record<string, string | string[]>
 function Casillas({ nombre, opciones, valor, onCambio }: { nombre: string; opciones: string[]; valor: string[]; onCambio: (v: string[]) => void }) {
   return (
     <fieldset className="casillas">
-      <legend>{nombre}</legend>
+      <legend>{tr(nombre)}</legend>
       {opciones.map((o) => (
         <label key={o} className="check"><input type="checkbox" checked={valor.includes(o)}
-          onChange={(e) => onCambio(e.target.checked ? [...valor, o] : valor.filter((x) => x !== o))} />{o}</label>
+          onChange={(e) => onCambio(e.target.checked ? [...valor, o] : valor.filter((x) => x !== o))} />{tr(o)}</label>
       ))}
     </fieldset>
   )
@@ -52,27 +53,26 @@ function Formulario({ tipo, titulo, intro, usuario, campos, obligatorios, childr
 
   return (
     <form className="panel form-servicio" onSubmit={enviar} noValidate>
-      <h2>{titulo}</h2>
-      <p className="intro">{intro}</p>
+      <h2>{tr(titulo)}</h2>
+      <p className="intro">{tr(intro)}</p>
       <fieldset>
-        <legend>Tus datos</legend>
+        <legend>{tr("Tus datos")}</legend>
         <div className="campos">
-          <label>Nombre*<input value={c.nombre} onChange={(e) => setC({ ...c, nombre: e.target.value })} autoComplete="name" required /></label>
-          <label>Empresa{tipo === 'empresarial' ? '*' : ''}<input value={c.empresa} onChange={(e) => setC({ ...c, empresa: e.target.value })} autoComplete="organization" /></label>
-          <label>Correo*<input type="email" value={c.correo} onChange={(e) => setC({ ...c, correo: e.target.value })} autoComplete="email" required aria-invalid={!!c.correo && !correoOk} /></label>
-          <label>Teléfono<input value={c.telefono} onChange={(e) => setC({ ...c, telefono: e.target.value })} autoComplete="tel" inputMode="tel" /></label>
-          <label className="trampa" aria-hidden>Sitio web<input tabIndex={-1} autoComplete="off" value={trampa} onChange={(e) => setTrampa(e.target.value)} /></label>
+          <label>{tr("Nombre*")}<input value={c.nombre} onChange={(e) => setC({ ...c, nombre: e.target.value })} autoComplete="name" required /></label>
+          <label>{tr("Empresa")}{tipo === 'empresarial' ? '*' : ''}<input value={c.empresa} onChange={(e) => setC({ ...c, empresa: e.target.value })} autoComplete="organization" /></label>
+          <label>{tr("Correo*")}<input type="email" value={c.correo} onChange={(e) => setC({ ...c, correo: e.target.value })} autoComplete="email" required aria-invalid={!!c.correo && !correoOk} /></label>
+          <label>{tr("Teléfono")}<input value={c.telefono} onChange={(e) => setC({ ...c, telefono: e.target.value })} autoComplete="tel" inputMode="tel" /></label>
+          <label className="trampa" aria-hidden>{tr("Sitio web")}<input tabIndex={-1} autoComplete="off" value={trampa} onChange={(e) => setTrampa(e.target.value)} /></label>
         </div>
       </fieldset>
       {children}
-      <label className="check"><input type="checkbox" checked={acepto} onChange={(e) => setAcepto(e.target.checked)} />
-        Acepto que LANDEX use estos datos solo para responder esta solicitud y contactarme sobre ella.</label>
-      {faltan.length > 0 && <p className="nota">Completa los campos marcados con *.</p>}
-      {error && <p className="error" role="alert">{error}</p>}
+      <label className="check"><input type="checkbox" checked={acepto} onChange={(e) => setAcepto(e.target.checked)} />{tr("Acepto que LANDEX use estos datos solo para responder esta solicitud y contactarme sobre ella.")}</label>
+      {faltan.length > 0 && <p className="nota">{tr("Completa los campos marcados con *.")}</p>}
+      {error && <p className="error" role="alert">{tr(error)}</p>}
       <div className="acciones">
-        <button type="submit" className="btn primario" disabled={!valido || enviando}>{enviando ? 'Enviando…' : 'Enviar solicitud'}</button>
+        <button type="submit" className="btn primario" disabled={!valido || enviando}>{enviando ? tr("Enviando…") : tr("Enviar solicitud")}</button>
       </div>
-      <p className="nota">¿Prefieres escribirnos? <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></p>
+      <p className="nota">{tr("¿Prefieres escribirnos? ")}<a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a></p>
     </form>
   )
 }
@@ -87,66 +87,63 @@ export function AgenciaAduanal({ seccion, onSeccion, usuario, onCotizar }: { sec
 
   return (
     <div className="agencia-aduanal">
-      <div className="seg" role="tablist" aria-label="Tipo de servicio">
-        <button type="button" role="tab" aria-selected={seccion === 'desalmacenaje'} className={seccion === 'desalmacenaje' ? 'activa' : ''} onClick={() => onSeccion('desalmacenaje')}>Necesito desalmacenar</button>
-        <button type="button" role="tab" aria-selected={seccion === 'empresarial'} className={seccion === 'empresarial' ? 'activa' : ''} onClick={() => onSeccion('empresarial')}>Soluciones empresariales</button>
+      <div className="seg" role="tablist" aria-label={tr("Tipo de servicio")}>
+        <button type="button" role="tab" aria-selected={seccion === 'desalmacenaje'} className={seccion === 'desalmacenaje' ? 'activa' : ''} onClick={() => onSeccion('desalmacenaje')}>{tr("Necesito desalmacenar")}</button>
+        <button type="button" role="tab" aria-selected={seccion === 'empresarial'} className={seccion === 'empresarial' ? 'activa' : ''} onClick={() => onSeccion('empresarial')}>{tr("Soluciones empresariales")}</button>
       </div>
 
       {listo === seccion ? (
         <section className="panel enviado" role="status">
-          <h2>Recibimos tu solicitud</h2>
-          <p>Un especialista de LANDEX la revisará y te contactará al correo que indicaste. Si es urgente, escríbenos a <a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>.</p>
-          <div className="acciones"><button type="button" className="btn" onClick={() => setListo(null)}>Enviar otra solicitud</button></div>
+          <h2>{tr("Recibimos tu solicitud")}</h2>
+          <p>{tr("Un especialista de LANDEX la revisará y te contactará al correo que indicaste. Si es urgente, escríbenos a ")}<a href={`mailto:${AGENCIA.email}`}>{AGENCIA.email}</a>.</p>
+          <div className="acciones"><button type="button" className="btn" onClick={() => setListo(null)}>{tr("Enviar otra solicitud")}</button></div>
         </section>
       ) : seccion === 'desalmacenaje' ? (
         <Formulario tipo="desalmacenaje" usuario={usuario} campos={d} obligatorios={['mercancia']} onListo={() => setListo('desalmacenaje')}
           titulo="Ya tengo mercancía por desalmacenar"
           intro="¿Tu carga viene en camino o ya está en el puerto, aeropuerto o almacén fiscal? Cuéntanos lo que sabes y LANDEX se encarga del trámite aduanero. No necesitas completar el cotizador.">
           <fieldset>
-            <legend>Tu mercancía</legend>
+            <legend>{tr("Tu mercancía")}</legend>
             <div className="campos">
-              <label className="ancho">¿Qué mercancía es?*<input value={d.mercancia as string} onChange={(e) => sd('mercancia', e.target.value)} placeholder="Ej.: 300 sillas de oficina de metal y malla" /></label>
-              <label>País de origen<input value={d.pais as string} onChange={(e) => sd('pais', e.target.value)} /></label>
-              <label>Modalidad
-                <select value={d.modalidad as string} onChange={(e) => sd('modalidad', e.target.value)}>
-                  <option value="">Selecciona…</option><option>Marítimo</option><option>Aéreo</option><option>Terrestre</option><option>Courier</option><option>No estoy seguro</option>
+              <label className="ancho">{tr("¿Qué mercancía es?*")}<input value={d.mercancia as string} onChange={(e) => sd('mercancia', e.target.value)} placeholder={tr("Ej.: 300 sillas de oficina de metal y malla")} /></label>
+              <label>{tr("País de origen")}<input value={d.pais as string} onChange={(e) => sd('pais', e.target.value)} /></label>
+              <label>{tr("Modalidad")}<select value={d.modalidad as string} onChange={(e) => sd('modalidad', e.target.value)}>
+                  <option value="">{tr("Selecciona…")}</option><option value="Marítimo">{tr("Marítimo")}</option><option value="Aéreo">{tr("Aéreo")}</option><option value="Terrestre">{tr("Terrestre")}</option><option value="Courier">{tr("Courier")}</option><option value="No estoy seguro">{tr("No estoy seguro")}</option>
                 </select>
               </label>
-              <label>Valor comercial aproximado (USD)<input inputMode="decimal" value={d.valor as string} onChange={(e) => sd('valor', e.target.value)} /></label>
-              <label>Fecha estimada de llegada<input type="date" value={d.llegada as string} onChange={(e) => sd('llegada', e.target.value)} /></label>
-              <label>¿Dónde está la mercancía?
-                <select value={d.ubicacion as string} onChange={(e) => sd('ubicacion', e.target.value)}>
-                  <option value="">Selecciona…</option>{UBICACIONES.map((u) => <option key={u}>{u}</option>)}
+              <label>{tr("Valor comercial aproximado (USD)")}<input inputMode="decimal" value={d.valor as string} onChange={(e) => sd('valor', e.target.value)} /></label>
+              <label>{tr("Fecha estimada de llegada")}<input type="date" value={d.llegada as string} onChange={(e) => sd('llegada', e.target.value)} /></label>
+              <label>{tr("¿Dónde está la mercancía?")}<select value={d.ubicacion as string} onChange={(e) => sd('ubicacion', e.target.value)}>
+                  <option value="">{tr("Selecciona…")}</option>{UBICACIONES.map((u) => <option key={u} value={u}>{tr(u)}</option>)}
                 </select>
               </label>
-              <label>Detalle de la ubicación<input value={d.detalleUbicacion as string} onChange={(e) => sd('detalleUbicacion', e.target.value)} placeholder="Ej.: Moín, Juan Santamaría, nombre del almacén" /></label>
+              <label>{tr("Detalle de la ubicación")}<input value={d.detalleUbicacion as string} onChange={(e) => sd('detalleUbicacion', e.target.value)} placeholder={tr("Ej.: Moín, Juan Santamaría, nombre del almacén")} /></label>
             </div>
           </fieldset>
           <Casillas nombre="Documentos que ya tienes" opciones={DOCUMENTOS} valor={d.documentos as string[]} onCambio={(v) => sd('documentos', v)} />
           <Casillas nombre="Servicios adicionales que necesitas" opciones={COMPLEMENTARIOS} valor={d.servicios as string[]} onCambio={(v) => sd('servicios', v)} />
-          <label className="ancho">Comentarios<textarea rows={3} value={d.notas as string} onChange={(e) => sd('notas', e.target.value)} /></label>
-          <p className="nota">Si tu compra todavía no sale del proveedor, te conviene <button type="button" className="link" onClick={onCotizar}>cotizar la importación completa</button>.</p>
+          <label className="ancho">{tr("Comentarios")}<textarea rows={3} value={d.notas as string} onChange={(e) => sd('notas', e.target.value)} /></label>
+          <p className="nota">{tr("Si tu compra todavía no sale del proveedor, te conviene ")}<button type="button" className="link" onClick={onCotizar}>{tr("cotizar la importación completa")}</button>.</p>
         </Formulario>
       ) : (
         <Formulario tipo="empresarial" usuario={usuario} campos={m} obligatorios={['frecuencia']} onListo={() => setListo('empresarial')}
           titulo="Soluciones empresariales"
           intro="Para empresas que importan con frecuencia y buscan una agencia de aduanas y un socio logístico permanente. Cuéntanos cómo importas y coordinamos una reunión.">
           <fieldset>
-            <legend>Tus importaciones</legend>
+            <legend>{tr("Tus importaciones")}</legend>
             <div className="campos">
-              <label>Tu cargo<input value={m.cargo as string} onChange={(e) => sm('cargo', e.target.value)} /></label>
-              <label>¿Cuántas importaciones al año?*
-                <select value={m.frecuencia as string} onChange={(e) => sm('frecuencia', e.target.value)}>
-                  <option value="">Selecciona…</option><option>1 a 3</option><option>4 a 12</option><option>13 a 50</option><option>Más de 50</option>
+              <label>{tr("Tu cargo")}<input value={m.cargo as string} onChange={(e) => sm('cargo', e.target.value)} /></label>
+              <label>{tr("¿Cuántas importaciones al año?*")}<select value={m.frecuencia as string} onChange={(e) => sm('frecuencia', e.target.value)}>
+                  <option value="">{tr("Selecciona…")}</option><option value="1 a 3">{tr("1 a 3")}</option><option value="4 a 12">{tr("4 a 12")}</option><option value="13 a 50">{tr("13 a 50")}</option><option value="Más de 50">{tr("Más de 50")}</option>
                 </select>
               </label>
-              <label>Modalidades que usas<input value={m.modalidades as string} onChange={(e) => sm('modalidades', e.target.value)} placeholder="Ej.: marítimo FCL y aéreo" /></label>
-              <label>Principales países de origen<input value={m.origenes as string} onChange={(e) => sm('origenes', e.target.value)} placeholder="Ej.: China, Estados Unidos" /></label>
-              <label className="ancho">¿Qué productos importas?<input value={m.productos as string} onChange={(e) => sm('productos', e.target.value)} /></label>
+              <label>{tr("Modalidades que usas")}<input value={m.modalidades as string} onChange={(e) => sm('modalidades', e.target.value)} placeholder={tr("Ej.: marítimo FCL y aéreo")} /></label>
+              <label>{tr("Principales países de origen")}<input value={m.origenes as string} onChange={(e) => sm('origenes', e.target.value)} placeholder={tr("Ej.: China, Estados Unidos")} /></label>
+              <label className="ancho">{tr("¿Qué productos importas?")}<input value={m.productos as string} onChange={(e) => sm('productos', e.target.value)} /></label>
             </div>
           </fieldset>
           <Casillas nombre="¿Qué te interesa?" opciones={INTERESES} valor={m.intereses as string[]} onCambio={(v) => sm('intereses', v)} />
-          <label className="ancho">Comentarios o disponibilidad para reunirnos<textarea rows={3} value={m.notas as string} onChange={(e) => sm('notas', e.target.value)} /></label>
+          <label className="ancho">{tr("Comentarios o disponibilidad para reunirnos")}<textarea rows={3} value={m.notas as string} onChange={(e) => sm('notas', e.target.value)} /></label>
         </Formulario>
       )}
     </div>

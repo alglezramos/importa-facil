@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useState } from 'react'
 import { aClasificacion, etiqueta, type Indice } from '../lib/arancel'
 import type { Clasificacion } from '../lib/landed'
@@ -29,8 +30,8 @@ export function SugerenciaIA({ ind, descripcion, conectado, onIngresar, onElegir
   if (!conectado) {
     return (
       <div className="sug-ia">
-        <p><b>LANDEX AI</b> puede sugerirte la partida a partir de tu descripción. Ingresa gratis con tu correo para usarlo.</p>
-        <button type="button" className="btn" onClick={onIngresar}>Ingresar y usar LANDEX AI</button>
+        <p><b>{tr("LANDEX AI")}</b>{tr(" puede sugerirte la partida a partir de tu descripción. Ingresa gratis con tu correo para usarlo.")}</p>
+        <button type="button" className="btn" onClick={onIngresar}>{tr("Ingresar y usar LANDEX AI")}</button>
       </div>
     )
   }
@@ -54,29 +55,29 @@ export function SugerenciaIA({ ind, descripcion, conectado, onIngresar, onElegir
     <div className="sug-ia">
       {!partidas.length && !candidatos.length && (
         <>
-          <p><b>LANDEX AI</b> te sugiere la partida con lo que ya escribiste: <i>"{descripcion}"</i>.</p>
+          <p><b>{tr("LANDEX AI")}</b>{tr(" te sugiere la partida con lo que ya escribiste: ")}<i>"{descripcion}"</i>.</p>
           <button type="button" className="btn primario" disabled={estado !== '' || descripcion.trim().length < 4} onClick={pedir}>
-            {estado === 'partidas' ? 'Identificando partidas… (unos segundos)' : estado === 'incisos' ? 'Comparando incisos… (unos segundos)' : 'Sugerir con LANDEX AI'}
+            {estado === 'partidas' ? tr("Identificando partidas… (unos segundos)") : estado === 'incisos' ? tr("Comparando incisos… (unos segundos)") : tr("Sugerir con LANDEX AI")}
           </button>
-          {descripcion.trim().length < 4 && <small className="nota">Escribe primero el nombre y la descripción del producto.</small>}
+          {descripcion.trim().length < 4 && <small className="nota">{tr("Escribe primero el nombre y la descripción del producto.")}</small>}
         </>
       )}
-      {estado === 'incisos' && <p className="nota">Comparando incisos… (unos segundos)</p>}
-      {error && <p className="ai-error" role="alert">{error}</p>}
+      {estado === 'incisos' && <p className="nota">{tr("Comparando incisos… (unos segundos)")}</p>}
+      {error && <p className="ai-error" role="alert">{tr(error)}</p>}
       {candidatos.length > 0 && (
         <ul className="partidas">
           {candidatos.map((c) => (
             <li key={c.codigo}><button type="button" onClick={() => onElegir(aClasificacion(ind, c.codigo))}>
               <span className="codigo">{c.codigo}</span>
-              <span className="desc">{etiqueta(ind, c.codigo)}<small> · Confianza {c.confianza}. {c.razon}</small></span>
-              <span className="tasa">DAI {dai(ind.porCodigo.get(c.codigo)?.[2])}</span>
+              <span className="desc">{etiqueta(ind, c.codigo)}<small>{tr(" · Confianza ")}{c.confianza}. {c.razon}</small></span>
+              <span className="tasa">{tr("DAI ")}{dai(ind.porCodigo.get(c.codigo)?.[2])}</span>
             </button></li>
           ))}
         </ul>
       )}
       {gratis && partidas.length > 0 && (
         <>
-          <p className="nota">Partidas más probables. Toca una para ver sus incisos y elegir el tuyo:</p>
+          <p className="nota">{tr("Partidas más probables. Toca una para ver sus incisos y elegir el tuyo:")}</p>
           <ul className="partidas">
             {partidas.map((p) => (
               <li key={p.codigo}><button type="button" onClick={() => onBuscarPartida(p.codigo)}>
@@ -84,7 +85,7 @@ export function SugerenciaIA({ ind, descripcion, conectado, onIngresar, onElegir
               </button></li>
             ))}
           </ul>
-          <small className="nota">Los clientes LANDEX reciben el inciso exacto directamente.</small>
+          <small className="nota">{tr("Los clientes LANDEX reciben el inciso exacto directamente.")}</small>
         </>
       )}
     </div>

@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MODOS, ORIGENES, ZONAS, type Modo, type Zona } from '../data/config'
 import { nuevoProducto, type EmbarqueForm, type Perfil } from '../lib/almacen'
@@ -121,11 +123,11 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
 
   return (
     <div className="guiado" ref={raiz}>
-      <p className="nota" aria-live="polite">Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}</p>
-      <ol className="progreso" aria-label="Pasos">
+      <p className="nota" aria-live="polite">{tr("Paso ")}{paso + 1}{tr(" de ")}{PASOS.length} · {tr(PASOS[paso])}</p>
+      <ol className="progreso" aria-label={tr("Pasos")}>
         {PASOS.map((t, i) => (
           <li key={t} className={i === paso ? 'actual' : i < paso ? 'hecho' : ''}>
-            <button type="button" aria-current={i === paso ? "step" : undefined} disabled={i > paso} onClick={() => setPaso(i)}><span>{i + 1}</span>{t}</button>
+            <button type="button" aria-current={i === paso ? "step" : undefined} disabled={i > paso} onClick={() => setPaso(i)}><span>{i + 1}</span>{tr(t)}</button>
           </li>
         ))}
       </ol>
@@ -133,41 +135,40 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
       <div className="paso">
         {paso === 0 && (
           <>
-            <h3>¿Qué quieres importar?</h3>
-            <p className="nota">Ten a mano el precio del proveedor. Si todavía no conoces la partida arancelaria, puedes continuar y LANDEX la revisará.</p>
-            <label>Nombre del producto<input value={p.nombre} placeholder="Ej.: sillas de oficina" onChange={(e) => setP({ nombre: e.target.value, sku: p.sku || 'PROD-1' })} /></label>
-            <label>Descríbelo: de qué material es y para qué sirve<input value={p.descripcion ?? ''} placeholder="Ej.: sillas giratorias de malla con base metálica" onChange={(e) => setP({ descripcion: e.target.value })} /></label>
+            <h3>{tr("¿Qué quieres importar?")}</h3>
+            <p className="nota">{tr("Ten a mano el precio del proveedor. Si todavía no conoces la partida arancelaria, puedes continuar y LANDEX la revisará.")}</p>
+            <label>{tr("Nombre del producto")}<input value={p.nombre} placeholder={tr("Ej.: sillas de oficina")} onChange={(e) => setP({ nombre: e.target.value, sku: p.sku || 'PROD-1' })} /></label>
+            <label>{tr("Descríbelo: de qué material es y para qué sirve")}<input value={p.descripcion ?? ''} placeholder={tr("Ej.: sillas giratorias de malla con base metálica")} onChange={(e) => setP({ descripcion: e.target.value })} /></label>
             <div className="fila2">
-              <label>¿Cuántas unidades?<input type="number" min={0} value={p.cantidad || ''} onChange={(e) => setP({ cantidad: Number(e.target.value) })} /></label>
-              <label>País donde se fabrica
-                <select value={p.paisFabricacion} onChange={(e) => setP({ paisFabricacion: e.target.value })}>
-                  {PAISES.map(([c, n]) => <option key={c} value={c}>{n}</option>)}
+              <label>{tr("¿Cuántas unidades?")}<input type="number" min={0} value={p.cantidad || ''} onChange={(e) => setP({ cantidad: Number(e.target.value) })} /></label>
+              <label>{tr("País donde se fabrica")}<select value={p.paisFabricacion} onChange={(e) => setP({ paisFabricacion: e.target.value })}>
+                  {PAISES.map(([c, n]) => <option key={c} value={c}>{tr(n)}</option>)}
                 </select>
               </label>
             </div>
             <div className="seg">
-              <button type="button" className={valorModo === 'unitario' ? 'activa' : ''} onClick={() => setValorModo('unitario')}>Sé el precio por unidad</button>
-              <button type="button" className={valorModo === 'total' ? 'activa' : ''} onClick={() => setValorModo('total')}>Sé el total de la compra</button>
+              <button type="button" className={valorModo === 'unitario' ? 'activa' : ''} onClick={() => setValorModo('unitario')}>{tr("Sé el precio por unidad")}</button>
+              <button type="button" className={valorModo === 'total' ? 'activa' : ''} onClick={() => setValorModo('total')}>{tr("Sé el total de la compra")}</button>
             </div>
             {valorModo === 'unitario' ? (
-              <label>Precio por unidad (USD)<input type="number" min={0} step="0.01" value={p.valorUnitario || ''} onChange={(e) => setP({ valorUnitario: Number(e.target.value) })} /></label>
+              <label>{tr("Precio por unidad (USD)")}<input type="number" min={0} step="0.01" value={p.valorUnitario || ''} onChange={(e) => setP({ valorUnitario: Number(e.target.value) })} /></label>
             ) : (
-              <label>Total que le pagas al proveedor (USD)<input type="number" min={0} step="0.01" value={p.cantidad && p.valorUnitario ? +(p.cantidad * p.valorUnitario).toFixed(2) : ''} onChange={(e) => setP({ valorUnitario: p.cantidad ? Number(e.target.value) / p.cantidad : 0 })} disabled={!p.cantidad} /></label>
+              <label>{tr("Total que le pagas al proveedor (USD)")}<input type="number" min={0} step="0.01" value={p.cantidad && p.valorUnitario ? +(p.cantidad * p.valorUnitario).toFixed(2) : ''} onChange={(e) => setP({ valorUnitario: p.cantidad ? Number(e.target.value) / p.cantidad : 0 })} disabled={!p.cantidad} /></label>
             )}
             <div className="sub-sec">
-              <span className="sub">Partida arancelaria <small>(define los impuestos)</small></span>
+              <span className="sub">{tr("Partida arancelaria ")}<small>{tr("(define los impuestos)")}</small></span>
               {p.clasificacion ? (
-                <p><span className="codigo">{p.clasificacion.codigo}</span> {p.clasificacion.descripcion} <button type="button" className="link" onClick={() => setP({ clasificacion: null })}>Cambiar</button></p>
+                <p><span className="codigo">{p.clasificacion.codigo}</span> {p.clasificacion.descripcion} <button type="button" className="link" onClick={() => setP({ clasificacion: null })}>{tr("Cambiar")}</button></p>
               ) : noSePartida ? (
                 <>
                   {ind && <SugerenciaIA ind={ind} descripcion={[p.nombre, p.descripcion].filter(Boolean).join('. ')} conectado={conectado} onIngresar={onIngresar}
                     onElegir={(c) => { setP({ clasificacion: c }); setNoSePartida(false) }}
                     onBuscarPartida={(cod) => { setQ(cod); setNoSePartida(false) }} />}
-                  <p className="nota">Si prefieres, sigue sin partida: el agente aduanero la define y los impuestos quedan pendientes. <button type="button" className="link" onClick={() => setNoSePartida(false)}>Buscarla yo</button></p>
+                  <p className="nota">{tr("Si prefieres, sigue sin partida: el agente aduanero la define y los impuestos quedan pendientes. ")}<button type="button" className="link" onClick={() => setNoSePartida(false)}>{tr("Buscarla yo")}</button></p>
                 </>
               ) : (
                 <>
-                  <input type="search" placeholder="Busca tu producto en el arancel…" value={q} onChange={(e) => setQ(e.target.value)} />
+                  <input type="search" placeholder={tr("Busca tu producto en el arancel…")} value={q} onChange={(e) => setQ(e.target.value)} />
                   {ind && resultados.length > 0 && (
                     <ul className="partidas">
                       {resultados.map(({ item }) => (
@@ -177,7 +178,7 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
                       ))}
                     </ul>
                   )}
-                  <button type="button" className="link" onClick={() => setNoSePartida(true)}>No sé cuál es · que LANDEX AI la sugiera</button>
+                  <button type="button" className="link" onClick={() => setNoSePartida(true)}>{tr("No sé cuál es · que LANDEX AI la sugiera")}</button>
                 </>
               )}
             </div>
@@ -186,32 +187,31 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
 
         {paso === 1 && (
           <>
-            <h3>¿Dónde está tu proveedor?</h3>
-            <label>Ciudad o región
-              <select value={ef.origenId} onChange={(e) => set({ origenId: e.target.value })}>
-                {ORIGENES.map((o) => <option key={o.id} value={o.id}>{o.nombre}</option>)}
+            <h3>{tr("¿Dónde está tu proveedor?")}</h3>
+            <label>{tr("Ciudad o región")}<select value={ef.origenId} onChange={(e) => set({ origenId: e.target.value })}>
+                {ORIGENES.map((o) => <option key={o.id} value={o.id}>{tr(o.nombre)}</option>)}
               </select>
             </label>
-            <p className="nota">Opcional: los datos del proveedor nos ayudan a coordinar la recolección.</p>
+            <p className="nota">{tr("Opcional: los datos del proveedor nos ayudan a coordinar la recolección.")}</p>
             <div className="fila2">
-              <label>Empresa<input value={prov.empresa ?? ''} onChange={(e) => set({ proveedor: { ...prov, empresa: e.target.value } })} /></label>
-              <label>Contacto<input value={prov.contacto ?? ''} onChange={(e) => set({ proveedor: { ...prov, contacto: e.target.value } })} /></label>
-              <label>Teléfono<input type="tel" value={prov.telefono ?? ''} onChange={(e) => set({ proveedor: { ...prov, telefono: e.target.value } })} /></label>
-              <label>Email<input type="email" value={prov.email ?? ''} onChange={(e) => set({ proveedor: { ...prov, email: e.target.value.trim() } })} /></label>
+              <label>{tr("Empresa")}<input value={prov.empresa ?? ''} onChange={(e) => set({ proveedor: { ...prov, empresa: e.target.value } })} /></label>
+              <label>{tr("Contacto")}<input value={prov.contacto ?? ''} onChange={(e) => set({ proveedor: { ...prov, contacto: e.target.value } })} /></label>
+              <label>{tr("Teléfono")}<input type="tel" value={prov.telefono ?? ''} onChange={(e) => set({ proveedor: { ...prov, telefono: e.target.value } })} /></label>
+              <label>{tr("Email")}<input type="email" value={prov.email ?? ''} onChange={(e) => set({ proveedor: { ...prov, email: e.target.value.trim() } })} /></label>
             </div>
-            <label>Dirección<input value={prov.direccion ?? ''} onChange={(e) => set({ proveedor: { ...prov, direccion: e.target.value } })} /></label>
+            <label>{tr("Dirección")}<input value={prov.direccion ?? ''} onChange={(e) => set({ proveedor: { ...prov, direccion: e.target.value } })} /></label>
           </>
         )}
 
         {paso === 2 && (
           <>
-            <h3>¿Qué incluye el precio que te dio el proveedor?</h3>
-            <p className="nota">Así sabemos qué costos ya pagó el proveedor y cuáles te tocan a ti.</p>
+            <h3>{tr("¿Qué incluye el precio que te dio el proveedor?")}</h3>
+            <p className="nota">{tr("Así sabemos qué costos ya pagó el proveedor y cuáles te tocan a ti.")}</p>
             <div className="opciones">
               {PRECIO.map((o) => (
                 <label key={o.id} className={`opcion ${precioId === o.id ? 'on' : ''}`}>
                   <input type="radio" name="precio" checked={precioId === o.id} onChange={() => setPrecioId(o.id)} />
-                  <span><b>{o.texto}</b><small>{o.ayuda}</small></span>
+                  <span><b>{tr(o.texto)}</b><small>{tr(o.ayuda)}</small></span>
                 </label>
               ))}
             </div>
@@ -220,24 +220,24 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
 
         {paso === 3 && (
           <>
-            <h3>¿Qué tan grande es tu carga?</h3>
+            <h3>{tr("¿Qué tan grande es tu carga?")}</h3>
             <div className="seg">
-              <button type="button" className={medida === 'exacta' ? 'activa' : ''} onClick={() => { setMedida('exacta'); setTamano(''); setP({ volumenM3: p.datosPorConfirmar?.length ? 0 : volumenProducto(p), pesoBrutoKg: p.datosPorConfirmar?.length ? 0 : p.pesoBrutoKg, bultos: undefined, datosPorConfirmar: p.datosPorConfirmar }) }}>Sé el volumen y el peso</button>
-              <button type="button" className={medida === 'aprox' ? 'activa' : ''} onClick={() => setMedida('aprox')}>No lo sé con exactitud</button>
+              <button type="button" className={medida === 'exacta' ? 'activa' : ''} onClick={() => { setMedida('exacta'); setTamano(''); setP({ volumenM3: p.datosPorConfirmar?.length ? 0 : volumenProducto(p), pesoBrutoKg: p.datosPorConfirmar?.length ? 0 : p.pesoBrutoKg, bultos: undefined, datosPorConfirmar: p.datosPorConfirmar }) }}>{tr("Sé el volumen y el peso")}</button>
+              <button type="button" className={medida === 'aprox' ? 'activa' : ''} onClick={() => setMedida('aprox')}>{tr("No lo sé con exactitud")}</button>
             </div>
             {medida === 'exacta' ? (
               <div className="fila2">
-                <label>Volumen total (m³)<input type="number" min={0} step="0.01" value={volumenProducto(p) || ''} onChange={(e) => setP({ volumenM3: Number(e.target.value), bultos: undefined })} /></label>
-                <label>Peso total (kg)<input type="number" min={0} value={p.pesoBrutoKg || ''} onChange={(e) => setP({ pesoBrutoKg: Number(e.target.value) })} /></label>
+                <label>{tr("Volumen total (m³)")}<input type="number" min={0} step="0.01" value={volumenProducto(p) || ''} onChange={(e) => setP({ volumenM3: Number(e.target.value), bultos: undefined })} /></label>
+                <label>{tr("Peso total (kg)")}<input type="number" min={0} value={p.pesoBrutoKg || ''} onChange={(e) => setP({ pesoBrutoKg: Number(e.target.value) })} /></label>
               </div>
             ) : (
               <>
-                <p className="nota">Elige lo más parecido. Lo marcamos como <b>por confirmar</b>: pídele al proveedor la lista de empaque (packing list) con medidas y peso.</p>
+                <p className="nota">{tr("Elige lo más parecido. Lo marcamos como ")}<b>{tr("por confirmar")}</b>{tr(": pídele al proveedor la lista de empaque (packing list) con medidas y peso.")}</p>
                 <div className="opciones">
                   {TAMANOS.map((t) => (
                     <label key={t.id} className={`opcion ${tamano === t.id ? 'on' : ''}`}>
                       <input type="radio" name="tamano" checked={tamano === t.id} onChange={() => elegirTamano(t.id)} />
-                      <span><b>{t.texto}</b><small>Aprox. {t.m3} m³ y {t.kg.toLocaleString('es-CR')} kg</small></span>
+                      <span><b>{tr(t.texto)}</b><small>{tr("Aprox. ")}{t.m3}{tr(" m³ y ")}{t.kg.toLocaleString(formatoRegional())}{tr(" kg")}</small></span>
                     </label>
                   ))}
                 </div>
@@ -248,50 +248,49 @@ export function Guiado({ ef, setEf, productos, setProductos, perfil, onTerminar,
 
         {paso === 4 && (
           <>
-            <h3>¿Dónde lo recibes?</h3>
-            {perfil.direccionEntrega && <p className="nota">Dirección de tu perfil: {perfil.direccionEntrega}</p>}
-            <label>Zona
-              <select value={ef.zona} onChange={(e) => set({ zona: e.target.value as Zona })}>
-                {Object.entries(ZONAS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            <h3>{tr("¿Dónde lo recibes?")}</h3>
+            {perfil.direccionEntrega && <p className="nota">{tr("Dirección de tu perfil: ")}{perfil.direccionEntrega}</p>}
+            <label>{tr("Zona")}<select value={ef.zona} onChange={(e) => set({ zona: e.target.value as Zona })}>
+                {Object.entries(ZONAS).map(([k, v]) => <option key={k} value={k}>{tr(v)}</option>)}
               </select>
             </label>
-            <label className="check"><input type="checkbox" checked={ef.requiereDescarga} onChange={(e) => set({ requiereDescarga: e.target.checked })} />Necesito que descarguen la mercancía</label>
-            {ef.requiereDescarga && <label className="check sub"><input type="checkbox" checked={ef.clienteTieneMontacargas} onChange={(e) => set({ clienteTieneMontacargas: e.target.checked })} />Tengo montacargas</label>}
-            <label className="check"><input type="checkbox" checked={ef.seguro} onChange={(e) => set({ seguro: e.target.checked })} />Asegurar la carga (recomendado)</label>
+            <label className="check"><input type="checkbox" checked={ef.requiereDescarga} onChange={(e) => set({ requiereDescarga: e.target.checked })} />{tr("Necesito que descarguen la mercancía")}</label>
+            {ef.requiereDescarga && <label className="check sub"><input type="checkbox" checked={ef.clienteTieneMontacargas} onChange={(e) => set({ clienteTieneMontacargas: e.target.checked })} />{tr("Tengo montacargas")}</label>}
+            <label className="check"><input type="checkbox" checked={ef.seguro} onChange={(e) => set({ seguro: e.target.checked })} />{tr("Asegurar la carga (recomendado)")}</label>
           </>
         )}
 
         {paso === 5 && (
           <>
-            <h3>¿Qué es más importante para ti?</h3>
+            <h3>{tr("¿Qué es más importante para ti?")}</h3>
             <div className="opciones dos">
-              <label className={`opcion ${prioridad === 'costo' ? 'on' : ''}`}><input type="radio" name="prio" checked={prioridad === 'costo'} onChange={() => setPrioridad('costo')} /><span><b>Pagar lo menos posible</b><small>Aunque tarde más</small></span></label>
-              <label className={`opcion ${prioridad === 'rapidez' ? 'on' : ''}`}><input type="radio" name="prio" checked={prioridad === 'rapidez'} onChange={() => setPrioridad('rapidez')} /><span><b>Recibirlo lo antes posible</b><small>Aunque cueste más</small></span></label>
+              <label className={`opcion ${prioridad === 'costo' ? 'on' : ''}`}><input type="radio" name="prio" checked={prioridad === 'costo'} onChange={() => setPrioridad('costo')} /><span><b>{tr("Pagar lo menos posible")}</b><small>{tr("Aunque tarde más")}</small></span></label>
+              <label className={`opcion ${prioridad === 'rapidez' ? 'on' : ''}`}><input type="radio" name="prio" checked={prioridad === 'rapidez'} onChange={() => setPrioridad('rapidez')} /><span><b>{tr("Recibirlo lo antes posible")}</b><small>{tr("Aunque cueste más")}</small></span></label>
             </div>
             {prioridad && recomendada && (
               <div className="recomendacion">
-                <b>Te recomendamos: {MODOS[recomendada.modo]}</b>
-                <span>{usd(recomendada.total)}{recomendada.incompleta ? ' + costos pendientes' : ' estimados'} · unos {recomendada.dias} días{recomendada.contenedores > 1 ? ` · ${recomendada.contenedores} unidades` : ''}</span>
-                <small>{recomendada.incompleta ? 'Alternativa preliminar: faltan costos por confirmar y no se puede asegurar cuál es más económica.' : `Es la opción ${prioridad === 'costo' ? 'más económica' : 'más rápida'} entre las alternativas completas con tarifas de referencia.`} Puedes compararlas en el resultado.</small>
+                <b>{tr("Te recomendamos: ")}{tr(MODOS[recomendada.modo])}</b>
+                <span>{usd(recomendada.total)}{recomendada.incompleta ? tr(" + costos pendientes") : tr(" estimados")}{tr(" · unos ")}{recomendada.dias}{tr(" días")}{recomendada.contenedores > 1 ? tr(" · {0} unidades", recomendada.contenedores) : ''}</span>
+                <small>{recomendada.incompleta ? tr("Alternativa preliminar: faltan costos por confirmar y no se puede asegurar cuál es más económica.") : tr("Es la opción {0} entre las alternativas completas con tarifas de referencia.", tr(prioridad === 'costo' ? 'más económica' : 'más rápida'))}{tr(" Puedes compararlas en el resultado.")}</small>
                 {otra && otra.modo !== recomendada.modo && (
                   <div className="alternativa-guia">
-                    <b>{MODOS[otra.modo]}</b>
-                    <p>{usd(otra.total)} · {otra.dias} días. Diferencia: {usd(Math.abs(otra.total - recomendada.total))} {otra.total >= recomendada.total ? 'más' : 'menos'} por pedido ({usd(Math.abs(otra.total - recomendada.total) / unidades)} por unidad), {Math.abs(otra.dias - recomendada.dias)} días {otra.dias <= recomendada.dias ? 'antes' : 'después'}.</p>
-                    {(otra.incompleta || recomendada.incompleta) && <p>Comparación parcial. Hay costos pendientes de confirmar.</p>}
-                    <button type="button" className="btn" onClick={() => setPrioridad(prioridad === 'rapidez' ? 'costo' : 'rapidez')}>Elegir {MODOS[otra.modo]}</button>
+                    <b>{tr(MODOS[otra.modo])}</b>
+                    <p>{usd(otra.total)} · {otra.dias}{tr(" días. Diferencia: ")}{usd(Math.abs(otra.total - recomendada.total))} {otra.total >= recomendada.total ? tr("más") : tr("menos")}{tr(" por pedido (")}{usd(Math.abs(otra.total - recomendada.total) / unidades)}{tr(" por unidad), ")}{Math.abs(otra.dias - recomendada.dias)}{tr(" días ")}{otra.dias <= recomendada.dias ? tr("antes") : tr("después")}.</p>
+                    {(otra.incompleta || recomendada.incompleta) && <p>{tr("Comparación parcial. Hay costos pendientes de confirmar.")}</p>}
+                    <button type="button" className="btn" onClick={() => setPrioridad(prioridad === 'rapidez' ? 'costo' : 'rapidez')}>{tr("Elegir ")}{tr(MODOS[otra.modo])}</button>
                   </div>
                 )}
               </div>
             )}
-            {prioridad && !recomendada && <p className="nota">No hay una modalidad con tarifa de referencia para esta ruta: te contactamos para cotizarla.</p>}
+            {prioridad && !recomendada && <p className="nota">{tr("No hay una modalidad con tarifa de referencia para esta ruta: te contactamos para cotizarla.")}</p>}
           </>
         )}
       </div>
 
-      {!validos[paso] && <p className="nota" role="status">{["Completa el nombre, cantidad y precio del producto.", "", "Selecciona qué incluye el precio o indica que no lo sabes.", "Indica el peso y volumen o elige un tamaño aproximado.", "", "Selecciona una prioridad y revisa las alternativas disponibles."][paso]}</p>}
+      {!validos[paso] && <p className="nota" role="status">{tr(["Completa el nombre, cantidad y precio del producto.", "", "Selecciona qué incluye el precio o indica que no lo sabes.", "Indica el peso y volumen o elige un tamaño aproximado.", "", "Selecciona una prioridad y revisa las alternativas disponibles."][paso])}</p>}
       <div className="acciones">
-        {paso > 0 && <button type="button" className="btn" onClick={() => setPaso(paso - 1)}>Atrás</button>}
-        <button type="button" className="btn primario" disabled={!validos[paso]} onClick={siguiente}>{paso === PASOS.length - 1 ? 'Ver mi cotización' : 'Continuar'}</button>
+        {paso > 0 && <button type="button" className="btn" onClick={() => setPaso(paso - 1)}>{tr("Atrás")}</button>}
+        <button type="button" className="btn primario" disabled={!validos[paso]} onClick={siguiente}>{paso === PASOS.length - 1 ? tr("Ver mi cotización") : tr("Continuar")}</button>
       </div>
     </div>
   )

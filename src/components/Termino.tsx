@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 /** Ayuda breve para términos técnicos: un "?" que muestra la explicación al pasar o tocar. */
 const GLOSARIO: Record<string, string> = {
   incoterm: 'Regla internacional que dice qué costos paga tu proveedor y desde dónde pagas tú. Ej.: EXW = lo recoges en su bodega; FOB = lo deja en el barco; CIF = paga flete y seguro hasta Costa Rica.',
@@ -13,8 +14,8 @@ export function Termino({ id }: { id: keyof typeof GLOSARIO | string }) {
   const texto = GLOSARIO[id]
   if (!texto) return null
   return (
-    <span className="termino" tabIndex={0} role="note" aria-label={texto}>
-      ?<span className="termino-pop" aria-hidden>{texto}</span>
+    <span className="termino" tabIndex={0} role="note" aria-label={tr(texto)}>
+      ?<span className="termino-pop" aria-hidden>{tr(texto)}</span>
     </span>
   )
 }

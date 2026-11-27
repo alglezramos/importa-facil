@@ -1,3 +1,5 @@
+import { formatoRegional } from '../lib/idioma'
+import { tr } from '../lib/idioma'
 import { leerPerfil } from '../lib/almacen'
 import { useEffect, useMemo, useState } from 'react'
 import { AGENCIA, MODOS, ZONAS } from '../data/config'
@@ -47,7 +49,7 @@ export function armarSolicitud(e: Embarque, r: ResultadoLanded, productos: Produ
     ] : []),
     `Incoterm: ${e.incoterm} (${INCOTERMS[e.incoterm].nombre})${e.lugarConvenido ? ' – ' + e.lugarConvenido : ''}`,
     `Origen: ${e.origen.nombre} – ${MODOS[e.modo]}`,
-    `Carga: ${r.carga.volumenM3.toFixed(2)} m³ – ${r.carga.pesoKg.toLocaleString('es-CR')} kg${r.carga.contenedores ? ` – ${r.carga.contenedores} unidad(es) de transporte` : ''}`,
+    `Carga: ${r.carga.volumenM3.toFixed(2)} m³ – ${r.carga.pesoKg.toLocaleString(formatoRegional())} kg${r.carga.contenedores ? ` – ${r.carga.contenedores} unidad(es) de transporte` : ''}`,
     `Entrega: ${ZONAS[e.zona]} – descarga ${e.requiereDescarga ? 'requerida' : 'no requerida'}${e.requiereDescarga ? (e.clienteTieneMontacargas ? ' (con montacargas propio)' : ' (sin montacargas)') : ''}`,
     '',
     'Productos:',
@@ -100,17 +102,14 @@ export function Solicitud({ entrada, r, productos }: Props) {
 
   return (
     <div className="solicitud">
-      <h3>Prefieres enviarla por correo</h3>
-      <p className="nota">
-        Elige con quién quieres cotizar. {AGENCIA.nombre} pide las tarifas por ti, las compara y te envía la mejor opción con la
-        clasificación confirmada por el agente aduanero.
-      </p>
+      <h3>{tr("Prefieres enviarla por correo")}</h3>
+      <p className="nota">{tr("Elige con quién quieres cotizar. ")}{AGENCIA.nombre}{tr(" pide las tarifas por ti, las compara y te envía la mejor opción con la clasificación confirmada por el agente aduanero.")}</p>
 
-      <h4>Flete internacional · {entrada.origen.nombre} · {MODOS[entrada.modo]}</h4>
-      {!grupos.length && <p className="nota">{AGENCIA.nombre} seleccionará el agente de carga según tu carga, el origen y la modalidad.</p>}
+      <h4>{tr("Flete internacional · ")}{tr(entrada.origen.nombre)} · {tr(MODOS[entrada.modo])}</h4>
+      {!grupos.length && <p className="nota">{AGENCIA.nombre}{tr(" seleccionará el agente de carga según tu carga, el origen y la modalidad.")}</p>}
       {grupos.map((g) => (
         <div key={g.tipo} className="grupo-prov">
-          <span className="tipo">{TIPO_ETIQUETA[g.tipo]}{g.tipo === 'naviera' && entrada.modo === 'LCL' ? ' (carga consolidada)' : ''}</span>
+          <span className="tipo">{tr(TIPO_ETIQUETA[g.tipo])}{g.tipo === 'naviera' && entrada.modo === 'LCL' ? tr(" (carga consolidada)") : ''}</span>
           <div className="chips">
             {g.items.map((p) => (
               <label key={p.id} className={`chip ${elegidos.includes(p.id) ? 'on' : ''}`} title={p.nota}>
@@ -123,11 +122,11 @@ export function Solicitud({ entrada, r, productos }: Props) {
         </div>
       ))}
       {entrada.modo === 'LCL' && (
-        <p className="nota">Para carga suelta (LCL) las navieras suelen cotizar a través de consolidadores; nosotros lo coordinamos.</p>
+        <p className="nota">{tr("Para carga suelta (LCL) las navieras suelen cotizar a través de consolidadores; nosotros lo coordinamos.")}</p>
       )}
 
-      <h4>Transporte terrestre en Costa Rica</h4>
-      {!transportistas.length && <p className="nota">{AGENCIA.nombre} seleccionará un transportista según tu carga y destino.</p>}
+      <h4>{tr("Transporte terrestre en Costa Rica")}</h4>
+      {!transportistas.length && <p className="nota">{AGENCIA.nombre}{tr(" seleccionará un transportista según tu carga y destino.")}</p>}
       <div className="chips">
         {transportistas.map((t) => (
           <label key={t.id} className={`chip ${terrestres.includes(t.id) ? 'on' : ''}`}>
@@ -137,22 +136,21 @@ export function Solicitud({ entrada, r, productos }: Props) {
           </label>
         ))}
       </div>
-      {transportistas.length > 0 && <p className="nota">Si no eliges ninguno, te recomendamos las mejores opciones.</p>}
+      {transportistas.length > 0 && <p className="nota">{tr("Si no eliges ninguno, te recomendamos las mejores opciones.")}</p>}
 
-      <h4>Tus datos</h4>
+      <h4>{tr("Tus datos")}</h4>
       <div className="fila2">
-        <label>Nombre *<input value={contacto.nombre} onChange={(e) => setContacto({ ...contacto, nombre: e.target.value })} /></label>
-        <label>Empresa<input value={contacto.empresa} onChange={(e) => setContacto({ ...contacto, empresa: e.target.value })} /></label>
-        <label>Correo<input type="email" value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} /></label>
-        <label>Teléfono / WhatsApp<input type="tel" value={contacto.telefono} onChange={(e) => setContacto({ ...contacto, telefono: e.target.value })} /></label>
+        <label>{tr("Nombre *")}<input value={contacto.nombre} onChange={(e) => setContacto({ ...contacto, nombre: e.target.value })} /></label>
+        <label>{tr("Empresa")}<input value={contacto.empresa} onChange={(e) => setContacto({ ...contacto, empresa: e.target.value })} /></label>
+        <label>{tr("Correo")}<input type="email" value={contacto.correo} onChange={(e) => setContacto({ ...contacto, correo: e.target.value })} /></label>
+        <label>{tr("Teléfono / WhatsApp")}<input type="tel" value={contacto.telefono} onChange={(e) => setContacto({ ...contacto, telefono: e.target.value })} /></label>
       </div>
-      <label>Notas (fecha deseada, proveedor, enlace del producto…)
-        <input value={contacto.notas} onChange={(e) => setContacto({ ...contacto, notas: e.target.value })} />
+      <label>{tr("Notas (fecha deseada, proveedor, enlace del producto…)")}<input value={contacto.notas} onChange={(e) => setContacto({ ...contacto, notas: e.target.value })} />
       </label>
 
       <details className="vista">
-        <summary>Ver la solicitud que se enviará</summary>
-        <pre>{texto}</pre>
+        <summary>{tr("Ver la solicitud que se enviará")}</summary>
+        <pre>{tr(texto)}</pre>
       </details>
 
       <div className="acciones">
@@ -162,18 +160,14 @@ export function Solicitud({ entrada, r, productos }: Props) {
             aria-disabled={!completo}
             target="_blank" rel="noreferrer"
             href={completo ? `https://wa.me/${AGENCIA.whatsapp}?text=${encodeURIComponent(texto)}` : undefined}
-          >
-            Enviar por WhatsApp
-          </a>
+          >{tr("Enviar por WhatsApp")}</a>
         )}
         <a className={`btn ${completo ? '' : 'deshabilitado'}`} aria-disabled={!completo}
-          href={completo ? `mailto:${AGENCIA.email}?subject=${encodeURIComponent('Solicitud de cotización – ' + (contacto.empresa || contacto.nombre))}&body=${encodeURIComponent(texto)}` : undefined}>
-          Enviar por correo
-        </a>
-        <button className="btn" type="button" onClick={copiar}>{copiado ? 'Copiado ✓' : 'Copiar solicitud'}</button>
+          href={completo ? `mailto:${AGENCIA.email}?subject=${encodeURIComponent('Solicitud de cotización – ' + (contacto.empresa || contacto.nombre))}&body=${encodeURIComponent(texto)}` : undefined}>{tr("Enviar por correo")}</a>
+        <button className="btn" type="button" onClick={copiar}>{copiado ? tr("Copiado ✓") : tr("Copiar solicitud")}</button>
       </div>
-      {!completo && <p className="nota">Escribe tu nombre y un correo o teléfono para enviar la solicitud.</p>}
-      <p className="nota">También puedes escribirnos a {AGENCIA.email}.</p>
+      {!completo && <p className="nota">{tr("Escribe tu nombre y un correo o teléfono para enviar la solicitud.")}</p>}
+      <p className="nota">{tr("También puedes escribirnos a ")}{AGENCIA.email}.</p>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { tr } from '../lib/idioma'
 import { useState } from 'react'
 import type { Clasificacion as Cls } from '../lib/landed'
 import { aClasificacion, etiqueta, type Indice } from '../lib/arancel'
@@ -33,14 +34,14 @@ function PanelAccesos() {
   const accion = async (dar: boolean) => { const e = await otorgarAcceso(correo, dar); setMsg(e ?? (dar ? `${correo.trim()} ya tiene LANDEX AI completo.` : `Se quitó el acceso completo a ${correo.trim()}.`)) }
   return (
     <details className="ai-admin">
-      <summary>Equipo: dar acceso completo a un cliente</summary>
-      <p>Los clientes con una cotización aceptada, en proceso o cerrada ya lo tienen. Aquí puedes dárselo a mano a otro cliente.</p>
+      <summary>{tr("Equipo: dar acceso completo a un cliente")}</summary>
+      <p>{tr("Los clientes con una cotización aceptada, en proceso o cerrada ya lo tienen. Aquí puedes dárselo a mano a otro cliente.")}</p>
       <div className="ai-acciones">
-        <input type="email" value={correo} placeholder="correo@cliente.com" onChange={(e) => setCorreo(e.target.value)} />
-        <button type="button" className="btn primario" disabled={!valido} onClick={() => accion(true)}>Dar acceso</button>
-        <button type="button" className="btn" disabled={!valido} onClick={() => accion(false)}>Quitar</button>
+        <input type="email" value={correo} placeholder={tr("correo@cliente.com")} onChange={(e) => setCorreo(e.target.value)} />
+        <button type="button" className="btn primario" disabled={!valido} onClick={() => accion(true)}>{tr("Dar acceso")}</button>
+        <button type="button" className="btn" disabled={!valido} onClick={() => accion(false)}>{tr("Quitar")}</button>
       </div>
-      {msg && <small role="status">{msg}</small>}
+      {msg && <small role="status">{tr(msg)}</small>}
     </details>
   )
 }
@@ -90,50 +91,50 @@ export function LandexAI({ ind, conectado, onIngresar, onUsar, onVer, onCotizar,
   return (
     <div className="ai">
       <div className="ai-cab">
-        <span className="ai-marca">LANDEX <b>AI</b></span>
-        <h2>Clasifica tu producto con inteligencia artificial</h2>
-        <p>Descríbelo con tus palabras o sube una foto. LANDEX AI aplica las reglas del Sistema Armonizado y te propone los incisos más probables del arancel oficial de Costa Rica.</p>
+        <span className="ai-marca">{tr("LANDEX ")}<b>{tr("AI")}</b></span>
+        <h2>{tr("Clasifica tu producto con inteligencia artificial")}</h2>
+        <p>{tr("Descríbelo con tus palabras o sube una foto. LANDEX AI aplica las reglas del Sistema Armonizado y te propone los incisos más probables del arancel oficial de Costa Rica.")}</p>
       </div>
 
       {!conectado ? (
         <div className="ai-entrar">
           <div className="ai-cand top ai-ejemplo">
-            <small>Ejemplo resuelto por LANDEX AI</small>
-            <p className="ai-texto">"{EJEMPLO.desc}"</p>
-            <div className="ai-cand-cab"><span className="codigo">{EJEMPLO.codigo}</span><span className="tasa">DAI {dai(ind.porCodigo.get(EJEMPLO.codigo)?.[2])}</span></div>
-            <p className="ai-por">{EJEMPLO.razon}</p>
+            <small>{tr("Ejemplo resuelto por LANDEX AI")}</small>
+            <p className="ai-texto">"{tr(EJEMPLO.desc)}"</p>
+            <div className="ai-cand-cab"><span className="codigo">{EJEMPLO.codigo}</span><span className="tasa">{tr("DAI ")}{dai(ind.porCodigo.get(EJEMPLO.codigo)?.[2])}</span></div>
+            <p className="ai-por">{tr(EJEMPLO.razon)}</p>
           </div>
-          <p>Crea tu cuenta gratis con tu correo y prueba LANDEX AI con 3 clasificaciones al mes. Los clientes LANDEX lo usan completo.</p>
-          <button type="button" className="btn primario" onClick={onIngresar}>Ingresar y probar LANDEX AI</button>
+          <p>{tr("Crea tu cuenta gratis con tu correo y prueba LANDEX AI con 3 clasificaciones al mes. Los clientes LANDEX lo usan completo.")}</p>
+          <button type="button" className="btn primario" onClick={onIngresar}>{tr("Ingresar y probar LANDEX AI")}</button>
         </div>
       ) : (
         <>
           <textarea rows={3} maxLength={2000} value={desc} onChange={(e) => setDesc(e.target.value)}
-            placeholder="Qué es, de qué material está hecho, para qué sirve y cómo viene presentado…" />
+            placeholder={tr("Qué es, de qué material está hecho, para qué sirve y cómo viene presentado…")} />
           <div className="ai-ejemplos">
             {EJEMPLOS.map((x) => <button type="button" key={x} className="chip" onClick={() => setDesc(x)}>{x}</button>)}
           </div>
           <div className="ai-acciones">
             <label className="btn ai-foto">
-              {nombreImg ? `Foto: ${nombreImg}` : 'Agregar foto (opcional)'}
+              {nombreImg ? tr("Foto: {0}", nombreImg) : tr("Agregar foto (opcional)")}
               <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => foto(e.target.files?.[0])} />
             </label>
-            {imagen && <button type="button" className="link" onClick={() => { setImagen(null); setNombreImg('') }}>Quitar foto</button>}
+            {imagen && <button type="button" className="link" onClick={() => { setImagen(null); setNombreImg('') }}>{tr("Quitar foto")}</button>}
             <button type="button" className="btn primario" disabled={ocupado || desc.trim().length < 4} onClick={analizar}>
-              {paso === 'partidas' ? 'Identificando partidas…' : paso === 'incisos' ? 'Comparando incisos…' : 'Clasificar con LANDEX AI'}
+              {paso === 'partidas' ? tr("Identificando partidas…") : paso === 'incisos' ? tr("Comparando incisos…") : tr("Clasificar con LANDEX AI")}
             </button>
           </div>
-          {nivel === 'gratis' && restantes !== undefined && <p className="ai-cupo">Te quedan {restantes} de 3 clasificaciones gratis este mes.</p>}
-          {nivel === 'cliente' && <p className="ai-cupo">Cliente LANDEX: acceso completo.</p>}
+          {nivel === 'gratis' && restantes !== undefined && <p className="ai-cupo">{tr("Te quedan ")}{restantes}{tr(" de 3 clasificaciones gratis este mes.")}</p>}
+          {nivel === 'cliente' && <p className="ai-cupo">{tr("Cliente LANDEX: acceso completo.")}</p>}
         </>
       )}
 
-      {error && <><p className="ai-error" role="alert">{error}</p>{nivel === 'gratis' && <button type="button" className="btn primario" onClick={onCotizar}>Cotizar con LANDEX</button>}</>}
+      {error && <><p className="ai-error" role="alert">{tr(error)}</p>{nivel === 'gratis' && <button type="button" className="btn primario" onClick={onCotizar}>{tr("Cotizar con LANDEX")}</button>}</>}
 
       {(resumen || partidas.length > 0) && (
         <div className="ai-razon">
-          {resumen && <p><b>Entendí:</b> {resumen}</p>}
-          {partidas.length > 0 && nivel !== 'gratis' && <p className="nota">Partidas analizadas: {partidas.map((p) => p.codigo).join(' · ')}</p>}
+          {resumen && <p><b>{tr("Entendí:")}</b> {resumen}</p>}
+          {partidas.length > 0 && nivel !== 'gratis' && <p className="nota">{tr("Partidas analizadas: ")}{partidas.map((p) => p.codigo).join(' · ')}</p>}
         </div>
       )}
 
@@ -141,50 +142,50 @@ export function LandexAI({ ind, conectado, onIngresar, onUsar, onVer, onCotizar,
         <div className="ai-resultados">
           {partidas.map((p, i) => (
             <div key={p.codigo} className={`ai-cand ${i === 0 ? 'top' : ''}`}>
-              <div className="ai-cand-cab"><span className="codigo">Partida {p.codigo}</span>{i === 0 && <span className="conf alta">Más probable</span>}</div>
+              <div className="ai-cand-cab"><span className="codigo">{tr("Partida ")}{p.codigo}</span>{i === 0 && <span className="conf alta">{tr("Más probable")}</span>}</div>
               <p className="ai-por">{p.razon}</p>
             </div>
           ))}
           <div className="ai-bloqueo">
-            <b>🔒 Inciso exacto de 10 dígitos y su DAI</b>
-            <p>Cotiza tu importación con LANDEX y nuestro equipo te da la clasificación completa, validada por el agente aduanero. Los clientes LANDEX usan LANDEX AI completo.</p>
-            <button type="button" className="btn primario" onClick={onCotizar}>Cotizar con LANDEX</button>
+            <b>{tr("🔒 Inciso exacto de 10 dígitos y su DAI")}</b>
+            <p>{tr("Cotiza tu importación con LANDEX y nuestro equipo te da la clasificación completa, validada por el agente aduanero. Los clientes LANDEX usan LANDEX AI completo.")}</p>
+            <button type="button" className="btn primario" onClick={onCotizar}>{tr("Cotizar con LANDEX")}</button>
           </div>
-          {preguntas.length > 0 && <div className="ai-preguntas"><b>Para afinar la clasificación:</b><ul>{preguntas.map((q) => <li key={q}>{q}</li>)}</ul></div>}
+          {preguntas.length > 0 && <div className="ai-preguntas"><b>{tr("Para afinar la clasificación:")}</b><ul>{preguntas.map((q) => <li key={q}>{q}</li>)}</ul></div>}
         </div>
       )}
 
       {listo && nivel !== 'gratis' && (
         <div className="ai-resultados" aria-live="polite">
-          {candidatos.length === 0 ? <p>No hubo un inciso claro. Responde las preguntas de abajo y vuelve a intentar, o búscalo manualmente.</p> : candidatos.map((c, i) => {
+          {candidatos.length === 0 ? <p>{tr("No hubo un inciso claro. Responde las preguntas de abajo y vuelve a intentar, o búscalo manualmente.")}</p> : candidatos.map((c, i) => {
             const it = ind.porCodigo.get(c.codigo)
             return (
               <div key={c.codigo} className={`ai-cand ${i === 0 ? 'top' : ''}`}>
                 <div className="ai-cand-cab">
                   <span className="codigo">{c.codigo}</span>
-                  <span className={`conf ${c.confianza}`}>Confianza {c.confianza}</span>
-                  <span className="tasa">DAI {dai(it?.[2])}</span>
+                  <span className={`conf ${c.confianza}`}>{tr("Confianza ")}{c.confianza}</span>
+                  <span className="tasa">{tr("DAI ")}{dai(it?.[2])}</span>
                 </div>
                 <p className="ai-texto">{etiqueta(ind, c.codigo)}</p>
                 <p className="ai-por">{c.razon}</p>
                 <div className="acciones">
-                  <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c.codigo), desc.trim())}>Usar en mi cotización</button>
-                  <button type="button" className="link" onClick={() => onVer(c.codigo)}>Ver notas legales</button>
+                  <button type="button" className="btn primario" onClick={() => onUsar(aClasificacion(ind, c.codigo), desc.trim())}>{tr("Usar en mi cotización")}</button>
+                  <button type="button" className="link" onClick={() => onVer(c.codigo)}>{tr("Ver notas legales")}</button>
                 </div>
               </div>
             )
           })}
           {preguntas.length > 0 && (
-            <div className="ai-preguntas"><b>Para afinar la clasificación:</b><ul>{preguntas.map((p) => <li key={p}>{p}</li>)}</ul>
-              <small>Agrega esos datos a la descripción y vuelve a clasificar.</small></div>
+            <div className="ai-preguntas"><b>{tr("Para afinar la clasificación:")}</b><ul>{preguntas.map((p) => <li key={p}>{p}</li>)}</ul>
+              <small>{tr("Agrega esos datos a la descripción y vuelve a clasificar.")}</small></div>
           )}
-          {advertencia && <p className="nota">⚠ {advertencia}</p>}
+          {advertencia && <p className="nota">⚠ {tr(advertencia)}</p>}
         </div>
       )}
 
       {equipo && <PanelAccesos />}
 
-      <p className="ai-legal">Clasificación preliminar generada por IA. Los códigos se verifican contra el arancel oficial y el DAI mostrado viene del arancel, no de la IA. El agente aduanero de LANDEX la confirma con la ficha técnica antes de la cotización formal.</p>
+      <p className="ai-legal">{tr("Clasificación preliminar generada por IA. Los códigos se verifican contra el arancel oficial y el DAI mostrado viene del arancel, no de la IA. El agente aduanero de LANDEX la confirma con la ficha técnica antes de la cotización formal.")}</p>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { tr as traducir } from '../lib/idioma'
 import { usd } from '../lib/formato'
 import { calcularLanded, type Embarque, type Producto, type ResultadoLanded } from '../lib/landed'
 import {
@@ -33,8 +34,8 @@ export function Ofertas({ e, productos, r, candidatas, todas, aplicadas, protegi
 
   return (
     <div className="ofertas">
-      <h3>Ofertas de proveedores</h3>
-      <p className="nota">Tarifas de proveedores para esta ruta. Al aplicar una, sus montos reemplazan los valores de referencia de los conceptos que cubre.</p>
+      <h3>{traducir("Ofertas de proveedores")}</h3>
+      <p className="nota">{traducir("Tarifas de proveedores para esta ruta. Al aplicar una, sus montos reemplazan los valores de referencia de los conceptos que cubre.")}</p>
       {tramos.map((tr) => {
         const filas = candidatas.filter((t) => tramoTarifa(t) === tr).map((t) => ({ t, sim: simular(t), costo: totalTarifa(t, r.carga, valor, protegidos) }))
         const reales = filas.filter((f) => !f.t.ejemplo)
@@ -42,10 +43,10 @@ export function Ofertas({ e, productos, r, candidatas, todas, aplicadas, protegi
         const mejor = pool.reduce((a, b) => (b.sim.totales.total < a.sim.totales.total || (b.sim.totales.total === a.sim.totales.total && (b.t.diasTransito ?? 999) < (a.t.diasTransito ?? 999)) ? b : a))
         return (
           <div key={tr} className="tramo">
-            <h4>{TRAMOS[tr]}</h4>
+            <h4>{traducir(TRAMOS[tr])}</h4>
             <div className="tabla-scroll">
               <table className="tabla">
-                <thead><tr><th>Proveedor</th><th className="num">Cargos</th><th className="num">Total en bodega</th><th className="num">Tránsito</th><th>Vigencia</th><th></th></tr></thead>
+                <thead><tr><th>{traducir("Proveedor")}</th><th className="num">{traducir("Cargos")}</th><th className="num">{traducir("Total en bodega")}</th><th className="num">{traducir("Tránsito")}</th><th>{traducir("Vigencia")}</th><th></th></tr></thead>
                 <tbody>
                   {filas.map(({ t, sim, costo }) => {
                     const on = aplicadas.includes(t.id)
@@ -53,26 +54,26 @@ export function Ofertas({ e, productos, r, candidatas, todas, aplicadas, protegi
                     return (
                       <tr key={t.id} className={on ? 'actual' : ''}>
                         <td>
-                          <b>{t.proveedor}</b> <small>{CATEGORIAS_PROVEEDOR[t.categoria]}</small>
-                          {t.ejemplo && <span className="sello pend">Ejemplo, no es oferta</span>}
-                          {mejor.t.id === t.id && <span className="sello validada">Recomendada por LANDEX</span>}
+                          <b>{t.proveedor}</b> <small>{traducir(CATEGORIAS_PROVEEDOR[t.categoria])}</small>
+                          {t.ejemplo && <span className="sello pend">{traducir("Ejemplo, no es oferta")}</span>}
+                          {mejor.t.id === t.id && <span className="sello validada">{traducir("Recomendada por LANDEX")}</span>}
                           <details className="detalle-oferta">
-                            <summary>Qué incluye</summary>
+                            <summary>{traducir("Qué incluye")}</summary>
                             <ul>
-                              {t.cargos.map((c, i) => <li key={i} className={protegidos.has(c.concepto) ? 'tachado' : ''}>{CONCEPTOS_TARIFA.find((k) => k.id === c.concepto)?.nombre ?? c.concepto}{c.unidad === 'incluido' ? ' (incluido)' : ''}{protegidos.has(c.concepto) ? ' · no se cobra en este embarque' : ''}</li>)}
+                              {t.cargos.map((c, i) => <li key={i} className={protegidos.has(c.concepto) ? 'tachado' : ''}>{CONCEPTOS_TARIFA.find((k) => k.id === c.concepto)?.nombre ?? c.concepto}{c.unidad === 'incluido' ? traducir(" (incluido)") : ''}{protegidos.has(c.concepto) ? traducir(" · no se cobra en este embarque") : ''}</li>)}
                               {t.incluye.map((x) => <li key={x}>{x}</li>)}
                             </ul>
-                            {t.excluye.length > 0 && <><b>No incluye</b><ul>{t.excluye.map((x) => <li key={x}>{x}</li>)}</ul></>}
-                            {t.condiciones && <p><b>Condiciones:</b> {t.condiciones}</p>}
+                            {t.excluye.length > 0 && <><b>{traducir("No incluye")}</b><ul>{t.excluye.map((x) => <li key={x}>{x}</li>)}</ul></>}
+                            {t.condiciones && <p><b>{traducir("Condiciones:")}</b> {t.condiciones}</p>}
                           </details>
                         </td>
                         <td className="num">{usd(costo)}</td>
                         <td className="num"><b>{usd(sim.totales.total)}</b>{!on && <small>{sim.totales.total - r.totales.total >= 0 ? '+' : '−'}{usd(Math.abs(sim.totales.total - r.totales.total))}</small>}</td>
-                        <td className="num">{t.diasTransito != null ? `${t.diasTransito} d` : '—'}</td>
-                        <td><span className={`sello ${v === 'por_vencer' ? 'pend' : 'validada'}`}>hasta {t.vigenteHasta}</span></td>
+                        <td className="num">{t.diasTransito != null ? traducir("{0} d", t.diasTransito) : '—'}</td>
+                        <td><span className={`sello ${v === 'por_vencer' ? 'pend' : 'validada'}`}>{traducir("hasta ")}{t.vigenteHasta}</span></td>
                         <td>{on
-                          ? <button type="button" className="link" onClick={() => onQuitar(t)}>Quitar</button>
-                          : <button type="button" className="btn" onClick={() => onAplicar(t)}>Aplicar</button>}</td>
+                          ? <button type="button" className="link" onClick={() => onQuitar(t)}>{traducir("Quitar")}</button>
+                          : <button type="button" className="btn" onClick={() => onAplicar(t)}>{traducir("Aplicar")}</button>}</td>
                       </tr>
                     )
                   })}
