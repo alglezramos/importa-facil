@@ -3,7 +3,7 @@
  *
  * Capa de PRESENTACIÓN sobre el resultado del motor: no cambia ninguna fórmula
  * ni monto. Agrupa los conceptos del cálculo en servicios contratables y separa:
- *   - honorarios propios de LANDEX (agencia aduanal y coordinación),
+ *   - honorarios propios de LANDEX (agencia de aduanas y coordinación),
  *   - servicios coordinados por LANDEX con sus socios,
  *   - servicios que el cliente contrató por su cuenta,
  *   - impuestos y gastos de terceros (aduana, puerto, almacén fiscal),

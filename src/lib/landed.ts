@@ -409,7 +409,7 @@ function construirConceptos(e: Embarque, productos: Producto[], carga: Carga): C
   add({ id: 'inspecciones', etapa: 4, nombre: 'Inspecciones (aforo físico, MAG, Salud)', estado: 'no_aplica', monto: 0, base: 'valor', nota: 'Si Aduanas asigna revisión física se cotiza aparte' })
 
   // Etapa 5 – Nacionalización (los impuestos se calculan por producto aparte)
-  add({ id: 'honorarios', etapa: 5, nombre: 'Honorarios de agencia aduanal', ...est(null), base: 'valor', enValorAduanero: false })
+  add({ id: 'honorarios', etapa: 5, nombre: 'Honorarios de agencia de aduanas', ...est(null), base: 'valor', enValorAduanero: false })
   add({ id: 'coordinacion', etapa: 5, nombre: 'Servicios de coordinación logística', ...est(R.nacionalizacion.coordinacion), base: 'valor', enValorAduanero: false })
   const conPermiso = productos.some((p) => p.requierePermiso)
   const nPermisos = productos.filter((p) => p.requierePermiso).length
